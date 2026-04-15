@@ -1,30 +1,107 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Sun, Zap, Crown, Star, Users, TrendingUp, 
-  Shield, Sparkles, ChevronRight, Play, Lock,
-  Heart, MessageCircle, Share2, Eye
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Crown,
+  ChevronRight,
+  Eye,
+  Heart,
+  Lock,
+  Play,
+  Shield,
+  Sparkles,
+  Star,
+  Sun,
+  TrendingUp,
+  Users,
+  Zap,
 } from 'lucide-react'
-import { useUser } from '@/components/providers/AppProviders'
-import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
 import { MainApp } from '@/components/app/MainApp'
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
+import { useUser } from '@/components/providers/AppProviders'
+
+type Particle = {
+  id: number
+  x: number
+  y: number
+  size: number
+  delay: number
+}
+
+const STATS = [
+  {
+    label: 'Criadores ativos',
+    value: '50K+',
+    detail: 'crescimento semanal consistente',
+    icon: Users,
+  },
+  {
+    label: 'GMV mensal',
+    value: 'R$2M+',
+    detail: 'assinaturas, vault e leiloes',
+    icon: TrendingUp,
+  },
+  {
+    label: 'Satisfacao media',
+    value: '4.9',
+    detail: 'experiencia focada em retencao',
+    icon: Star,
+  },
+]
+
+const FEATURES = [
+  {
+    icon: Crown,
+    title: 'Empire Hub',
+    desc: 'Dashboard com receita, planos, carteira e leitura clara do que esta puxando crescimento.',
+    color: 'from-amber-500/20 via-orange-500/10 to-transparent',
+  },
+  {
+    icon: Lock,
+    title: 'The Vault',
+    desc: 'Momentos e conteudos premium destravados sob demanda, com escassez e valor percebido maiores.',
+    color: 'from-fuchsia-500/20 via-violet-500/10 to-transparent',
+  },
+  {
+    icon: Zap,
+    title: 'OnlyAuction',
+    desc: 'Leiloes de atencao para transformar urgencia e proximidade em uma mecanica de monetizacao.',
+    color: 'from-sky-500/20 via-indigo-500/10 to-transparent',
+  },
+]
+
+const TESTIMONIALS = [
+  {
+    name: 'Luna Estrela',
+    role: 'Criadora de Conteudo',
+    earning: 'R$ 18.500/mes',
+    avatar: 'Luna',
+    text: '"Em tres meses, minha operacao ficou mais premium e minha audiencia passou a pagar com menos friccao."',
+  },
+  {
+    name: 'Kai Noir',
+    role: 'Fotografo',
+    earning: 'R$ 12.000/mes',
+    avatar: 'Kai',
+    text: '"O Vault virou minha melhor alavanca. Parece exclusivo de verdade, e isso muda a resposta do publico."',
+  },
+]
 
 export function LandingPage() {
   const { isLoggedIn } = useUser()
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, size: number, delay: number}>>([])
+  const [particles, setParticles] = useState<Particle[]>([])
 
   useEffect(() => {
-    const p = Array.from({length: 20}, (_, i) => ({
+    const nextParticles = Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 4 + 1,
-      delay: Math.random() * 5
+      delay: Math.random() * 5,
     }))
-    setParticles(p)
+    setParticles(nextParticles)
   }, [])
 
   if (isLoggedIn) {
@@ -36,251 +113,288 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen aurora-bg relative overflow-hidden font-poppins">
-      {/* Animated particles */}
-      {particles.map(p => (
+    <div className="relative min-h-screen overflow-hidden bg-[#050508] font-poppins text-white">
+      <div className="absolute inset-0 aurora-bg" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(192,132,252,0.16),_transparent_32%),radial-gradient(circle_at_20%_80%,_rgba(59,130,246,0.12),_transparent_28%),radial-gradient(circle_at_85%_18%,_rgba(236,72,153,0.12),_transparent_22%)]" />
+      <div
+        className="absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
+          backgroundSize: '72px 72px',
+        }}
+      />
+
+      <motion.div
+        aria-hidden
+        className="absolute -top-16 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-fuchsia-500/20 blur-3xl"
+        animate={{ scale: [1, 1.1, 1], opacity: [0.22, 0.4, 0.22] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {particles.map((particle) => (
         <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-purple-500 opacity-20"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size }}
-          animate={{ y: [-20, 20, -20], opacity: [0.1, 0.4, 0.1] }}
-          transition={{ duration: 4 + p.delay, repeat: Infinity, ease: 'easeInOut' }}
+          key={particle.id}
+          className="absolute rounded-full bg-purple-400/30"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: particle.size,
+            height: particle.size,
+          }}
+          animate={{ y: [-18, 18, -18], opacity: [0.12, 0.4, 0.12] }}
+          transition={{ duration: 5 + particle.delay, repeat: Infinity, ease: 'easeInOut' }}
         />
       ))}
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: 'linear-gradient(rgba(124,58,237,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.3) 1px, transparent 1px)',
-        backgroundSize: '60px 60px'
-      }} />
-
-      {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -30 }}
+        initial={{ opacity: 0, y: -24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between"
-        style={{ background: 'rgba(5,5,8,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(124,58,237,0.15)' }}
+        className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-6"
       >
-        <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
-          <div className="w-8 h-8 rounded-xl gradient-purple flex items-center justify-center">
-            <Sun className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gradient">OnlyDay</span>
-        </motion.div>
-        <motion.button
-          onClick={() => setShowOnboarding(true)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-5 py-2 rounded-xl text-sm font-semibold text-white btn-primary"
-        >
-          Entrar
-        </motion.button>
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-[24px] border border-white/8 bg-black/20 px-3 py-2.5 backdrop-blur-2xl">
+          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.02 }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl gradient-purple shadow-[0_0_35px_rgba(168,85,247,0.35)]">
+              <Sun className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <span className="text-xl font-bold text-gradient">OnlyDay</span>
+              <p className="hidden text-[11px] uppercase tracking-[0.24em] text-white/35 md:block">
+                premium social commerce
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.button
+            onClick={() => setShowOnboarding(true)}
+            whileHover={{ scale: 1.03, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-2xl border border-violet-300/25 bg-white/7 px-5 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+          >
+            Entrar
+          </motion.button>
+        </div>
       </motion.header>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16">
-        
-        {/* Badge */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pb-16 pt-32">
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex items-center gap-2 px-4 py-2 rounded-full glass-strong neon-border mb-8"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6 flex flex-wrap items-center justify-center gap-3 text-xs font-medium text-white/55"
         >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="text-sm text-purple-300 font-medium">A 1ª plataforma premium do Brasil</span>
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-emerald-300">
+            onboarding guiado para criadores
+          </div>
+          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+            feed, chat VIP e monetizacao no mesmo fluxo
+          </div>
         </motion.div>
 
-        {/* Main Title */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-center mb-6"
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8 flex items-center gap-2 rounded-full border border-violet-300/20 bg-white/6 px-5 py-2.5 text-sm text-violet-200 shadow-[0_0_30px_rgba(124,58,237,0.12)] backdrop-blur-xl"
         >
-          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
-            <span className="text-white">Seu conteúdo,</span>
+          <Sparkles className="h-4 w-4 text-violet-300" />
+          <span className="font-medium">A 1a plataforma premium do Brasil</span>
+          <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 36 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28 }}
+          className="mb-8 max-w-5xl text-center"
+        >
+          <h1 className="mb-5 text-5xl font-black leading-[0.95] tracking-[-0.05em] md:text-7xl lg:text-8xl">
+            <span className="text-white">Seu conteudo,</span>
             <br />
-            <span className="text-gradient neon-text">suas regras.</span>
+            <span className="text-gradient neon-text">sua economia.</span>
           </h1>
-          <p className="text-lg text-white/60 max-w-md mx-auto leading-relaxed">
-            A rede social que transforma sua criatividade em renda. 
-            Monetize cada momento, cada conexão.
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/72 md:text-xl">
+            Uma rede social desenhada para transformar proximidade em recorrencia, escassez em desejo e audiencia em operacao premium.
           </p>
         </motion.div>
 
-        {/* CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 mb-16"
+          transition={{ delay: 0.4 }}
+          className="mb-6 flex flex-col gap-4 sm:flex-row"
         >
           <motion.button
             onClick={() => setShowOnboarding(true)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 rounded-2xl btn-primary text-lg font-bold flex items-center gap-2 neon-purple"
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex items-center justify-center gap-2 rounded-2xl btn-primary px-8 py-4 text-lg font-bold text-white shadow-[0_24px_60px_rgba(124,58,237,0.35)]"
           >
-            <Zap className="w-5 h-5" />
-            Começar Grátis
-            <ChevronRight className="w-5 h-5" />
+            <Zap className="h-5 w-5" />
+            Comecar Gratis
+            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </motion.button>
+
           <motion.button
             onClick={() => setShowOnboarding(true)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 rounded-2xl glass-strong border border-white/10 text-white text-lg font-semibold flex items-center gap-2"
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/7 px-8 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-2xl"
           >
-            <Play className="w-5 h-5 text-purple-400" />
+            <Play className="h-5 w-5 text-cyan-300" />
             Ver Demo
           </motion.button>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="grid grid-cols-3 gap-6 mb-16 w-full max-w-md"
+          transition={{ delay: 0.48 }}
+          className="mb-16 flex flex-wrap items-center justify-center gap-6 text-sm text-white/45"
         >
-          {[
-            { label: 'Criadores', value: '50K+', icon: Users },
-            { label: 'Ganhos', value: 'R$2M+', icon: TrendingUp },
-            { label: 'Estrelas', value: '4.9', icon: Star },
-          ].map((stat, i) => (
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-emerald-300" />
+            entrada guiada com menor friccao
+          </div>
+          <div className="flex items-center gap-2">
+            <Heart className="h-4 w-4 text-pink-300" />
+            exclusividade e relacionamento no centro
+          </div>
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-sky-300" />
+            interface mobile-first focada em conversao
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mb-16 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3"
+        >
+          {STATS.map((stat, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 + i * 0.1 }}
-              className="text-center glass-card rounded-2xl p-4"
+              transition={{ delay: 0.62 + index * 0.08 }}
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] p-5 text-left shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
             >
-              <stat.icon className="w-5 h-5 text-purple-400 mx-auto mb-1" />
-              <div className="text-2xl font-bold text-gradient">{stat.value}</div>
-              <div className="text-xs text-white/50">{stat.label}</div>
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
+              <div className="mb-5 flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/6 ring-1 ring-violet-400/25">
+                  <stat.icon className="h-5 w-5 text-violet-300" />
+                </div>
+                <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                  live
+                </span>
+              </div>
+              <div className="text-3xl font-black text-gradient">{stat.value}</div>
+              <div className="mt-1 text-sm font-medium text-white/86">{stat.label}</div>
+              <div className="mt-2 text-xs text-white/45">{stat.detail}</div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl w-full">
-          {[
-            {
-              icon: Crown,
-              title: 'Empire Hub',
-              desc: 'Dashboard completo de monetização com planos Bronze, Gold e Diamond',
-              color: 'from-yellow-500/20 to-orange-500/20',
-              delay: 0.9
-            },
-            {
-              icon: Lock,
-              title: 'The Vault',
-              desc: '3 momentos grátis por dia, demais são pagos via Pix - você define o preço',
-              color: 'from-purple-500/20 to-pink-500/20',
-              delay: 1.0
-            },
-            {
-              icon: Zap,
-              title: 'OnlyAuction',
-              desc: 'Leilão de atenção: fãs dão lances para ter sua resposta imediata',
-              color: 'from-blue-500/20 to-purple-500/20',
-              delay: 1.1
-            },
-          ].map((feat, i) => (
+        <div className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+          {FEATURES.map((feature, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
+              key={feature.title}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: feat.delay }}
+              transition={{ delay: 0.78 + index * 0.08 }}
               whileHover={{ y: -8, scale: 1.02 }}
-              className={`glass-card rounded-2xl p-6 bg-gradient-to-br ${feat.color} cursor-pointer`}
+              className={`rounded-3xl border border-white/10 bg-gradient-to-br ${feature.color} p-6 shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl`}
             >
-              <div className="w-10 h-10 rounded-xl gradient-purple flex items-center justify-center mb-3">
-                <feat.icon className="w-5 h-5 text-white" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl gradient-purple shadow-[0_18px_40px_rgba(124,58,237,0.35)]">
+                <feature.icon className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-white font-bold mb-2">{feat.title}</h3>
-              <p className="text-white/50 text-sm leading-relaxed">{feat.desc}</p>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">{feature.title}</h3>
+                <ChevronRight className="h-4 w-4 text-white/35" />
+              </div>
+              <p className="text-sm leading-relaxed text-white/62">{feature.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Social Proof */}
       <section className="px-6 py-16">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="mb-10 text-center"
         >
-          <h2 className="text-3xl font-bold text-white mb-3">Criadores que <span className="text-gradient">faturam</span></h2>
-          <p className="text-white/50">Histórias reais de quem monetiza no OnlyDay</p>
+          <h2 className="mb-3 text-3xl font-bold text-white">
+            Criadores que <span className="text-gradient">faturam</span>
+          </h2>
+          <p className="text-white/50">Historias reais de quem monetiza com uma operacao mais exclusiva.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-          {[
-            { name: 'Luna Estrela', role: 'Criadora de Conteúdo', earning: 'R$ 18.500/mês', avatar: 'Luna', text: '"Em 3 meses já superei meu salário anterior. O OnlyAuction é incrível!"' },
-            { name: 'Kai Noir', role: 'Fotógrafo', earning: 'R$ 12.000/mês', avatar: 'Kai', text: '"O The Vault me permite monetizar cada clique. Simplesmente perfeito."' },
-          ].map((creator, i) => (
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+          {TESTIMONIALS.map((creator, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, x: i === 0 ? -30 : 30 }}
+              key={creator.name}
+              initial={{ opacity: 0, x: index === 0 ? -24 : 24 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.2 }}
-              className="glass-card rounded-2xl p-6"
+              transition={{ delay: index * 0.15 }}
+              className="rounded-3xl border border-white/10 bg-white/[0.045] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <img src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${creator.avatar}`}
-                  alt={creator.name} className="w-12 h-12 rounded-full ring-2 ring-purple-500"
+              <div className="mb-4 flex items-center gap-3">
+                <img
+                  src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${creator.avatar}`}
+                  alt={creator.name}
+                  className="h-12 w-12 rounded-full ring-2 ring-violet-400/70"
                 />
                 <div>
-                  <div className="text-white font-semibold flex items-center gap-1">
-                    {creator.name} <Shield className="w-3 h-3 text-purple-400" />
+                  <div className="flex items-center gap-1 text-white">
+                    <span className="font-semibold">{creator.name}</span>
+                    <Shield className="h-3.5 w-3.5 text-violet-300" />
                   </div>
-                  <div className="text-white/50 text-xs">{creator.role}</div>
+                  <div className="text-xs text-white/45">{creator.role}</div>
                 </div>
                 <div className="ml-auto text-right">
-                  <div className="text-gradient font-bold text-sm">{creator.earning}</div>
-                  <div className="text-white/40 text-xs">média mensal</div>
+                  <div className="text-sm font-bold text-gradient">{creator.earning}</div>
+                  <div className="text-xs text-white/35">media mensal</div>
                 </div>
               </div>
-              <p className="text-white/60 text-sm italic">{creator.text}</p>
+              <p className="text-sm italic leading-relaxed text-white/64">{creator.text}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="px-6 py-16 text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.92 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="glass-card rounded-3xl p-10 max-w-lg mx-auto neon-border"
+          className="mx-auto max-w-2xl rounded-[32px] border border-violet-300/14 bg-white/[0.05] p-10 shadow-[0_26px_90px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
         >
-          <div className="w-16 h-16 gradient-purple rounded-2xl flex items-center justify-center mx-auto mb-4 glow-pulse">
-            <Crown className="w-8 h-8 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-purple glow-pulse">
+            <Crown className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-3xl font-black text-white mb-3">
+          <h2 className="mb-3 text-3xl font-black text-white">
             Pronto para <span className="text-gradient">dominar?</span>
           </h2>
-          <p className="text-white/50 mb-6">Junte-se aos melhores criadores do Brasil</p>
+          <p className="mb-6 text-white/55">
+            Entre com uma narrativa mais forte, uma interface premium e caminhos claros de monetizacao.
+          </p>
           <motion.button
             onClick={() => setShowOnboarding(true)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full py-4 rounded-2xl btn-primary text-lg font-bold neon-purple"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full rounded-2xl btn-primary py-4 text-lg font-bold text-white shadow-[0_20px_50px_rgba(124,58,237,0.35)]"
           >
             Criar minha conta gratuita
           </motion.button>
         </motion.div>
       </section>
 
-      <footer className="text-center py-8 text-white/30 text-sm">
-        © 2025 OnlyDay. Todos os direitos reservados.
+      <footer className="py-8 text-center text-sm text-white/28">
+        2025 OnlyDay. Todos os direitos reservados.
       </footer>
     </div>
   )

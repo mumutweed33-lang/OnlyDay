@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Upload, CheckCircle, User, Lock, Crown, ChevronRight, ChevronLeft, Sparkles, Shield, Eye } from 'lucide-react'
-import { useUser } from '@/components/providers/UserContext'
+import { useUser } from '@/components/providers/AppProviders'
 
 interface OnboardingFlowProps {
   onBack?: () => void
