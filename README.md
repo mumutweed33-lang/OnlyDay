@@ -78,6 +78,24 @@ http://localhost:3000
 - `npm run start`: sobe a aplicacao ja buildada
 - `npm run lint`: executa a checagem de lint
 
+## Deploy
+
+### Vercel
+
+1. Importe o repositorio no painel da Vercel
+2. Selecione o framework `Next.js`
+3. Mantenha os comandos padrao:
+
+```text
+Build Command: npm run build
+Install Command: npm install
+Output: .next
+```
+
+4. Publique o projeto
+
+O arquivo `vercel.json` ja foi adicionado para deixar o deploy mais direto.
+
 ## Estado Atual
 
 - O projeto esta buildando com sucesso em producao
