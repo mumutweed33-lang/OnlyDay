@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>OnlyDay - A Plataforma Premium do Brasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Poppins',sans-serif;background:#050508;color:#fff;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:2px}
+.glass{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12)}
+.glass-card{background:rgba(15,10,30,.8);backdrop-filter:blur(20px);border:1px solid rgba(124,58,237,.15)}
+.gradient-purple{background:linear-gradient(135deg,#7C3AED 0%,#A855F7 50%,#C084FC 100%)}
+.gradient-primary{background:linear-gradient(135deg,#7C3AED,#9333EA)}
+.text-gradient{background:linear-gradient(135deg,#A855F7,#C084FC,#E9D5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.neon-purple{box-shadow:0 0 20px rgba(124,58,237,.5),0 0 40px rgba(124,58,237,.2)}
+.neon-text{text-shadow:0 0 20px rgba(168,85,247,.8),0 0 40px rgba(168,85,247,.4)}
+.neon-border{border:1px solid rgba(124,58,237,.5)!important;box-shadow:0 0 15px rgba(124,58,237,.2)}
+.mesh-bg{background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.15),transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.1),transparent 40%),#050508}
+.aurora-bg{background:linear-gradient(-45deg,#050508,#0D0025,#1A0040,#0A0010,#050508);background-size:400% 400%;animation:aurora 15s ease infinite}
+@keyframes aurora{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(124,58,237,.3)}50%{box-shadow:0 0 60px rgba(124,58,237,.7)}}
+.glow-pulse{animation:glow-pulse 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.float{animation:float 4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.animate-pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes shimmer{0%{left:-100%}100%{left:100%}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards}
+.btn-primary{background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;font-weight:600;border:none;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden;font-family:'Poppins',sans-serif}
+.btn-primary:hover{box-shadow:0 0 25px rgba(124,58,237,.6);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.97)}
+.story-ring{background:linear-gradient(135deg,#7C3AED,#A855F7,#C084FC);padding:2px;border-radius:50%;display:inline-block}
+.badge-vip{background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;text-transform:uppercase}
+.input-glass{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .3s ease;font-family:'Poppins',sans-serif;width:100%}
+.input-glass::placeholder{color:rgba(255,255,255,.3)}
+.input-glass:focus{outline:none;border-color:rgba(124,58,237,.6);box-shadow:0 0 15px rgba(124,58,237,.2);background:rgba(255,255,255,.07)}
+.hidden{display:none!important}
+.page{display:none;min-height:calc(100vh - 70px);padding-bottom:80px;animation:fadeIn .3s ease}
+.page.active{display:block}
+#app{max-width:430px;margin:0 auto;min-height:100vh;background:#050508;position:relative}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ===== LANDING PAGE ===== -->
+<div id="page-landing" class="page active aurora-bg" style="min-height:100vh;overflow-y:auto;padding-bottom:0">
+  <!-- Particles -->
+  <div id="particles" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+  
+  <!-- Grid overlay -->
+  <div style="position:absolute;inset:0;opacity:.05;background-image:linear-gradient(rgba(124,58,237,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,.3) 1px,transparent 1px);background-size:60px 60px;pointer-events:none"></div>
+  
+  <!-- Header -->
+  <header style="position:fixed;top:0;left:0;right:0;z-index:50;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;max-width:430px;margin:0 auto;background:rgba(5,5,8,.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(124,58,237,.15)">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="gradient-purple" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </div>
+      <span class="text-gradient" style="font-size:20px;font-weight:800">OnlyDay</span>
+    </div>
+    <button class="btn-primary" onclick="showPage('onboarding')" style="padding:8px 20px;border-radius:12px;font-size:14px">Entrar</button>
+  </header>
+
+  <!-- Hero Section -->
+  <section style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 24px 64px;position:relative;z-index:1">
+    
+    <!-- Badge -->
+    <div class="glass-strong neon-border" style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:100px;margin-bottom:32px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M12 3l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"/></svg>
+      <span style="font-size:13px;color:#C084FC;font-weight:500">A 1ª plataforma premium do Brasil</span>
+      <div style="width:8px;height:8px;background:#4ade80;border-radius:50%" class="animate-pulse"></div>
+    </div>
+
+    <!-- Title -->
+    <div style="text-align:center;margin-bottom:24px">
+      <h1 style="font-size:clamp(40px,10vw,64px);font-weight:900;line-height:1.1;margin-bottom:16px">
+        <span style="color:#fff">Seu conteúdo,</span><br>
+        <span class="text-gradient neon-text">suas regras.</span>
+      </h1>
+      <p style="font-size:16px;color:rgba(255,255,255,.6);max-width:380px;margin:0 auto;line-height:1.7">
+        A rede social que transforma sua criatividade em renda. Monetize cada momento, cada conexão.
+      </p>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:48px;width:100%;max-width:300px">
+      <button class="btn-primary neon-purple" onclick="showPage('onboarding')" style="padding:16px 32px;border-radius:16px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Começar Grátis
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button onclick="showPage('onboarding')" class="glass-strong" style="padding:16px 32px;border-radius:16px;font-size:16px;border:1px solid rgba(255,255,255,.1);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;background:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Ver Demo
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:48px;width:100%;max-width:380px">
+      <div class="glass-card" style="text-align:center;padding:16px;border-radius:16px">
+        <div style="font-size:20px;margin-bottom:4px">👥</div>
+        <div class="text-gradient" style="font-size:22px;font-weight:800">50K+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">Criadores</div>
+      </div><div class="glass-card" style="text-align:center;padding:16px;border-radius:16px">
+        <div style="font-size:20px;margin-bottom:4px">📈</div>
+        <div class="text-gradient" style="font-size:22px;font-weight:800">R$2M+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">Ganhos</div>
+      </div><div class="glass-card" style="text-align:center;padding:16px;border-radius:16px">
+        <div style="font-size:20px;margin-bottom:4px">⭐</div>
+        <div class="text-gradient" style="font-size:22px;font-weight:800">4.9</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">Estrelas</div>
+      </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div style="display:grid;grid-template-columns:1fr;gap:16px;width:100%;max-width:380px">
+      <div class="glass-card card-hover" style="padding:20px;border-radius:20px;background-color:rgba(234,179,8,.1);cursor:pointer">
+        <div class="gradient-purple" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px">👑</div>
+        <h3 style="color:#fff;font-weight:700;margin-bottom:6px">Empire Hub</h3>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6">Dashboard de monetização com planos Bronze, Gold e Diamond</p>
+      </div><div class="glass-card card-hover" style="padding:20px;border-radius:20px;background-color:rgba(168,85,247,.1);cursor:pointer">
+        <div class="gradient-purple" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px">🔒</div>
+        <h3 style="color:#fff;font-weight:700;margin-bottom:6px">The Vault</h3>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6">3 momentos grátis por dia, demais são pagos via Pix</p>
+      </div><div class="glass-card card-hover" style="padding:20px;border-radius:20px;background-color:rgba(59,130,246,.1);cursor:pointer">
+        <div class="gradient-purple" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px">⚡</div>
+        <h3 style="color:#fff;font-weight:700;margin-bottom:6px">OnlyAuction</h3>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6">Leilão de atenção: fãs dão lances para ter sua resposta imediata</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section style="padding:48px 24px;position:relative;z-index:1">
+    <div style="text-align:center;margin-bottom:32px">
+      <h2 style="font-size:28px;font-weight:800;color:#fff;margin-bottom:8px">Criadores que <span class="text-gradient">faturam</span></h2>
+      <p style="color:rgba(255,255,255,.5);font-size:14px">Histórias reais de quem monetiza no OnlyDay</p>
+    </div>
+    <div style="display:grid;gap:16px;max-width:380px;margin:0 auto">
+      <div class="glass-card" style="padding:20px;border-radius:20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="Luna Estrela" style="width:48px;height:48px;border-radius:50%;border:2px solid #7C3AED">
+          <div style="flex:1">
+            <div style="color:#fff;font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px">Luna Estrela <svg width="12" height="12" viewBox="0 0 24 24" fill="#A855F7" stroke="none"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">Criadora de Conteúdo</div>
+          </div>
+          <div style="text-align:right">
+            <div class="text-gradient" style="font-weight:700;font-size:13px">R$ 18.500/mês</div>
+            <div style="color:rgba(255,255,255,.4);font-size:11px">média mensal</div>
+          </div>
+        </div>
+        <p style="color:rgba(255,255,255,.6);font-size:13px;font-style:italic">"Em 3 meses já superei meu salário anterior. O OnlyAuction é incrível!"</p>
+      </div><div class="glass-card" style="padding:20px;border-radius:20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kai" alt="Kai Noir" style="width:48px;height:48px;border-radius:50%;border:2px solid #7C3AED">
+          <div style="flex:1">
+            <div style="color:#fff;font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px">Kai Noir <svg width="12" height="12" viewBox="0 0 24 24" fill="#A855F7" stroke="none"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">Fotógrafo</div>
+          </div>
+          <div style="text-align:right">
+            <div class="text-gradient" style="font-weight:700;font-size:13px">R$ 12.000/mês</div>
+            <div style="color:rgba(255,255,255,.4);font-size:11px">média mensal</div>
+          </div>
+        </div>
+        <p style="color:rgba(255,255,255,.6);font-size:13px;font-style:italic">"O The Vault me permite monetizar cada clique. Simplesmente perfeito."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section style="padding:32px 24px 64px;text-align:center;position:relative;z-index:1">
+    <div class="glass-card neon-border" style="padding:40px 24px;border-radius:24px;max-width:380px;margin:0 auto">
+      <div class="gradient-purple glow-pulse" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">👑</div>
+      <h2 style="font-size:28px;font-weight:900;color:#fff;margin-bottom:8px">Pronto para <span class="text-gradient">dominar?</span></h2>
+      <p style="color:rgba(255,255,255,.5);margin-bottom:24px;font-size:14px">Junte-se aos melhores criadores do Brasil</p>
+      <button class="btn-primary neon-purple" onclick="showPage('onboarding')" style="width:100%;padding:16px;border-radius:16px;font-size:16px;font-weight:700">
+        Criar minha conta gratuita
+      </button>
+    </div>
+  </section>
+
+  <footer style="text-align:center;padding:24px;color:rgba(255,255,255,.3);font-size:13px;position:relative;z-index:1">
+    © 2025 OnlyDay. Todos os direitos reservados.
+  </footer>
+</div>
+
+
+<!-- ===== ONBOARDING ===== -->
+<div id="page-onboarding" class="page" style="min-height:100vh;overflow-y:auto;padding-bottom:0;background:linear-gradient(135deg,#0D0025,#1A0040,#050508)">
+  <div style="position:absolute;top:25%;left:25%;width:300px;height:300px;background:rgba(124,58,237,.15);border-radius:50%;filter:blur(60px)"></div>
+  <div style="position:absolute;bottom:25%;right:25%;width:300px;height:300px;background:rgba(168,85,247,.1);border-radius:50%;filter:blur(60px)"></div>
+  
+  <div style="position:relative;z-index:10;width:100%;max-width:400px;margin:0 auto;padding:24px">
+    <!-- Header Onboarding -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px">
+      <button id="btn-back-onboarding" onclick="onboardingBack()" style="padding:8px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:12px;cursor:pointer;font-family:'Poppins',sans-serif">Voltar</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M12 3l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"/></svg>
+        <span class="text-gradient" style="font-weight:700">OnlyDay</span>
+      </div>
+      <span id="onboarding-step-label" style="font-size:12px;color:rgba(255,255,255,.4)">1/4</span>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:32px;overflow:hidden">
+      <div id="onboarding-progress" style="height:100%;background:linear-gradient(90deg,#7C3AED,#A855F7);border-radius:2px;width:25%;transition:width .5s ease"></div>
+    </div>
+
+    <!-- Steps container -->
+    <div id="onboarding-step-0">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="gradient-purple" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">✨</div>
+        <h2 style="font-size:24px;font-weight:800;color:#fff;margin-bottom:8px">Bem-vindo ao OnlyDay</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:14px">Crie sua conta premium</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">Nome completo</label>
+          <input type="text" id="ob-name" placeholder="Seu nome" class="input-glass" style="padding:12px 16px;border-radius:12px;font-size:15px">
+        </div>
+        <div>
+          <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">Username</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A855F7;font-weight:600">@</span>
+            <input type="text" id="ob-username" placeholder="seuusername" class="input-glass" style="padding:12px 16px 12px 30px;border-radius:12px;font-size:15px">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">E-mail</label>
+          <input type="email" id="ob-email" placeholder="seu@email.com" class="input-glass" style="padding:12px 16px;border-radius:12px;font-size:15px">
+        </div>
+        <div>
+          <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">Senha</label>
+          <input type="password" id="ob-password" placeholder="Mínimo 8 caracteres" class="input-glass" style="padding:12px 16px;border-radius:12px;font-size:15px">
+        </div>
+        <div class="glass-card" style="padding:16px;border-radius:16px;cursor:pointer" onclick="toggleCreator()">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="color:#fff;font-weight:600;margin-bottom:4px">Sou Criador de Conteúdo</div>
+              <div style="color:rgba(255,255,255,.5);font-size:12px">Monetize seu conteúdo premium</div>
+            </div>
+            <div id="creator-toggle" style="width:44px;height:24px;background:rgba(255,255,255,.1);border-radius:100px;position:relative;transition:background .3s">
+              <div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .3s"></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="onboardingNext()" style="padding:16px;border-radius:16px;font-size:15px;font-weight:700;margin-top:8px">
+          Continuar →
+        </button>
+      </div>
+    </div>
+
+    <div id="onboarding-step-1" class="hidden">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="gradient-purple" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">📷</div>
+        <h2 style="font-size:24px;font-weight:800;color:#fff;margin-bottom:8px">Verificação Elite</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:14px">Selfie em tempo real para verificar sua identidade</p>
+      </div>
+      <div class="glass-card" style="padding:24px;border-radius:20px;text-align:center;margin-bottom:24px">
+        <div style="width:200px;height:200px;border-radius:50%;border:3px dashed rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:rgba(124,58,237,.05)">
+          <div>
+            <div style="font-size:48px;margin-bottom:8px">🤳</div>
+            <p style="color:rgba(255,255,255,.5);font-size:13px">Sua selfie aqui</p>
+          </div>
+        </div>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:16px">Tire uma selfie para verificar que você é real</p>
+        <button onclick="simulateSelfie()" class="btn-primary" style="padding:12px 24px;border-radius:12px;font-size:14px">
+          📸 Tirar Selfie
+        </button>
+      </div>
+      <button class="btn-primary" onclick="onboardingNext()" style="padding:16px;border-radius:16px;font-size:15px;font-weight:700;width:100%">
+        Continuar →
+      </button>
+    </div>
+
+    <div id="onboarding-step-2" class="hidden">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="gradient-purple" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">🛡️</div>
+        <h2 style="font-size:24px;font-weight:800;color:#fff;margin-bottom:8px">Documentos</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:14px">Confirme sua identidade com um documento</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px">
+        <div class="glass-card" style="padding:20px;border-radius:16px;text-align:center;cursor:pointer" onclick="this.querySelector('span').textContent='✅ Frente enviada'">
+          <div style="font-size:32px;margin-bottom:8px">📄</div>
+          <span style="color:rgba(255,255,255,.7);font-size:14px">Frente do documento</span>
+        </div>
+        <div class="glass-card" style="padding:20px;border-radius:16px;text-align:center;cursor:pointer" onclick="this.querySelector('span').textContent='✅ Verso enviado'">
+          <div style="font-size:32px;margin-bottom:8px">📄</div>
+          <span style="color:rgba(255,255,255,.7);font-size:14px">Verso do documento</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="onboardingNext()" style="padding:16px;border-radius:16px;font-size:15px;font-weight:700;width:100%">
+        Continuar →
+      </button>
+    </div>
+
+    <div id="onboarding-step-3" class="hidden">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="gradient-purple" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">👑</div>
+        <h2 style="font-size:24px;font-weight:800;color:#fff;margin-bottom:8px">Perfil Premium</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:14px">Personalize sua presença</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="text-align:center">
+          <div onclick="this.style.background='linear-gradient(135deg,#7C3AED,#A855F7)'" style="width:80px;height:80px;border-radius:24px;background:rgba(124,58,237,.2);border:2px dashed rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;cursor:pointer;font-size:28px">🎨</div>
+          <p style="color:rgba(255,255,255,.5);font-size:12px">Toque para adicionar foto</p>
+        </div>
+        <div>
+          <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">Bio</label>
+          <textarea id="ob-bio" placeholder="Conte um pouco sobre você..." class="input-glass" style="padding:12px 16px;border-radius:12px;font-size:14px;height:80px;resize:none;width:100%"></textarea>
+        </div>
+        <button class="btn-primary glow-pulse" onclick="completeOnboarding()" style="padding:16px;border-radius:16px;font-size:15px;font-weight:700;margin-top:8px">
+          🚀 Entrar no OnlyDay
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== MAIN APP ===== -->
+<div id="page-app" class="page" style="min-height:100vh;background:#050508">
+
+  <!-- BottomNav -->
+  <nav id="bottom-nav" style="position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(5,5,8,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.05);padding:8px 0;max-width:430px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-around;max-width:400px;margin:0 auto;padding:0 8px">
+      <button class="nav-btn" onclick="switchTab('feed')" data-tab="feed" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:10px;font-weight:500">Feed</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('explore')" data-tab="explore" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span style="font-size:10px;font-weight:500">Explorar</span>
+      </button>
+      <button class="nav-btn" onclick="openCreateModal()" data-tab="create" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;background:none;border:none;cursor:pointer">
+        <div class="gradient-primary neon-purple" style="width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        </div>
+      </button>
+      <button class="nav-btn" onclick="switchTab('chat')" data-tab="chat" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);position:relative">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span style="font-size:10px;font-weight:500">Chat</span>
+        <span id="chat-badge" class="hidden" style="position:absolute;top:4px;right:8px;width:16px;height:16px;background:#7C3AED;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff">3</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('empire')" data-tab="empire" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span style="font-size:10px;font-weight:500">Empire</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- FEED TAB -->
+  <div id="tab-feed" class="tab-content active" style="display:block">
+    <!-- Header Feed -->
+    <div class="glass" style="position:sticky;top:0;z-index:30;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M12 3l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"/></svg>
+          <span class="text-gradient" style="font-size:18px;font-weight:900">OnlyDay</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button style="width:36px;height:36px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="toggleNotif()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#7C3AED;border-radius:50%"></span>
+          </button>
+          <button style="width:36px;height:36px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Momentos/Stories Bar -->
+    <div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);overflow-x:auto;display:flex;gap:12px;padding-left:16px;scrollbar-width:none">
+      <!-- Add story -->
+      <div onclick="addStory()" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(124,58,237,.2);border:2px dashed rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.5)">Seu story</span>
+      </div>
+      <!-- Stories -->
+      <div onclick="viewStory('Luna')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="Luna" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Luna</span>
+      </div><div onclick="viewStory('Kai')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kai" alt="Kai" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Kai</span>
+      </div><div onclick="viewStory('Sofia')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia" alt="Sofia" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Sofia</span>
+      </div><div onclick="viewStory('Viktor')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Viktor" alt="Viktor" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Viktor</span>
+      </div><div onclick="viewStory('Mia')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" alt="Mia" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Mia</span>
+      </div><div onclick="viewStory('Alex')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:60px">
+        <div class="story-ring">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Alex" style="width:52px;height:52px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap">Alex</span>
+      </div>
+    </div>
+
+    <!-- Feed Divider -->
+    <div style="padding:12px 16px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.05)"></div>
+      <span style="font-size:11px;color:rgba(255,255,255,.3);font-weight:500">Para Você</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.05)"></div>
+    </div>
+
+    <!-- Posts -->
+    <div id="posts-container">
+      <!-- Posts serão gerados pelo JS -->
+    </div>
+
+    <!-- Load more skeleton -->
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+      <div class="glass-card" style="padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.05)" class="animate-pulse">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+          <div style="flex:1">
+            <div style="height:10px;width:80px;background:rgba(255,255,255,.05);border-radius:4px;margin-bottom:6px"></div>
+            <div style="height:8px;width:60px;background:rgba(255,255,255,.05);border-radius:4px"></div>
+          </div>
+        </div>
+        <div style="height:10px;background:rgba(255,255,255,.05);border-radius:4px;margin-bottom:6px"></div>
+        <div style="height:10px;width:75%;background:rgba(255,255,255,.05);border-radius:4px"></div>
+      </div><div class="glass-card" style="padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.05)" class="animate-pulse">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+          <div style="flex:1">
+            <div style="height:10px;width:80px;background:rgba(255,255,255,.05);border-radius:4px;margin-bottom:6px"></div>
+            <div style="height:8px;width:60px;background:rgba(255,255,255,.05);border-radius:4px"></div>
+          </div>
+        </div>
+        <div style="height:10px;background:rgba(255,255,255,.05);border-radius:4px;margin-bottom:6px"></div>
+        <div style="height:10px;width:75%;background:rgba(255,255,255,.05);border-radius:4px"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- EXPLORE TAB -->
+  <div id="tab-explore" class="tab-content" style="display:none">
+    <div class="glass" style="position:sticky;top:0;z-index:30;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <h1 style="font-size:20px;font-weight:900;color:#fff;margin-bottom:12px">Explorar</h1>
+      <div style="position:relative">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Buscar criadores, tags..." class="input-glass" style="padding:10px 16px 10px 36px;border-radius:12px;font-size:14px;width:100%" oninput="searchCreators(this.value)">
+      </div>
+    </div>
+    <div style="padding:16px">
+      <!-- Trending -->
+      <h2 style="font-size:15px;font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:16px">🔥</span> Trending
+      </h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px">
+        <div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('OnlyDay')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">OnlyDay</span>
+            <span style="font-size:10px">🔥</span>
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">12.4K posts</div>
+        </div><div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('CriadorBR')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">CriadorBR</span>
+            <span style="font-size:10px">🔥</span>
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">8.9K posts</div>
+        </div><div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('PremiumLife')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">PremiumLife</span>
+            
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">6.2K posts</div>
+        </div><div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('EmpireBuilder')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">EmpireBuilder</span>
+            
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">5.1K posts</div>
+        </div><div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('MomentosVault')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">MomentosVault</span>
+            <span style="font-size:10px">🔥</span>
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">4.7K posts</div>
+        </div><div class="glass-card" style="padding:12px;border-radius:12px;cursor:pointer" onclick="searchByTag('ChatVIP')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:#A855F7;font-size:13px">#</span>
+            <span style="color:#fff;font-weight:600;font-size:13px">ChatVIP</span>
+            
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">3.8K posts</div>
+        </div>
+      </div>
+
+      <!-- Creators -->
+      <h2 style="font-size:15px;font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:16px">⭐</span> Criadores em Alta
+      </h2>
+      <div id="explore-creators" style="display:flex;flex-direction:column;gap:12px">
+        <div class="glass-card card-hover" style="padding:16px;border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+          <div class="story-ring">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Luna Estrela</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">diamond</span>
+            </div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">@lunaestela • 45.2K seguidores</div>
+          </div>
+          <button onclick="followCreator(this)" class="btn-primary" style="padding:6px 14px;border-radius:8px;font-size:12px">Seguir</button>
+        </div><div class="glass-card card-hover" style="padding:16px;border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+          <div class="story-ring">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kai" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Kai Noir</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+            </div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">@kainoir • 38.7K seguidores</div>
+          </div>
+          <button onclick="followCreator(this)" class="btn-primary" style="padding:6px 14px;border-radius:8px;font-size:12px">Seguir</button>
+        </div><div class="glass-card card-hover" style="padding:16px;border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+          <div class="story-ring">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Sofia Star</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">diamond</span>
+            </div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">@sofiastar • 29.1K seguidores</div>
+          </div>
+          <button onclick="followCreator(this)" class="btn-primary" style="padding:6px 14px;border-radius:8px;font-size:12px">Seguir</button>
+        </div><div class="glass-card card-hover" style="padding:16px;border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+          <div class="story-ring">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Viktor" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Viktor Dark</span>
+              
+              <span class="badge-vip" style="background:linear-gradient(135deg,#78716C,#57534E)">bronze</span>
+            </div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">@viktordark • 22.4K seguidores</div>
+          </div>
+          <button onclick="followCreator(this)" class="btn-primary" style="padding:6px 14px;border-radius:8px;font-size:12px">Seguir</button>
+        </div><div class="glass-card card-hover" style="padding:16px;border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+          <div class="story-ring">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Mia Cruz</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+            </div>
+            <div style="color:rgba(255,255,255,.5);font-size:12px">@miacruz • 18.9K seguidores</div>
+          </div>
+          <button onclick="followCreator(this)" class="btn-primary" style="padding:6px 14px;border-radius:8px;font-size:12px">Seguir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div id="tab-chat" class="tab-content" style="display:none">
+    <div id="chat-list-view">
+      <div class="glass" style="position:sticky;top:0;z-index:30;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h1 style="font-size:20px;font-weight:900;color:#fff">Chat VIP</h1>
+          <div class="glass" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:100px;border:1px solid rgba(124,58,237,.2)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M12 3l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"/></svg>
+            <span style="font-size:12px;color:#A855F7">Premium</span>
+          </div>
+        </div>
+      </div>
+      <div id="conversations-list">
+        <div onclick="openChat('1','Luna Estrela','Luna','diamond')" style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.05)'" onmouseout="this.style.background='transparent'">
+          <div class="story-ring" style="">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Luna Estrela</span>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">diamond</span>
+            </div>
+            <p style="color:rgba(255,255,255,.5);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Oi amor! 💜</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">2min</span>
+            <span style="width:20px;height:20px;background:#7C3AED;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600">3</span>
+          </div>
+        </div><div onclick="openChat('2','Kai Noir','Kai','gold')" style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.05)'" onmouseout="this.style.background='transparent'">
+          <div class="story-ring" style="">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kai" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Kai Noir</span>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+            </div>
+            <p style="color:rgba(255,255,255,.5);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Novo conteúdo disponível!</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">15min</span>
+            <span style="width:20px;height:20px;background:#7C3AED;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600">1</span>
+          </div>
+        </div><div onclick="openChat('3','Sofia Star','Sofia','diamond')" style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.05)'" onmouseout="this.style.background='transparent'">
+          <div class="story-ring" style="background:rgba(255,255,255,.1)">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Sofia Star</span>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">diamond</span>
+            </div>
+            <p style="color:rgba(255,255,255,.5);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Obrigada pela assinatura ✨</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">1h</span>
+            
+          </div>
+        </div><div onclick="openChat('4','Viktor Dark','Viktor','bronze')" style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.05)'" onmouseout="this.style.background='transparent'">
+          <div class="story-ring" style="background:rgba(255,255,255,.1)">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Viktor" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Viktor Dark</span>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#78716C,#57534E)">bronze</span>
+            </div>
+            <p style="color:rgba(255,255,255,.5);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Mensagem bloqueada 🔒</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">3h</span>
+            
+          </div>
+        </div><div onclick="openChat('5','Mia Cruz','Mia','gold')" style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.05)'" onmouseout="this.style.background='transparent'">
+          <div class="story-ring" style="">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" style="width:48px;height:48px;border-radius:50%;border:2px solid #050508;display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#fff;font-weight:600;font-size:14px">Mia Cruz</span>
+              <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+            </div>
+            <p style="color:rgba(255,255,255,.5);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Até logo! 💋</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">1d</span>
+            <span style="width:20px;height:20px;background:#7C3AED;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600">2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat View (individual) -->
+    <div id="chat-conversation-view" class="hidden" style="display:none;flex-direction:column;height:100vh">
+      <div class="glass" style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30">
+        <button onclick="closeChat()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);padding:4px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <div id="chat-user-avatar" class="story-ring">
+          <img id="chat-avatar-img" src="" style="width:40px;height:40px;border-radius:50%;border:2px solid #050508;display:block">
+        </div>
+        <div>
+          <div id="chat-user-name" style="color:#fff;font-weight:600;font-size:14px"></div>
+          <div style="color:#4ade80;font-size:11px;display:flex;align-items:center;gap:4px">
+            <span style="width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block"></span>
+            Online
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button style="background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);padding:6px 12px;border-radius:8px;color:#A855F7;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif">
+            ⚡ Leilão
+          </button>
+        </div>
+      </div>
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;height:calc(100vh - 140px)">
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.05);display:flex;gap:8px;position:sticky;bottom:0;background:#050508">
+        <input type="text" id="chat-input" placeholder="Mensagem..." class="input-glass" style="flex:1;padding:10px 14px;border-radius:12px;font-size:14px" onkeypress="if(event.key==='Enter')sendChatMessage()">
+        <button onclick="sendChatMessage()" class="btn-primary" style="padding:10px 16px;border-radius:12px;display:flex;align-items:center;gap:4px;font-size:14px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- EMPIRE TAB -->
+  <div id="tab-empire" class="tab-content" style="display:none">
+    <div class="glass" style="position:sticky;top:0;z-index:30;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">👑</span>
+          <h1 style="font-size:18px;font-weight:900;color:#fff">Empire Hub</h1>
+        </div>
+        <button onclick="generateAIReport()" style="background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(168,85,247,.3));border:1px solid rgba(124,58,237,.4);color:#A855F7;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;display:flex;align-items:center;gap:4px">
+          🤖 Relatório IA
+        </button>
+      </div>
+      <!-- Empire Tabs -->
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="switchEmpireTab('overview',this)" class="empire-tab-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.5);color:#A855F7;font-family:'Poppins',sans-serif;transition:all .2s">Visão Geral</button><button onclick="switchEmpireTab('plans',this)" class="empire-tab-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-family:'Poppins',sans-serif;transition:all .2s">Planos</button><button onclick="switchEmpireTab('transactions',this)" class="empire-tab-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-family:'Poppins',sans-serif;transition:all .2s">Transações</button><button onclick="switchEmpireTab('auction',this)" class="empire-tab-btn" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-family:'Poppins',sans-serif;transition:all .2s">Leilão</button>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div id="empire-tab-overview" style="padding:16px">
+      <!-- Revenue Cards -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div class="glass-card" style="padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(5,150,105,.1));border-color:rgba(16,185,129,.2)">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;display:flex;align-items:center;gap:4px">💰 Receita Bruta</div>
+          <div style="font-size:24px;font-weight:800;color:#10b981">R$3.847</div>
+          <div style="font-size:11px;color:#10b981;margin-top:4px">+22% vs mês passado ↑</div>
+        </div>
+        <div class="glass-card" style="padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(168,85,247,.1));border-color:rgba(124,58,237,.2)">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">⚡ Receita Líquida</div>
+          <div class="text-gradient" style="font-size:24px;font-weight:800">R$3.270</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Taxa plataforma: 15%</div>
+        </div>
+        <div class="glass-card" style="padding:16px;border-radius:16px">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">👥 Assinantes</div>
+          <div style="font-size:24px;font-weight:800;color:#fff">364</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">+12 essa semana</div>
+        </div>
+        <div class="glass-card" style="padding:16px;border-radius:16px">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">⭐ Avaliação</div>
+          <div style="font-size:24px;font-weight:800;color:#F59E0B">4.9</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">128 avaliações</div>
+        </div>
+      </div>
+
+      <!-- Chart placeholder -->
+      <div class="glass-card" style="padding:20px;border-radius:20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="color:#fff;font-weight:700">Receita Mensal</h3>
+          <span style="font-size:11px;color:rgba(255,255,255,.4)">Últimos 7 dias</span>
+        </div>
+        <!-- Simple SVG Chart -->
+        <svg viewBox="0 0 300 80" style="width:100%;height:80px">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#A855F7" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,60 L43,50 L86,45 L129,30 L172,35 L215,20 L258,15 L300,10 L300,80 L0,80 Z" fill="url(#chartGrad)"/>
+          <path d="M0,60 L43,50 L86,45 L129,30 L172,35 L215,20 L258,15 L300,10" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
+          <text x="5" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Seg</text><text x="48" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Ter</text><text x="91" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Qua</text><text x="134" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Qui</text><text x="177" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Sex</text><text x="220" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Sáb</text><text x="263" y="78" font-size="8" fill="rgba(255,255,255,0.3)">Dom</text>
+        </svg>
+      </div>
+
+      <!-- Quick Actions -->
+      <h3 style="color:#fff;font-weight:700;margin-bottom:12px">Ações Rápidas</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onclick="showToast('Saque iniciado! Pix em até 1h')" class="glass-card" style="padding:14px;border-radius:14px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:none;color:#fff;font-family:'Poppins',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="font-size:22px;margin-bottom:6px">💸</div>
+          <div style="font-size:12px;font-weight:600">Sacar via Pix</div>
+        </button><button onclick="switchEmpireTab('overview',null)" class="glass-card" style="padding:14px;border-radius:14px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:none;color:#fff;font-family:'Poppins',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="font-size:22px;margin-bottom:6px">📊</div>
+          <div style="font-size:12px;font-weight:600">Ver Analytics</div>
+        </button><button onclick="switchEmpireTab('auction',null)" class="glass-card" style="padding:14px;border-radius:14px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:none;color:#fff;font-family:'Poppins',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="font-size:22px;margin-bottom:6px">⚡</div>
+          <div style="font-size:12px;font-weight:600">Criar Leilão</div>
+        </button><button onclick="showToast('Promoção ativada!')" class="glass-card" style="padding:14px;border-radius:14px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:none;color:#fff;font-family:'Poppins',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="font-size:22px;margin-bottom:6px">🎁</div>
+          <div style="font-size:12px;font-weight:600">Promoção</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Plans -->
+    <div id="empire-tab-plans" style="padding:16px;display:none">
+      <div class="glass-card" style="padding:20px;border-radius:20px;margin-bottom:16px;border:1px solid rgba(217,119,6,.3);position:relative">
+        
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:24px">🥉</span>
+            <div>
+              <div style="color:#fff;font-weight:700;font-size:16px">Bronze</div>
+              <div style="color:rgba(255,255,255,.5);font-size:11px">234 assinantes • taxa 20%</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:#fff;font-weight:800;font-size:18px">R$29,90</div>
+            <div style="color:rgba(255,255,255,.4);font-size:11px">/mês</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Feed exclusivo
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            5 Momentos/dia
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Chat básico
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Sem anúncios
+          </div>
+        </div>
+        <button onclick="editPlan('Bronze')" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#A855F7;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">
+          ✏️ Editar Plano
+        </button>
+      </div><div class="glass-card" style="padding:20px;border-radius:20px;margin-bottom:16px;border:1px solid rgba(234,179,8,.5);position:relative">
+        <div style="position:absolute;top:-8px;right:16px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px">POPULAR</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:24px">🥇</span>
+            <div>
+              <div style="color:#fff;font-weight:700;font-size:16px">Gold</div>
+              <div style="color:rgba(255,255,255,.5);font-size:11px">89 assinantes • taxa 17%</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:#fff;font-weight:800;font-size:18px">R$69,90</div>
+            <div style="color:rgba(255,255,255,.4);font-size:11px">/mês</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Tudo do Bronze
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Momentos ilimitados
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Chat VIP
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Conteúdo 4K
+          </div>
+        </div>
+        <button onclick="editPlan('Gold')" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#A855F7;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">
+          ✏️ Editar Plano
+        </button>
+      </div><div class="glass-card" style="padding:20px;border-radius:20px;margin-bottom:16px;border:1px solid rgba(124,58,237,.5);position:relative">
+        
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:24px">💎</span>
+            <div>
+              <div style="color:#fff;font-weight:700;font-size:16px">Diamond</div>
+              <div style="color:rgba(255,255,255,.5);font-size:11px">41 assinantes • taxa 15%</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:#fff;font-weight:800;font-size:18px">R$149,90</div>
+            <div style="color:rgba(255,255,255,.4);font-size:11px">/mês</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Tudo do Gold
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Vídeo call mensal
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Acesso antecipado
+          </div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Badge exclusivo
+          </div>
+        </div>
+        <button onclick="editPlan('Diamond')" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#A855F7;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">
+          ✏️ Editar Plano
+        </button>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div id="empire-tab-transactions" style="padding:16px;display:none">
+      <h3 style="color:#fff;font-weight:700;margin-bottom:16px">Últimas Transações</h3>
+      <div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:16px">💳</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Luna_Fan_01</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Diamond • 2 min atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#10b981">+ R$149,90</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Rafael_Gold</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Leilão • 15 min atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#10b981">+ R$75,00</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:16px">🔒</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Sofia_Vip</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Post • 1h atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#10b981">+ R$29,90</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;font-size:16px">💸</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Você</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Pix • 3h atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#ef4444">- R$500,00</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:16px">💳</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Viktor_Fan</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Gold • 5h atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#10b981">+ R$69,90</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:16px">💳</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:13px;font-weight:600">Mia_Bronze</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px">Bronze • 8h atrás</div>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#10b981">+ R$29,90</div>
+      </div>
+    </div>
+
+    <!-- Auction -->
+    <div id="empire-tab-auction" style="padding:16px;display:none">
+      <div class="glass-card neon-border" style="padding:24px;border-radius:20px;text-align:center;margin-bottom:20px">
+        <div style="font-size:40px;margin-bottom:12px">⚡</div>
+        <h2 style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">OnlyAuction</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:20px">Fãs dão lances para ter sua atenção exclusiva. Quem der mais, ganha uma resposta direta!</p>
+        <div style="display:flex;gap:12px;margin-bottom:16px">
+          <div class="glass" style="flex:1;padding:12px;border-radius:12px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:#F59E0B">R$2.340</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">Maior lance</div>
+          </div>
+          <div class="glass" style="flex:1;padding:12px;border-radius:12px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:#A855F7">47</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">Participantes</div>
+          </div>
+          <div class="glass" style="flex:1;padding:12px;border-radius:12px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:#ef4444" id="auction-timer">02:30</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">Tempo</div>
+          </div>
+        </div>
+        <button onclick="startAuction()" class="btn-primary neon-purple" style="width:100%;padding:14px;border-radius:14px;font-size:15px;font-weight:700">
+          🚀 Iniciar Novo Leilão
+        </button>
+      </div>
+      <!-- Top Bidders -->
+      <h3 style="color:#fff;font-weight:700;margin-bottom:12px">Top Lances Ativos</h3>
+      <div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">🥇</span>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:600;font-size:13px">Rafael_Gold</div>
+          <span class="badge-vip" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">diamond</span>
+        </div>
+        <div style="font-weight:800;font-size:16px;color:#F59E0B">R$2.340</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">🥈</span>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:600;font-size:13px">Ana_Premium</div>
+          <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+        </div>
+        <div style="font-weight:800;font-size:16px;color:#F59E0B">R$1.890</div>
+      </div><div class="glass-card" style="padding:14px;border-radius:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">🥉</span>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:600;font-size:13px">Carlos_Vip</div>
+          <span class="badge-vip" style="background:linear-gradient(135deg,#F59E0B,#D97706)">gold</span>
+        </div>
+        <div style="font-weight:800;font-size:16px;color:#F59E0B">R$1.200</div>
+      </div>
+    </div>
+
+    <!-- AI Report Modal -->
+    <div id="ai-report-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:flex;align-items:flex-end;backdrop-filter:blur(8px)">
+      <div class="glass-card" style="width:100%;max-width:430px;margin:0 auto;padding:24px;border-radius:24px 24px 0 0;border:1px solid rgba(124,58,237,.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <h3 style="color:#fff;font-weight:800;font-size:18px">🤖 Relatório IA</h3>
+          <button onclick="closeAIReport()" style="background:rgba(255,255,255,.1);border:none;width:28px;height:28px;border-radius:50%;color:#fff;cursor:pointer;font-size:14px">✕</button>
+        </div>
+        <div class="glass" style="padding:16px;border-radius:16px;margin-bottom:12px;border-left:3px solid #A855F7">
+          <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7">📈 <strong>Crescimento:</strong> Sua receita cresceu 22% este mês. Os assinantes Diamond são responsáveis por 45% da receita total.</p>
+        </div>
+        <div class="glass" style="padding:16px;border-radius:16px;margin-bottom:12px;border-left:3px solid #10b981">
+          <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7">💡 <strong>Dica:</strong> Poste conteúdo às 19h-21h para maximizar engajamento. Seus fãs Diamond são mais ativos nesse período.</p>
+        </div>
+        <div class="glass" style="padding:16px;border-radius:16px;margin-bottom:20px;border-left:3px solid #F59E0B">
+          <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7">⚡ <strong>Ação:</strong> Crie um leilão hoje! Há 47 fãs aguardando sua atenção exclusiva. Potencial de R$2.500+.</p>
+        </div>
+        <button onclick="closeAIReport()" class="btn-primary" style="width:100%;padding:14px;border-radius:14px;font-size:15px">
+          Entendido! 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PROFILE TAB -->
+  <div id="tab-profile" class="tab-content" style="display:none">
+    <div style="position:relative">
+      <!-- Cover -->
+      <div style="height:120px;background:linear-gradient(135deg,#4C1D95,#7C3AED,#4C1D95);position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;opacity:.2;background-image:radial-gradient(circle 1px at 10px 10px, white 1px, transparent 0);background-size:20px 20px"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,#050508,transparent)"></div>
+      </div>
+      
+      <div style="padding:0 16px 16px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:-40px;margin-bottom:12px">
+          <div style="position:relative">
+            <div id="profile-avatar-container" class="story-ring">
+              <img id="profile-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" style="width:72px;height:72px;border-radius:20px;border:3px solid #050508;display:block">
+            </div>
+            <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;background:#A855F7;border-radius:50%;border:2px solid #050508;display:flex;align-items:center;justify-content:center">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="editProfile()" style="padding:8px 16px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);color:#A855F7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;display:flex;align-items:center;gap:4px">
+              ✏️ Editar
+            </button>
+            <button onclick="logout()" style="padding:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:10px;cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="profile-name" style="font-size:18px;font-weight:800;color:#fff;margin-bottom:2px">Usuário OnlyDay</div>
+        <div id="profile-username" style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:8px">@usuario</div>
+        <div id="profile-bio" style="color:rgba(255,255,255,.7);font-size:13px;line-height:1.6;margin-bottom:16px">Bio do usuário aqui...</div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+          <div class="glass-card" style="padding:12px;border-radius:12px;text-align:center">
+            <div id="profile-posts-count" style="font-size:18px;font-weight:800;color:#fff">0</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5)">Posts</div>
+          </div>
+          <div class="glass-card" style="padding:12px;border-radius:12px;text-align:center">
+            <div id="profile-followers-count" style="font-size:18px;font-weight:800;color:#fff">1.2K</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5)">Seguidores</div>
+          </div>
+          <div class="glass-card" style="padding:12px;border-radius:12px;text-align:center">
+            <div style="font-size:18px;font-weight:800" class="text-gradient">Gold</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5)">Nível</div>
+          </div>
+        </div>
+
+        <!-- Profile Tabs -->
+        <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:0">
+          <button onclick="switchProfileTab('posts',this)" class="profile-tab-btn" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid #A855F7;color:#A855F7;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">Posts</button>
+          <button onclick="switchProfileTab('locked',this)" class="profile-tab-btn" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">🔒 Premium</button>
+          <button onclick="switchProfileTab('saved',this)" class="profile-tab-btn" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">Salvos</button>
+        </div>
+
+        <!-- Posts Grid -->
+        <div id="profile-tab-posts">
+          <div id="profile-posts-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px">
+            <!-- Posts gerados pelo JS -->
+          </div>
+          <div id="profile-no-posts" style="text-align:center;padding:32px;color:rgba(255,255,255,.4)">
+            <div style="font-size:40px;margin-bottom:8px">📸</div>
+            <p style="font-size:14px">Ainda não há posts</p>
+          </div>
+        </div>
+
+        <div id="profile-tab-locked" class="hidden" style="display:none">
+          <div style="text-align:center;padding:32px">
+            <div style="font-size:48px;margin-bottom:12px">🔒</div>
+            <p style="color:#fff;font-weight:600;margin-bottom:8px">Conteúdo Premium</p>
+            <p style="color:rgba(255,255,255,.4);font-size:13px">Assine um plano para ver este conteúdo exclusivo</p>
+          </div>
+        </div>
+
+        <div id="profile-tab-saved" class="hidden" style="display:none">
+          <div style="text-align:center;padding:32px">
+            <div style="font-size:48px;margin-bottom:12px">🔖</div>
+            <p style="color:#fff;font-weight:600;margin-bottom:8px">Posts Salvos</p>
+            <p style="color:rgba(255,255,255,.4);font-size:13px">Salve posts para ver mais tarde</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-app -->
+
+
+<!-- ===== MODALS ===== -->
+
+<!-- Create Post Modal -->
+<div id="create-modal" class="hidden" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);display:flex;align-items:flex-end">
+  <div class="glass-card" style="width:100%;max-width:430px;margin:0 auto;padding:24px;border-radius:24px 24px 0 0;border:1px solid rgba(124,58,237,.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="color:#fff;font-weight:800;font-size:18px">Criar Post</h3>
+      <button onclick="closeCreateModal()" style="background:rgba(255,255,255,.1);border:none;width:28px;height:28px;border-radius:50%;color:#fff;cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:16px">
+      <img id="create-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" style="width:40px;height:40px;border-radius:50%;border:2px solid #7C3AED">
+      <div style="flex:1">
+        <textarea id="post-content" placeholder="O que está acontecendo?" class="input-glass" style="width:100%;padding:12px;border-radius:12px;font-size:15px;height:100px;resize:none"></textarea>
+      </div>
+    </div>
+    
+    <!-- Post Options -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button onclick="togglePostOption(this,'image')" style="padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif">📷 Foto</button>
+      <button onclick="togglePostOption(this,'video')" style="padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Vídeo</button>
+      <button onclick="togglePostOption(this,'premium')" id="premium-toggle" style="padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif">🔒 Premium</button>
+    </div>
+
+    <div id="premium-price-section" class="hidden" style="margin-bottom:16px">
+      <label style="font-size:13px;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">Preço (R$)</label>
+      <input type="number" id="premium-price" placeholder="9,90" class="input-glass" style="padding:10px 14px;border-radius:10px;font-size:14px;width:120px">
+    </div>
+
+    <button onclick="submitPost()" class="btn-primary" style="width:100%;padding:14px;border-radius:14px;font-size:15px;font-weight:700">
+      🚀 Publicar
+    </button>
+  </div>
+</div>
+
+<!-- Story Viewer -->
+<div id="story-viewer" class="hidden" style="position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column">
+  <div style="position:absolute;top:0;left:0;right:0;padding:12px 16px 0;z-index:10">
+    <div style="display:flex;gap:4px;margin-bottom:12px">
+      <div style="flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:2px;overflow:hidden">
+        <div id="story-progress" style="height:100%;background:#fff;width:0%;transition:width 5s linear"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="story-ring">
+        <img id="story-avatar" src="" style="width:36px;height:36px;border-radius:50%;border:2px solid #050508;display:block">
+      </div>
+      <div>
+        <div id="story-name" style="color:#fff;font-weight:600;font-size:14px"></div>
+        <div style="color:rgba(255,255,255,.6);font-size:11px">agora mesmo</div>
+      </div>
+      <button onclick="closeStory()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;width:28px;height:28px;border-radius:50%;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+  </div>
+  <div id="story-content" style="flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0D0025,#1A0040)">
+    <div style="text-align:center;padding:32px">
+      <div style="font-size:80px;margin-bottom:16px" id="story-emoji">✨</div>
+      <p id="story-text" style="color:#fff;font-size:18px;font-weight:600;line-height:1.5"></p>
+    </div>
+  </div>
+  <div style="padding:16px;display:flex;gap:8px">
+    <input type="text" placeholder="Responder ao story..." class="input-glass" style="flex:1;padding:10px 14px;border-radius:12px;font-size:14px">
+    <button style="padding:10px 16px;border-radius:12px;background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.4);color:#A855F7;cursor:pointer">❤️</button>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="hidden" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:500;min-width:200px;max-width:320px">
+  <div class="glass-strong" style="padding:12px 20px;border-radius:12px;border:1px solid rgba(124,58,237,.3);text-align:center;color:#fff;font-size:13px;font-weight:500">
+    <span id="toast-message"></span>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<script>
+// ===== STATE =====
+let state = {
+  user: null,
+  posts: [],
+  isCreator: false,
+  obStep: 0,
+  currentChat: null,
+  chatMessages: {},
+  auctionTimer: null,
+};
+
+// ===== MOCK DATA =====
+const MOCK_POSTS = [
+  {id:'p1',userId:'u1',userName:'Luna Estrela',userAvatar:'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',userVerified:true,content:'Novo conteúdo exclusivo disponível para assinantes Diamond! ✨ Fiz uma sessão de fotos incrível hoje.',likes:847,comments:123,reposts:45,isLiked:false,isSaved:false,isPremium:false,createdAt:'há 2 horas',tags:['#OnlyDay','#Premium']},
+  {id:'p2',userId:'u2',userName:'Kai Noir',userAvatar:'https://api.dicebear.com/7.x/avataaars/svg?seed=Kai',userVerified:true,content:'🔒 Conteúdo exclusivo para assinantes Gold+. Minhas melhores fotos desta semana.',likes:654,comments:98,reposts:32,isLiked:true,isSaved:false,isPremium:true,premiumPrice:9.90,createdAt:'há 4 horas',tags:['#Fotografia','#Art']},
+  {id:'p3',userId:'u3',userName:'Sofia Star',userAvatar:'https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia',userVerified:true,content:'Acabei de lançar meu novo plano Diamond! Acesso a conteúdo 4K, chamadas mensais e muito mais. Quem topa? 💎',likes:1203,comments:234,reposts:89,isLiked:false,isSaved:true,isPremium:false,createdAt:'há 6 horas',tags:['#Diamond','#VIP']},
+  {id:'p4',userId:'u4',userName:'Viktor Dark',userAvatar:'https://api.dicebear.com/7.x/avataaars/svg?seed=Viktor',userVerified:false,content:'Minha jornada como criador de conteúdo no OnlyDay: de R$0 a R$15k/mês em 6 meses. Thread 🧵',likes:2891,comments:445,reposts:312,isLiked:false,isSaved:false,isPremium:false,createdAt:'há 1 dia',tags:['#Motivação','#Dinheiro']},
+  {id:'p5',userId:'u5',userName:'Mia Cruz',userAvatar:'https://api.dicebear.com/7.x/avataaars/svg?seed=Mia',userVerified:true,content:'OnlyAuction ao vivo hoje às 20h! Lance mínimo R$50. Resposta exclusiva para o maior lance 🔥',likes:567,comments:89,reposts:123,isLiked:true,isSaved:false,isPremium:false,createdAt:'há 3 horas',tags:['#Leilão','#AO VIVO']},
+];
+
+// ===== NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if (target) {
+    target.classList.add('active');
+    if (page === 'app') {
+      renderPosts();
+      updateProfile();
+      document.getElementById('chat-badge').classList.remove('hidden');
+    }
+  }
+  window.scrollTo(0, 0);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  const target = document.getElementById('tab-' + tab);
+  if (target) {
+    target.style.display = 'block';
+    // Update nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      if (btn.dataset.tab === tab) {
+        btn.style.color = '#A855F7';
+      } else if (btn.dataset.tab !== 'create') {
+        btn.style.color = 'rgba(255,255,255,0.4)';
+      }
+    });
+    if (tab === 'chat') {
+      document.getElementById('chat-badge').classList.add('hidden');
+    }
+  }
+  window.scrollTo(0, 0);
+}
+
+// ===== ONBOARDING =====
+let isCreatorToggled = false;
+
+function toggleCreator() {
+  isCreatorToggled = !isCreatorToggled;
+  const tog = document.getElementById('creator-toggle');
+  const dot = tog.querySelector('div');
+  if (isCreatorToggled) {
+    tog.style.background = 'rgba(124,58,237,0.8)';
+    dot.style.left = '22px';
+  } else {
+    tog.style.background = 'rgba(255,255,255,0.1)';
+    dot.style.left = '2px';
+  }
+}
+
+function onboardingNext() {
+  const steps = document.querySelectorAll('[id^="onboarding-step-"]');
+  const currentStep = state.obStep;
+  if (currentStep < 3) {
+    document.getElementById('onboarding-step-' + currentStep).classList.add('hidden');
+    state.obStep++;
+    document.getElementById('onboarding-step-' + state.obStep).classList.remove('hidden');
+    document.getElementById('onboarding-progress').style.width = ((state.obStep + 1) / 4 * 100) + '%';
+    document.getElementById('onboarding-step-label').textContent = (state.obStep + 1) + '/4';
+    document.getElementById('btn-back-onboarding').textContent = '<';
+  }
+}
+
+function onboardingBack() {
+  if (state.obStep === 0) {
+    showPage('landing');
+    return;
+  }
+  document.getElementById('onboarding-step-' + state.obStep).classList.add('hidden');
+  state.obStep--;
+  document.getElementById('onboarding-step-' + state.obStep).classList.remove('hidden');
+  document.getElementById('onboarding-progress').style.width = ((state.obStep + 1) / 4 * 100) + '%';
+  document.getElementById('onboarding-step-label').textContent = (state.obStep + 1) + '/4';
+}
+
+function simulateSelfie() {
+  showToast('📸 Selfie capturada com sucesso!');
+  const btn = event.target;
+  btn.textContent = '✅ Selfie tirada!';
+  btn.style.background = 'rgba(16,185,129,0.3)';
+}
+
+function completeOnboarding() {
+  const name = document.getElementById('ob-name').value || 'Usuário OnlyDay';
+  const username = document.getElementById('ob-username').value || 'usuario' + Date.now();
+  const bio = document.getElementById('ob-bio').value || 'Criador de conteúdo premium no OnlyDay ✨';
+  
+  state.user = {
+    id: 'user-' + Date.now(),
+    name: name,
+    username: '@' + username,
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+    bio: bio,
+    isCreator: isCreatorToggled,
+    vipLevel: 'gold',
+    followers: 1247,
+    following: 324,
+    balance: 3847.50,
+  };
+  
+  localStorage.setItem('onlyday_user', JSON.stringify(state.user));
+  state.posts = [...MOCK_POSTS];
+  state.obStep = 0;
+  document.getElementById('onboarding-step-0').classList.remove('hidden');
+  document.querySelectorAll('[id^="onboarding-step-"]').forEach((s,i) => {
+    if (i > 0) s.classList.add('hidden');
+  });
+  
+  showPage('app');
+  showToast('🎉 Bem-vindo ao OnlyDay, ' + name + '!');
+  // Update nav for creator
+  if (state.user.isCreator) {
+    const lastNavBtn = document.querySelectorAll('.nav-btn')[4];
+    if (lastNavBtn) lastNavBtn.querySelector('span').textContent = 'Empire';
+  }
+}
+</script>
+<script>
+// ===== POSTS =====
+function renderPosts() {
+  const container = document.getElementById('posts-container');
+  if (!container) return;
+  container.innerHTML = state.posts.map(post => createPostHTML(post)).join('');
+}
+
+function createPostHTML(post) {
+  const isLiked = post.isLiked;
+  return `<div class="post-item" style="border-bottom:1px solid rgba(255,255,255,.05);padding:16px;transition:background .2s" onmouseover="this.style.background='rgba(124,58,237,.02)'" onmouseout="this.style.background='transparent'">
+    <div style="display:flex;gap:12px">
+      <img src="${post.userAvatar}" alt="${post.userName}" style="width:40px;height:40px;border-radius:50%;border:2px solid ${post.userVerified?'rgba(124,58,237,.5)':'rgba(255,255,255,.1)'}">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="color:#fff;font-weight:600;font-size:14px">${post.userName}</span>
+          ${post.userVerified?'<svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>':''}
+          <span style="color:rgba(255,255,255,.4);font-size:12px;margin-left:auto">${post.createdAt}</span>
+        </div>
+        ${post.isPremium?'<div style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:12px;margin-bottom:10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🔒</div><p style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:8px">Conteúdo exclusivo</p><button onclick="unlockPost(this)" style="padding:6px 16px;border-radius:8px;background:linear-gradient(135deg,#7C3AED,#9333EA);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer">Desbloquear por R$${post.premiumPrice?.toFixed(2)||'9,90'}</button></div>':'<p style="color:rgba(255,255,255,.85);font-size:14px;line-height:1.6;margin-bottom:12px">${post.content}</p>'}
+        ${post.tags?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${post.tags.map(t=>"<span style=\"color:#A855F7;font-size:12px\">${t}</span>").join("")}</div>':''}
+        <div style="display:flex;align-items:center;gap:16px">
+          <button onclick="toggleLike('${post.id}',this)" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:${isLiked?'#ef4444':'rgba(255,255,255,0.5)'};cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:color .2s">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="${isLiked?'#ef4444':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            ${post.likes}
+          </button>
+          <button style="display:flex;align-items:center;gap:4px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            ${post.comments}
+          </button>
+          <button onclick="toggleSave('${post.id}',this)" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:${post.isSaved?'#A855F7':'rgba(255,255,255,0.5)'};cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;transition:color .2s;margin-left:auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="${post.isSaved?'#A855F7':'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleLike(postId, btn) {
+  const post = state.posts.find(p => p.id === postId);
+  if (post) {
+    post.isLiked = !post.isLiked;
+    post.likes += post.isLiked ? 1 : -1;
+    btn.style.color = post.isLiked ? '#ef4444' : 'rgba(255,255,255,0.5)';
+    btn.querySelector('svg').setAttribute('fill', post.isLiked ? '#ef4444' : 'none');
+    btn.querySelector('svg').nextSibling.textContent = post.likes;
+    if (post.isLiked) {
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => btn.style.transform = 'scale(1)', 200);
+    }
+  }
+}
+
+function toggleSave(postId, btn) {
+  const post = state.posts.find(p => p.id === postId);
+  if (post) {
+    post.isSaved = !post.isSaved;
+    btn.style.color = post.isSaved ? '#A855F7' : 'rgba(255,255,255,0.5)';
+    btn.querySelector('svg').setAttribute('fill', post.isSaved ? '#A855F7' : 'none');
+    showToast(post.isSaved ? '🔖 Post salvo!' : 'Post removido dos salvos');
+  }
+}
+
+function unlockPost(btn) {
+  btn.textContent = '🔓 Desbloqueando...';
+  setTimeout(() => {
+    btn.closest('[style*="border-radius:12px"]').innerHTML = '<p style="color:rgba(255,255,255,.85);font-size:14px;line-height:1.6">✨ Conteúdo desbloqueado! Obrigado pelo suporte!</p>';
+    showToast('✅ Conteúdo desbloqueado!');
+  }, 800);
+}
+
+// ===== CREATE POST =====
+function openCreateModal() {
+  const modal = document.getElementById('create-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  if (state.user) {
+    document.getElementById('create-user-avatar').src = state.user.avatar;
+  }
+}
+
+function closeCreateModal() {
+  const modal = document.getElementById('create-modal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+}
+
+function togglePostOption(btn, type) {
+  const isActive = btn.style.background.includes('124,58,237');
+  if (isActive) {
+    btn.style.background = 'rgba(255,255,255,0.05)';
+    btn.style.borderColor = 'rgba(255,255,255,0.1)';
+    btn.style.color = 'rgba(255,255,255,0.6)';
+    if (type === 'premium') document.getElementById('premium-price-section').classList.add('hidden');
+  } else {
+    btn.style.background = 'rgba(124,58,237,0.2)';
+    btn.style.borderColor = 'rgba(124,58,237,0.5)';
+    btn.style.color = '#A855F7';
+    if (type === 'premium') document.getElementById('premium-price-section').classList.remove('hidden');
+  }
+}
+
+function submitPost() {
+  const content = document.getElementById('post-content').value;
+  if (!content.trim()) { showToast('⚠️ Escreva algo no post!'); return; }
+  const isPremium = document.getElementById('premium-toggle').style.background.includes('124,58,237');
+  const price = parseFloat(document.getElementById('premium-price').value) || 9.90;
+  const newPost = {
+    id: 'p' + Date.now(),
+    userId: state.user?.id || 'user-001',
+    userName: state.user?.name || 'Você',
+    userAvatar: state.user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+    userVerified: true,
+    content: content,
+    likes: 0, comments: 0, reposts: 0,
+    isLiked: false, isSaved: false,
+    isPremium: isPremium,
+    premiumPrice: isPremium ? price : undefined,
+    createdAt: 'agora mesmo',
+    tags: [],
+  };
+  state.posts.unshift(newPost);
+  renderPosts();
+  closeCreateModal();
+  document.getElementById('post-content').value = '';
+  switchTab('feed');
+  showToast('✅ Post publicado com sucesso!');
+  updateProfilePostCount();
+}
+</script>
+<script>
+// ===== CHAT =====
+const CHAT_STORIES = {
+  '1': [{emoji:'💜',text:'Oi amor! Tenho novidades incríveis para hoje!'},{emoji:'📸',text:'Acabei de postar novo conteúdo exclusivo para Diamond!'}],
+  '2': [{emoji:'📷',text:'Galeria 4K disponível agora para assinantes Gold!'}],
+  '3': [{emoji:'✨',text:'Obrigada por cada apoio! Vocês são incríveis!'}],
+  '4': [{emoji:'🔒',text:'Mensagem bloqueada. Assine para desbloquear.'}],
+  '5': [{emoji:'💋',text:'Até logo! Beijo para todos meus fãs!'}],
+};
+
+function openChat(id, name, seed, vip) {
+  state.currentChat = {id, name, seed, vip};
+  document.getElementById('chat-list-view').style.display = 'none';
+  const conv = document.getElementById('chat-conversation-view');
+  conv.classList.remove('hidden');
+  conv.style.display = 'flex';
+  
+  document.getElementById('chat-user-name').textContent = name;
+  document.getElementById('chat-avatar-img').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + seed;
+  
+  if (!state.chatMessages[id]) {
+    state.chatMessages[id] = (CHAT_STORIES[id] || [{emoji:'👋',text:'Olá! Como posso te ajudar?'}]).map(m => ({
+      from: 'other',
+      text: m.emoji + ' ' + m.text,
+      time: 'agora'
+    }));
+  }
+  renderMessages(id);
+}
+
+function closeChat() {
+  document.getElementById('chat-conversation-view').style.display = 'none';
+  document.getElementById('chat-conversation-view').classList.add('hidden');
+  document.getElementById('chat-list-view').style.display = 'block';
+  state.currentChat = null;
+}
+
+function renderMessages(chatId) {
+  const msgs = state.chatMessages[chatId] || [];
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = msgs.map(m => `
+    <div style="display:flex;justify-content:${m.from==='me'?'flex-end':'flex-start'}">
+      <div style="max-width:75%;padding:10px 14px;border-radius:${m.from==='me'?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${m.from==='me'?'linear-gradient(135deg,#7C3AED,#9333EA)':'rgba(255,255,255,0.07)'};color:#fff;font-size:14px;line-height:1.5">
+        ${m.text}
+      </div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !state.currentChat) return;
+  
+  const chatId = state.currentChat.id;
+  if (!state.chatMessages[chatId]) state.chatMessages[chatId] = [];
+  state.chatMessages[chatId].push({from:'me', text, time:'agora'});
+  input.value = '';
+  renderMessages(chatId);
+  
+  setTimeout(() => {
+    const replies = ['Que lindo! 💜', 'Obrigada pelo carinho! ✨', '🔥', 'Você é incrível! 💎', 'Novo conteúdo chegando em breve! 🎬'];
+    state.chatMessages[chatId].push({from:'other', text: replies[Math.floor(Math.random()*replies.length)], time:'agora'});
+    renderMessages(chatId);
+  }, 1000 + Math.random() * 1000);
+}
+
+// ===== STORIES =====
+let storyTimeout;
+function viewStory(name) {
+  const stories = {
+    'Luna': {emoji:'💜',text:'Novo conteúdo exclusivo hoje à noite! Prepara o coração 💜'},
+    'Kai': {emoji:'📷',text:'Behind the scenes do meu novo ensaio fotográfico! 📷'},
+    'Sofia': {emoji:'💎',text:'Acabei de lançar o plano Diamond! Quem topa? 💎'},
+    'Viktor': {emoji:'💰',text:'Minha renda este mês: R$15.000! Vocês são incríveis 💰'},
+    'Mia': {emoji:'🔥',text:'Leilão ao vivo hoje às 20h! Lance mínimo R$50 🔥'},
+    'Alex': {emoji:'🎨',text:'Nova série de arte digital disponível no meu perfil 🎨'},
+  };
+  const story = stories[name] || {emoji:'✨',text:'Story de ' + name};
+  document.getElementById('story-emoji').textContent = story.emoji;
+  document.getElementById('story-text').textContent = story.text;
+  document.getElementById('story-name').textContent = name;
+  document.getElementById('story-avatar').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + name;
+  
+  const viewer = document.getElementById('story-viewer');
+  viewer.classList.remove('hidden');
+  const progress = document.getElementById('story-progress');
+  progress.style.width = '0%';
+  setTimeout(() => progress.style.width = '100%', 50);
+  storyTimeout = setTimeout(() => closeStory(), 5000);
+}
+
+function closeStory() {
+  document.getElementById('story-viewer').classList.add('hidden');
+  document.getElementById('story-progress').style.width = '0%';
+  if (storyTimeout) clearTimeout(storyTimeout);
+}
+
+function addStory() {
+  showToast('📸 Funcionalidade em breve!');
+}
+
+// ===== EXPLORE =====
+function searchCreators(query) {
+  if (!query) return;
+  showToast('🔍 Buscando: ' + query);
+}
+
+function searchByTag(tag) {
+  showToast('🔥 Mostrando posts de #' + tag);
+}
+
+function followCreator(btn) {
+  const isFollowing = btn.textContent === 'Seguindo';
+  btn.textContent = isFollowing ? 'Seguir' : 'Seguindo';
+  btn.style.background = isFollowing ? 'linear-gradient(135deg,#7C3AED,#9333EA)' : 'rgba(255,255,255,0.1)';
+  btn.style.border = isFollowing ? 'none' : '1px solid rgba(255,255,255,0.2)';
+  btn.style.color = '#fff';
+  showToast(isFollowing ? '❌ Deixou de seguir' : '✅ Seguindo agora!');
+}
+
+// ===== EMPIRE =====
+function switchEmpireTab(tab, btn) {
+  ['overview','plans','transactions','auction'].forEach(t => {
+    const el = document.getElementById('empire-tab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  if (btn) {
+    document.querySelectorAll('.empire-tab-btn').forEach(b => {
+      b.style.background = 'rgba(255,255,255,0.05)';
+      b.style.border = '1px solid rgba(255,255,255,0.1)';
+      b.style.color = 'rgba(255,255,255,0.5)';
+    });
+    btn.style.background = 'rgba(124,58,237,0.3)';
+    btn.style.border = '1px solid rgba(124,58,237,0.5)';
+    btn.style.color = '#A855F7';
+  }
+}
+
+function editPlan(planName) {
+  showToast('✏️ Editando plano ' + planName + '...');
+}
+
+function generateAIReport() {
+  showToast('🤖 Gerando relatório IA...');
+  setTimeout(() => {
+    const modal = document.getElementById('ai-report-modal');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }, 1500);
+}
+
+function closeAIReport() {
+  const modal = document.getElementById('ai-report-modal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+}
+
+function startAuction() {
+  showToast('⚡ Novo leilão iniciado! 30 minutos começando agora!');
+  let secs = 1800;
+  const el = document.getElementById('auction-timer');
+  if (state.auctionTimer) clearInterval(state.auctionTimer);
+  state.auctionTimer = setInterval(() => {
+    secs--;
+    if (secs <= 0) { clearInterval(state.auctionTimer); el.textContent = '00:00'; return; }
+    const m = Math.floor(secs/60).toString().padStart(2,'0');
+    const s = (secs%60).toString().padStart(2,'0');
+    el.textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ===== PROFILE =====
+function updateProfile() {
+  if (!state.user) return;
+  const el = (id) => document.getElementById(id);
+  if (el('profile-name')) el('profile-name').textContent = state.user.name;
+  if (el('profile-username')) el('profile-username').textContent = state.user.username;
+  if (el('profile-bio')) el('profile-bio').textContent = state.user.bio;
+  if (el('profile-avatar')) el('profile-avatar').src = state.user.avatar;
+  if (el('profile-followers-count')) el('profile-followers-count').textContent = (state.user.followers || 1247).toLocaleString('pt-BR');
+  updateProfilePostCount();
+}
+
+function updateProfilePostCount() {
+  const userPosts = state.posts.filter(p => p.userId === (state.user?.id || 'user-001'));
+  const el = document.getElementById('profile-posts-count');
+  if (el) el.textContent = userPosts.length;
+  renderProfileGrid(userPosts);
+}
+
+function renderProfileGrid(posts) {
+  const grid = document.getElementById('profile-posts-grid');
+  const noPosts = document.getElementById('profile-no-posts');
+  if (!grid) return;
+  if (posts.length === 0) {
+    grid.style.display = 'none';
+    if (noPosts) noPosts.style.display = 'block';
+    return;
+  }
+  grid.style.display = 'grid';
+  if (noPosts) noPosts.style.display = 'none';
+  grid.innerHTML = posts.map(p => `
+    <div style="aspect-ratio:1;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.1);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative" onclick="showToast('📄 Post: ${p.content.substring(0,30)}...')">
+      <div style="text-align:center;padding:8px">
+        <div style="font-size:20px;margin-bottom:4px">${p.isPremium?'🔒':'📝'}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${p.content.substring(0,20)}</div>
+      </div>
+      ${p.isPremium?'<div style=\"position:absolute;top:4px;right:4px;background:rgba(124,58,237,.8);padding:2px 6px;border-radius:4px;font-size:9px;color:#fff\">💎</div>':''}
+    </div>
+  `).join('');
+}
+
+function switchProfileTab(tab, btn) {
+  ['posts','locked','saved'].forEach(t => {
+    const el = document.getElementById('profile-tab-' + t);
+    if (el) { el.style.display = t === tab ? 'block' : 'none'; el.classList.toggle('hidden', t !== tab); }
+  });
+  document.querySelectorAll('.profile-tab-btn').forEach(b => {
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = 'rgba(255,255,255,0.4)';
+  });
+  if (btn) {
+    btn.style.borderBottomColor = '#A855F7';
+    btn.style.color = '#A855F7';
+  }
+}
+
+function editProfile() {
+  showToast('✏️ Editar perfil em breve!');
+}
+
+function logout() {
+  if (confirm('Sair do OnlyDay?')) {
+    state.user = null;
+    localStorage.removeItem('onlyday_user');
+    state.obStep = 0;
+    showPage('landing');
+  }
+}
+
+// ===== NOTIFICATIONS =====
+function toggleNotif() {
+  showToast('🔔 3 novas notificações');
+}
+
+// ===== TOAST =====
+let toastTimeout;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-message').textContent = msg;
+  toast.classList.remove('hidden');
+  toast.style.display = 'block';
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('hidden');
+    toast.style.display = 'none';
+  }, 2500);
+}
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  // Init particles
+  const container = document.getElementById('particles');
+  if (container) {
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.style.cssText = `position:absolute;border-radius:50%;background:#A855F7;opacity:0.15;width:${Math.random()*4+1}px;height:${Math.random()*4+1}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:float ${4+Math.random()*3}s ease-in-out infinite;`;
+      p.style.animationDelay = Math.random()*5 + 's';
+      container.appendChild(p);
+    }
+  }
+
+  // Check saved user
+  const savedUser = localStorage.getItem('onlyday_user');
+  if (savedUser) {
+    try {
+      state.user = JSON.parse(savedUser);
+      state.posts = [...MOCK_POSTS];
+      showPage('app');
+      updateProfile();
+      document.getElementById('chat-badge').classList.remove('hidden');
+    } catch(e) {
+      localStorage.removeItem('onlyday_user');
+    }
+  }
+  
+  // Start empire tab
+  switchEmpireTab('overview', null);
+});
+</script>
+</body>
+</html>
