@@ -1,8 +1,18 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Upload, CheckCircle, User, Lock, Crown, ChevronRight, ChevronLeft, Sparkles, Shield, Eye } from 'lucide-react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Camera,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Eye,
+  Shield,
+  Sparkles,
+  Upload,
+} from 'lucide-react'
 import { useUser } from '@/components/providers/AppProviders'
 
 interface OnboardingFlowProps {
@@ -10,16 +20,20 @@ interface OnboardingFlowProps {
   onComplete?: () => void
 }
 
-const STEP_INFO = [
-  { title: 'Bem-vindo ao OnlyDay', subtitle: 'Crie sua conta premium', icon: Sparkles },
-  { title: 'Verificação Elite', subtitle: 'Selfie em tempo real', icon: Camera },
-  { title: 'Documentos', subtitle: 'Confirme sua identidade', icon: Shield },
-  { title: 'Perfil Premium', subtitle: 'Personalize sua presença', icon: Crown },
-]
+type AuthMode = 'signUp' | 'signIn'
+
+const TOTAL_SIGNUP_STEPS = 4
 
 export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
   const { login } = useUser()
+  const [mode, setMode] = useState<AuthMode>('signUp')
   const [step, setStep] = useState(0)
+  const [cameraActive, setCameraActive] = useState(false)
+  const [selfieCapture, setSelfieCapture] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -31,218 +45,406 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
     docFront: null as string | null,
     docBack: null as string | null,
   })
-  const [cameraActive, setCameraActive] = useState(false)
-  const [selfieCapture, setSelfieCapture] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const totalSteps = mode === 'signIn' ? 1 : TOTAL_SIGNUP_STEPS
+
+  const canContinue = useMemo(() => {
+    if (mode === 'signIn') {
+      return Boolean(formData.email.trim() && formData.password.trim())
+    }
+
+    if (step === 0) {
+      return Boolean(
+        formData.name.trim() &&
+          formData.username.trim() &&
+          formData.email.trim() &&
+          formData.password.trim()
+      )
+    }
+
+    if (step === 1) {
+      return Boolean(formData.selfie)
+    }
+
+    if (step === 2) {
+      return Boolean(formData.docFront && formData.docBack)
+    }
+
+    return true
+  }, [formData, mode, step])
+
+  const handleModeChange = useCallback((nextMode: AuthMode) => {
+    setMode(nextMode)
+    setStep(0)
+    setError(null)
+  }, [])
 
   const startCamera = useCallback(async () => {
+    setError(null)
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.play()
-        setCameraActive(true)
+        await videoRef.current.play()
       }
-    } catch (e) {
-      // Demo mode - simulate camera
+      setCameraActive(true)
+    } catch {
       setCameraActive(true)
     }
   }, [])
 
   const captureSelfie = useCallback(() => {
     setSelfieCapture(true)
-    setTimeout(() => {
-      setFormData(prev => ({ 
-        ...prev, 
-        selfie: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Date.now() + '&backgroundColor=7C3AED'
+    window.setTimeout(() => {
+      setFormData((prev) => ({
+        ...prev,
+        selfie: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}&backgroundColor=7C3AED`,
       }))
       setSelfieCapture(false)
-    }, 2000)
+    }, 1200)
   }, [])
 
-  const handleNext = useCallback(async () => {
-    if (step < 3) {
-      setStep(s => s + 1)
-    } else {
-      setLoading(true)
-      await new Promise(r => setTimeout(r, 1500))
-      login({
-        id: 'user-' + Date.now(),
-        name: formData.name || 'Usuário Premium',
-        username: '@' + (formData.username || 'usuario' + Date.now()),
-        avatar: formData.selfie || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Date.now() + '&backgroundColor=7C3AED',
-        bio: formData.bio || 'Novo no OnlyDay ✨',
-        isCreator: formData.isCreator,
-        isVerified: !!formData.selfie,
-        isPremium: false,
-        followers: 0,
-        following: 0,
-        posts: 0,
-        balance: 0,
-        plan: 'free',
-        joinedAt: new Date().toISOString(),
-      })
+  const stopCamera = useCallback(() => {
+    const stream = videoRef.current?.srcObject as MediaStream | null
+    stream?.getTracks().forEach((track) => track.stop())
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setCameraActive(false)
+  }, [])
+
+  const handleAuth = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (mode === 'signIn') {
+        await login({
+          mode: 'signIn',
+          email: formData.email,
+          password: formData.password,
+        })
+      } else {
+        await login({
+          mode: 'signUp',
+          name: formData.name || 'Usuario Premium',
+          username: `@${formData.username.replace(/^@+/, '')}`,
+          email: formData.email,
+          password: formData.password,
+          avatar: formData.selfie || undefined,
+          bio: formData.bio || 'Novo no OnlyDay',
+          isCreator: formData.isCreator,
+          isVerified: Boolean(formData.selfie),
+          isPremium: false,
+          followers: 0,
+          following: 0,
+          posts: 0,
+          balance: 0,
+          plan: 'free',
+          joinedAt: new Date().toISOString(),
+        })
+      }
+
+      stopCamera()
       onComplete?.()
+    } catch (authError) {
+      const message =
+        authError instanceof Error
+          ? authError.message
+          : 'Nao foi possivel concluir sua autenticacao agora.'
+      setError(message)
+    } finally {
       setLoading(false)
     }
-  }, [formData, login, onComplete, step])
+  }, [formData, login, mode, onComplete, stopCamera])
+
+  const handleNext = useCallback(async () => {
+    if (mode === 'signUp' && step < TOTAL_SIGNUP_STEPS - 1) {
+      setError(null)
+      setStep((current) => current + 1)
+      return
+    }
+
+    await handleAuth()
+  }, [handleAuth, mode, step])
+
+  const handleBack = useCallback(() => {
+    setError(null)
+
+    if (step > 0 && mode === 'signUp') {
+      setStep((current) => current - 1)
+      return
+    }
+
+    stopCamera()
+    onBack?.()
+  }, [mode, onBack, step, stopCamera])
 
   return (
-    <div className="min-h-screen bg-dark flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background */}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-dark p-4">
       <div className="fixed inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-violet-900/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/15 rounded-full blur-3xl" />
+        <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-violet-900/20 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-900/15 blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          {step > 0 ? (
-            <button
-              onClick={() => setStep(s => s - 1)}
-              className="p-2 glass rounded-xl border border-white/10 hover:border-violet-500/30 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </button>
-          ) : (
-            <button onClick={onBack} className="p-2 glass rounded-xl border border-white/10 text-white/60 text-sm px-4">
-              Voltar
-            </button>
-          )}
+        <div className="mb-8 flex items-center justify-between">
+          <button
+            onClick={handleBack}
+            className="rounded-xl border border-white/10 glass p-2 text-white transition-colors hover:border-violet-500/30"
+          >
+            {step > 0 && mode === 'signUp' ? (
+              <ChevronLeft className="h-5 w-5" />
+            ) : (
+              <span className="px-2 text-sm text-white/70">Voltar</span>
+            )}
+          </button>
+
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-400" />
+            <Sparkles className="h-5 w-5 text-violet-400" />
             <span className="font-bold text-gradient">OnlyDay</span>
           </div>
-          <div className="text-xs text-white/40">{step + 1}/4</div>
+
+          <div className="text-xs text-white/40">
+            {mode === 'signIn' ? 'login' : `${step + 1}/${totalSteps}`}
+          </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="h-1 bg-white/10 rounded-full mb-8 overflow-hidden">
+        <div className="mb-8 h-1 overflow-hidden rounded-full bg-white/10">
           <motion.div
-            className="h-full bg-gradient-to-r from-violet-600 to-purple-500 rounded-full"
+            className="h-full rounded-full bg-gradient-to-r from-violet-600 to-purple-500"
             initial={{ width: '0%' }}
-            animate={{ width: `${((step + 1) / 4) * 100}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            animate={{
+              width:
+                mode === 'signIn'
+                  ? '100%'
+                  : `${((step + 1) / TOTAL_SIGNUP_STEPS) * 100}%`,
+            }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
           />
+        </div>
+
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <button
+            onClick={() => handleModeChange('signUp')}
+            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
+              mode === 'signUp'
+                ? 'border-violet-400/40 bg-violet-500/15 text-white'
+                : 'border-white/10 bg-white/5 text-white/55'
+            }`}
+          >
+            Criar conta
+          </button>
+          <button
+            onClick={() => handleModeChange('signIn')}
+            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
+              mode === 'signIn'
+                ? 'border-violet-400/40 bg-violet-500/15 text-white'
+                : 'border-white/10 bg-white/5 text-white/55'
+            }`}
+          >
+            Entrar
+          </button>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 30 }}
+            key={`${mode}-${step}`}
+            initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.25 }}
           >
-            {/* Step 0: Basic Info */}
-            {step === 0 && (
-              <div>
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 neon-purple">
-                    <Sparkles className="w-8 h-8 text-white" />
+            {mode === 'signIn' && (
+              <div className="space-y-4">
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary neon-purple">
+                    <Sparkles className="h-8 w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-black text-white mb-2">Criar conta premium</h2>
-                  <p className="text-white/50">Junte-se à plataforma mais exclusiva do Brasil</p>
+                  <h2 className="mb-2 text-2xl font-black text-white">Entre na sua conta</h2>
+                  <p className="text-white/55">
+                    Use o mesmo e-mail e senha cadastrados no Supabase.
+                  </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-white/60 mb-1 block">Nome completo</label>
-                    <input
-                      type="text"
-                      placeholder="Seu nome"
-                      value={formData.name}
-                      onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:border-violet-500/50 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-white/60 mb-1 block">Username</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-violet-400">@</span>
-                      <input
-                        type="text"
-                        placeholder="seuusername"
-                        value={formData.username}
-                        onChange={e => setFormData(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
-                        className="w-full glass rounded-xl pl-8 pr-4 py-3 text-white placeholder-white/30 border border-white/10 focus:border-violet-500/50 outline-none transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-white/60 mb-1 block">E-mail</label>
-                    <input
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={formData.email}
-                      onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:border-violet-500/50 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-white/60 mb-1 block">Senha</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:border-violet-500/50 outline-none transition-colors"
-                    />
-                  </div>
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">E-mail</label>
+                  <input
+                    type="email"
+                    placeholder="voce@email.com"
+                    value={formData.email}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, email: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                </div>
 
-                  <div
-                    onClick={() => setFormData(prev => ({ ...prev, isCreator: !prev.isCreator }))}
-                    className={`glass rounded-xl p-4 border cursor-pointer transition-all ${formData.isCreator ? 'border-violet-500/50 bg-violet-500/10' : 'border-white/10'}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Crown className={`w-5 h-5 ${formData.isCreator ? 'text-violet-400' : 'text-white/40'}`} />
-                        <div>
-                          <div className="text-sm font-semibold text-white">Sou criador de conteúdo</div>
-                          <div className="text-xs text-white/40">Monetize sua audiência</div>
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.isCreator ? 'border-violet-500 bg-violet-500' : 'border-white/30'}`}>
-                        {formData.isCreator && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Senha</label>
+                  <input
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={formData.password}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, password: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
                 </div>
               </div>
             )}
 
-            {/* Step 1: Selfie/Biometry */}
-            {step === 1 && (
-              <div>
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 neon-purple">
-                    <Camera className="w-8 h-8 text-white" />
+            {mode === 'signUp' && step === 0 && (
+              <div className="space-y-4">
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary neon-purple">
+                    <Sparkles className="h-8 w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-black text-white mb-2">Verificação Biométrica</h2>
-                  <p className="text-white/50">Tire uma selfie em tempo real para confirmar sua identidade</p>
+                  <h2 className="mb-2 text-2xl font-black text-white">Criar conta premium</h2>
+                  <p className="text-white/55">
+                    Vamos preparar sua entrada com um cadastro completo e limpo.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Nome completo</label>
+                  <input
+                    type="text"
+                    placeholder="Seu nome"
+                    value={formData.name}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, name: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Username</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-violet-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="seuusername"
+                      value={formData.username}
+                      onChange={(event) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          username: event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+                        }))
+                      }
+                      className="w-full rounded-xl border border-white/10 glass py-3 pl-8 pr-4 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">E-mail</label>
+                  <input
+                    type="email"
+                    placeholder="voce@email.com"
+                    value={formData.email}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, email: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Senha</label>
+                  <input
+                    type="password"
+                    placeholder="Crie uma senha forte"
+                    value={formData.password}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, password: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                </div>
+
+                <button
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, isCreator: !prev.isCreator }))
+                  }
+                  className={`w-full rounded-2xl border p-4 text-left transition-all ${
+                    formData.isCreator
+                      ? 'border-violet-500/50 bg-violet-500/10'
+                      : 'border-white/10 glass'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Crown
+                        className={`h-5 w-5 ${
+                          formData.isCreator ? 'text-violet-400' : 'text-white/40'
+                        }`}
+                      />
+                      <div>
+                        <div className="text-sm font-semibold text-white">
+                          Sou criador de conteudo
+                        </div>
+                        <div className="text-xs text-white/45">
+                          Ative um perfil voltado para monetizacao
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                        formData.isCreator
+                          ? 'border-violet-500 bg-violet-500'
+                          : 'border-white/25'
+                      }`}
+                    >
+                      {formData.isCreator && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {mode === 'signUp' && step === 1 && (
+              <div>
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary neon-purple">
+                    <Camera className="h-8 w-8 text-white" />
+                  </div>
+                  <h2 className="mb-2 text-2xl font-black text-white">Verificacao biometrica</h2>
+                  <p className="text-white/55">
+                    Capture uma selfie para concluir a criacao da conta premium.
+                  </p>
                 </div>
 
                 {!formData.selfie ? (
                   <div>
-                    <div className="relative rounded-3xl overflow-hidden bg-dark-200 border border-violet-500/20 mb-6" style={{ aspectRatio: '1' }}>
+                    <div
+                      className="relative mb-6 overflow-hidden rounded-3xl border border-violet-500/20 bg-dark-200"
+                      style={{ aspectRatio: '1' }}
+                    >
                       {cameraActive ? (
-                        <div className="w-full h-full relative">
-                          <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+                        <div className="relative h-full w-full">
+                          <video
+                            ref={videoRef}
+                            className="h-full w-full object-cover"
+                            muted
+                            playsInline
+                          />
                           <canvas ref={canvasRef} className="hidden" />
-                          
-                          {/* Face guide overlay */}
+
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-48 h-56 rounded-full border-2 border-violet-500 border-dashed opacity-60" />
+                            <div className="h-56 w-48 rounded-full border-2 border-dashed border-violet-500 opacity-60" />
                           </div>
 
                           {selfieCapture && (
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: [0, 1, 0] }}
-                              transition={{ duration: 0.5 }}
+                              transition={{ duration: 0.45 }}
                               className="absolute inset-0 bg-white/30"
                             />
                           )}
@@ -250,197 +452,196 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                           <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                             <motion.button
                               whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.9 }}
+                              whileTap={{ scale: 0.92 }}
                               onClick={captureSelfie}
                               disabled={selfieCapture}
-                              className="w-16 h-16 rounded-full bg-white border-4 border-violet-500 flex items-center justify-center shadow-lg"
+                              className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-violet-500 bg-white shadow-lg"
                             >
                               {selfieCapture ? (
-                                <div className="w-6 h-6 rounded-full bg-violet-500 animate-ping" />
+                                <div className="h-6 w-6 rounded-full bg-violet-500 animate-ping" />
                               ) : (
-                                <div className="w-8 h-8 rounded-full bg-violet-600" />
+                                <div className="h-8 w-8 rounded-full bg-violet-600" />
                               )}
                             </motion.button>
                           </div>
                         </div>
                       ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                          <Camera className="w-12 h-12 text-violet-400" />
-                          <p className="text-white/50 text-sm text-center px-8">
-                            Precisamos verificar sua identidade com uma selfie ao vivo
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
+                          <Camera className="h-12 w-12 text-violet-400" />
+                          <p className="text-sm text-white/55">
+                            Precisamos confirmar que ha uma pessoa real por tras da conta.
                           </p>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          <button
                             onClick={startCamera}
-                            className="btn-primary px-6 py-3 rounded-xl text-white font-semibold"
+                            className="rounded-xl px-6 py-3 btn-primary font-semibold text-white"
                           >
-                            Ativar Câmera
-                          </motion.button>
+                            Ativar camera
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    <div className="glass rounded-2xl p-4 border border-white/10">
+                    <div className="rounded-2xl border border-white/10 glass p-4">
                       <div className="flex items-center gap-2 text-sm text-white/60">
-                        <Shield className="w-4 h-4 text-violet-400" />
-                        <span>Sua selfie é processada localmente e nunca compartilhada</span>
+                        <Shield className="h-4 w-4 text-violet-400" />
+                        <span>Seu cadastro usa validacao real, mas a interface continua no modo demo.</span>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center"
                   >
-                    <div className="relative inline-block mb-6">
+                    <div className="relative mb-6 inline-block">
                       <img
                         src={formData.selfie}
                         alt="Selfie"
-                        className="w-32 h-32 rounded-full border-4 border-violet-500 mx-auto"
+                        className="mx-auto h-32 w-32 rounded-full border-4 border-violet-500"
                       />
-                      <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 text-white" />
+                      <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
+                        <CheckCircle className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">Verificado! ✅</h3>
-                    <p className="text-white/50 text-sm">Identidade biométrica confirmada com sucesso</p>
+                    <h3 className="mb-2 text-xl font-bold text-white">Selfie confirmada</h3>
+                    <p className="text-sm text-white/55">Agora seguimos para a validacao do documento.</p>
                   </motion.div>
                 )}
               </div>
             )}
 
-            {/* Step 2: Documents */}
-            {step === 2 && (
+            {mode === 'signUp' && step === 2 && (
               <div>
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 neon-purple">
-                    <Shield className="w-8 h-8 text-white" />
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary neon-purple">
+                    <Shield className="h-8 w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-black text-white mb-2">Upload de Documentos</h2>
-                  <p className="text-white/50">Envie frente e verso do seu documento oficial</p>
+                  <h2 className="mb-2 text-2xl font-black text-white">Documentos</h2>
+                  <p className="text-white/55">
+                    Nesta demo, o envio e simulado. Depois vamos ligar isso a um bucket real.
+                  </p>
                 </div>
 
                 <div className="space-y-4">
                   {[
-                    { key: 'docFront', label: 'Frente do Documento', desc: 'RG, CNH ou Passaporte (frente)' },
-                    { key: 'docBack', label: 'Verso do Documento', desc: 'RG, CNH ou Passaporte (verso)' },
-                  ].map(({ key, label, desc }) => (
-                    <div
-                      key={key}
-                      onClick={() => {
-                        // Simulate document upload
-                        setFormData(prev => ({
+                    {
+                      key: 'docFront' as const,
+                      label: 'Frente do documento',
+                      desc: 'RG, CNH ou passaporte',
+                    },
+                    {
+                      key: 'docBack' as const,
+                      label: 'Verso do documento',
+                      desc: 'Verso do RG, CNH ou passaporte',
+                    },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() =>
+                        setFormData((prev) => ({
                           ...prev,
-                          [key]: 'https://picsum.photos/seed/' + key + '/400/250'
+                          [item.key]: `https://picsum.photos/seed/${item.key}/400/250`,
                         }))
-                      }}
-                      className={`glass rounded-2xl p-5 border cursor-pointer transition-all ${
-                        formData[key as keyof typeof formData] 
-                          ? 'border-green-500/50 bg-green-500/5' 
-                          : 'border-white/10 hover:border-violet-500/30'
+                      }
+                      className={`w-full rounded-2xl border p-5 text-left transition-all ${
+                        formData[item.key]
+                          ? 'border-green-500/50 bg-green-500/5'
+                          : 'border-white/10 glass hover:border-violet-500/30'
                       }`}
                     >
-                      {formData[key as keyof typeof formData] ? (
+                      {formData[item.key] ? (
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-8 rounded-lg bg-violet-500/20 overflow-hidden">
-                            <img src={formData[key as keyof typeof formData] as string} alt={label} className="w-full h-full object-cover" />
+                          <div className="h-8 w-12 overflow-hidden rounded-lg bg-violet-500/20">
+                            <img
+                              src={formData[item.key] as string}
+                              alt={item.label}
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-white">{label}</div>
-                            <div className="text-xs text-green-400 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" /> Enviado com sucesso
+                            <div className="text-sm font-semibold text-white">{item.label}</div>
+                            <div className="flex items-center gap-1 text-xs text-green-400">
+                              <CheckCircle className="h-3 w-3" />
+                              Enviado com sucesso
                             </div>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl glass border border-white/10 flex items-center justify-center">
-                            <Upload className="w-5 h-5 text-violet-400" />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 glass">
+                            <Upload className="h-5 w-5 text-violet-400" />
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-white">{label}</div>
-                            <div className="text-xs text-white/40">{desc}</div>
+                            <div className="text-sm font-semibold text-white">{item.label}</div>
+                            <div className="text-xs text-white/45">{item.desc}</div>
                           </div>
                         </div>
                       )}
-                    </div>
+                    </button>
                   ))}
 
-                  {!formData.docFront && !formData.docBack && (
-                    <div className="glass rounded-2xl p-4 border border-amber-500/20">
-                      <div className="flex items-center gap-2 text-sm text-amber-400/80">
-                        <Eye className="w-4 h-4" />
-                        <span>Toque nos campos acima para fazer upload do documento</span>
-                      </div>
+                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                    <div className="flex items-center gap-2 text-sm text-amber-300/90">
+                      <Eye className="h-4 w-4" />
+                      <span>O upload esta simulado para a UX. A integracao do storage vem depois.</span>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Step 3: Profile */}
-            {step === 3 && (
-              <div>
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 neon-purple">
-                    <Crown className="w-8 h-8 text-white" />
+            {mode === 'signUp' && step === 3 && (
+              <div className="space-y-4">
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary neon-purple">
+                    <Crown className="h-8 w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-black text-white mb-2">Perfil Premium</h2>
-                  <p className="text-white/50">Personalize como o mundo vai te ver</p>
+                  <h2 className="mb-2 text-2xl font-black text-white">Perfil premium</h2>
+                  <p className="text-white/55">
+                    Falta so um toque final para a sua conta entrar no ar.
+                  </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-white/60 mb-1 block">Bio</label>
-                    <textarea
-                      placeholder="Conte um pouco sobre você..."
-                      value={formData.bio}
-                      onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                      rows={3}
-                      className="w-full glass rounded-xl px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:border-violet-500/50 outline-none transition-colors resize-none"
-                    />
-                  </div>
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Bio</label>
+                  <textarea
+                    placeholder="Conte um pouco sobre voce..."
+                    value={formData.bio}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, bio: event.target.value }))
+                    }
+                    rows={3}
+                    className="w-full resize-none rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                </div>
 
-                  {/* Plan selection */}
-                  <div>
-                    <label className="text-sm text-white/60 mb-2 block">Plano de Acesso</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { name: 'Free', desc: 'Explorar a plataforma', color: 'border-white/20', active: true },
-                        { name: 'Diamond', desc: 'Acesso total premium', color: 'border-violet-500/50 bg-violet-500/10', active: false, badge: 'Popular' },
-                      ].map(plan => (
-                        <div
-                          key={plan.name}
-                          className={`glass rounded-2xl p-4 border cursor-pointer ${plan.color}`}
-                        >
-                          {plan.badge && (
-                            <div className="text-xs text-violet-400 font-semibold mb-1">{plan.badge} ⭐</div>
-                          )}
-                          <div className="font-bold text-white">{plan.name}</div>
-                          <div className="text-xs text-white/40 mt-1">{plan.desc}</div>
-                        </div>
-                      ))}
+                <div className="rounded-2xl border border-violet-500/20 glass p-5">
+                  <h4 className="mb-3 font-semibold text-white">Resumo da conta</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Nome</span>
+                      <span className="text-white">{formData.name || 'Nao informado'}</span>
                     </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="glass rounded-2xl p-5 border border-violet-500/20">
-                    <h4 className="font-semibold text-white mb-3">Resumo da conta</h4>
-                    <div className="space-y-2">
-                      {[
-                        { label: 'Nome', value: formData.name || 'Não informado' },
-                        { label: 'Username', value: '@' + (formData.username || 'usuario') },
-                        { label: 'Biometria', value: formData.selfie ? '✅ Verificada' : '⚠️ Pendente' },
-                        { label: 'Documentos', value: formData.docFront ? '✅ Enviados' : '⚠️ Pendentes' },
-                        { label: 'Tipo', value: formData.isCreator ? '👑 Criador' : '👤 Fan' },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="flex justify-between items-center">
-                          <span className="text-xs text-white/40">{label}</span>
-                          <span className="text-xs text-white">{value}</span>
-                        </div>
-                      ))}
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Username</span>
+                      <span className="text-white">@{formData.username || 'usuario'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Biometria</span>
+                      <span className="text-white">{formData.selfie ? 'Verificada' : 'Pendente'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Documentos</span>
+                      <span className="text-white">
+                        {formData.docFront && formData.docBack ? 'Enviados' : 'Pendentes'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Tipo</span>
+                      <span className="text-white">
+                        {formData.isCreator ? 'Criador' : 'Comunidade'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -449,28 +650,38 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
           </motion.div>
         </AnimatePresence>
 
-        {/* CTA Button */}
+        {error && (
+          <div className="mt-6 rounded-2xl border border-rose-400/25 bg-rose-500/10 p-4 text-sm text-rose-100">
+            {error}
+          </div>
+        )}
+
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: canContinue && !loading ? 1.02 : 1 }}
+          whileTap={{ scale: canContinue && !loading ? 0.98 : 1 }}
           onClick={handleNext}
-          disabled={loading}
-          className="w-full btn-primary py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 mt-8"
+          disabled={loading || !canContinue}
+          className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold text-white btn-primary disabled:cursor-not-allowed disabled:opacity-45"
         >
           {loading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Criando sua conta...
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              {mode === 'signIn' ? 'Entrando...' : 'Criando sua conta...'}
             </>
-          ) : step === 3 ? (
+          ) : mode === 'signIn' ? (
             <>
-              <Sparkles className="w-5 h-5" />
-              Entrar no OnlyDay
+              Entrar agora
+              <ChevronRight className="h-5 w-5" />
+            </>
+          ) : step === TOTAL_SIGNUP_STEPS - 1 ? (
+            <>
+              <Sparkles className="h-5 w-5" />
+              Finalizar cadastro
             </>
           ) : (
             <>
               Continuar
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="h-5 w-5" />
             </>
           )}
         </motion.button>

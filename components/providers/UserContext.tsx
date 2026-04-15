@@ -1,26 +1,16 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { getAuthService } from '@/lib/auth'
+import type { AppUser } from '@/types/domain'
 
-export interface User {
-  id: string
-  name: string
-  username: string
-  avatar: string
-  bio: string
-  isCreator: boolean
-  isVerified: boolean
-  isPremium: boolean
-  followers: number
-  following: number
-  posts: number
-  balance: number
-  plan: 'free' | 'bronze' | 'gold' | 'diamond'
-  joinedAt: string
-  coverImage?: string
-  website?: string
-  location?: string
-  intimacyScore?: number
+export type User = AppUser
+export type LoginMode = 'signUp' | 'signIn'
+
+export interface LoginInput extends Partial<User> {
+  email?: string
+  password?: string
+  mode?: LoginMode
 }
 
 interface UserContextType {
@@ -28,19 +18,20 @@ interface UserContextType {
   isLoggedIn: boolean
   isOnboarding: boolean
   onboardingStep: number
-  login: (userData: Partial<User>) => void
-  logout: () => void
-  updateUser: (updates: Partial<User>) => void
+  login: (userData: LoginInput) => Promise<void>
+  logout: () => Promise<void>
+  updateUser: (updates: Partial<User>) => Promise<void>
   setOnboardingStep: (step: number) => void
   completeOnboarding: () => void
 }
 
 const defaultUser: User = {
   id: 'user-001',
-  name: 'Você',
+  name: 'Voce',
   username: '@voce',
+  email: 'voce@onlyday.local',
   avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user001&backgroundColor=7C3AED',
-  bio: 'Criador de conteúdo premium no OnlyDay ✨',
+  bio: 'Criador de conteudo premium no OnlyDay',
   isCreator: false,
   isVerified: false,
   isPremium: false,
@@ -62,47 +53,77 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [onboardingStep, setOnboardingStep] = useState(0)
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('onlyday_user')
-      const savedLogin = localStorage.getItem('onlyday_logged_in')
-      if (savedUser && savedLogin === 'true') {
-        setUser(JSON.parse(savedUser))
-        setIsLoggedIn(true)
+    let cancelled = false
+
+    async function loadSession() {
+      try {
+        const session = await getAuthService().getSession()
+        if (!cancelled) {
+          setUser(session.user)
+          setIsLoggedIn(session.isAuthenticated)
+        }
+      } catch (error) {
+        console.error('Error loading user session:', error)
       }
-    } catch (e) {
-      console.error('Error loading user:', e)
+    }
+
+    loadSession()
+    return () => {
+      cancelled = true
     }
   }, [])
 
-  const login = useCallback((userData: Partial<User>) => {
-    const newUser = { ...defaultUser, ...userData }
-    setUser(newUser)
-    setIsLoggedIn(true)
+  const login = useCallback(async (userData: LoginInput) => {
+    const nextUser = { ...defaultUser, ...userData }
+    const authService = getAuthService()
+    const mode = userData.mode ?? 'signUp'
+    const email =
+      userData.email?.trim() || `${nextUser.username.replace('@', '')}@onlyday.local`
+    const password = userData.password || 'mock-password'
+    const session =
+      mode === 'signIn'
+        ? await authService.signIn({
+            emailOrUsername: email,
+            password,
+          })
+        : await authService.signUp({
+            name: nextUser.name,
+            username: nextUser.username,
+            email,
+            password,
+            isCreator: nextUser.isCreator,
+            bio: nextUser.bio,
+            avatar: nextUser.avatar,
+          })
+
+    if (!session.user) {
+      throw new Error(
+        mode === 'signIn'
+          ? 'Nao foi possivel entrar com esta conta.'
+          : 'Nao foi possivel criar sua conta agora.'
+      )
+    }
+
+    const mergedUser = { ...nextUser, ...session.user, email: session.user.email || email }
+    setUser(mergedUser)
+    setIsLoggedIn(session.isAuthenticated)
     setIsOnboarding(false)
-    try {
-      localStorage.setItem('onlyday_user', JSON.stringify(newUser))
-      localStorage.setItem('onlyday_logged_in', 'true')
-    } catch (e) {}
+    await authService.updateProfile(mergedUser)
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await getAuthService().signOut()
     setUser(null)
     setIsLoggedIn(false)
-    try {
-      localStorage.removeItem('onlyday_user')
-      localStorage.removeItem('onlyday_logged_in')
-    } catch (e) {}
   }, [])
 
-  const updateUser = useCallback((updates: Partial<User>) => {
-    setUser(prev => {
-      if (!prev) return prev
-      const updated = { ...prev, ...updates }
-      try {
-        localStorage.setItem('onlyday_user', JSON.stringify(updated))
-      } catch (e) {}
-      return updated
-    })
+  const updateUser = useCallback(async (updates: Partial<User>) => {
+    const updated = await getAuthService().updateProfile(updates)
+    if (updated) {
+      setUser(updated)
+    } else {
+      setUser((prev) => (prev ? { ...prev, ...updates } : prev))
+    }
   }, [])
 
   const completeOnboarding = useCallback(() => {
@@ -111,17 +132,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <UserContext.Provider value={{
-      user,
-      isLoggedIn,
-      isOnboarding,
-      onboardingStep,
-      login,
-      logout,
-      updateUser,
-      setOnboardingStep,
-      completeOnboarding,
-    }}>
+    <UserContext.Provider
+      value={{
+        user,
+        isLoggedIn,
+        isOnboarding,
+        onboardingStep,
+        login,
+        logout,
+        updateUser,
+        setOnboardingStep,
+        completeOnboarding,
+      }}
+    >
       {children}
     </UserContext.Provider>
   )
