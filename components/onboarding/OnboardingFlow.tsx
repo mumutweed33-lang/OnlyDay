@@ -7,6 +7,7 @@ import { useUser } from '@/components/providers/UserContext'
 
 interface OnboardingFlowProps {
   onBack?: () => void
+  onComplete?: () => void
 }
 
 const STEP_INFO = [
@@ -16,7 +17,7 @@ const STEP_INFO = [
   { title: 'Perfil Premium', subtitle: 'Personalize sua presença', icon: Crown },
 ]
 
-export function OnboardingFlow({ onBack }: OnboardingFlowProps) {
+export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
   const { login } = useUser()
   const [step, setStep] = useState(0)
   const [formData, setFormData] = useState({
@@ -83,9 +84,10 @@ export function OnboardingFlow({ onBack }: OnboardingFlowProps) {
         plan: 'free',
         joinedAt: new Date().toISOString(),
       })
+      onComplete?.()
       setLoading(false)
     }
-  }, [step, formData, login])
+  }, [formData, login, onComplete, step])
 
   return (
     <div className="min-h-screen bg-dark flex items-center justify-center p-4 relative overflow-hidden">
