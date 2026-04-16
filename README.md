@@ -136,6 +136,12 @@ npm install
 npm run dev
 ```
 
+5. No painel do Supabase, abra o SQL Editor e rode o arquivo:
+
+```text
+supabase/schema.sql
+```
+
 ### O que ja esta pronto
 
 - Criacao de conta com `email + senha`
@@ -143,12 +149,32 @@ npm run dev
 - Persistencia de sessao no navegador
 - Perfil basico salvo nos metadados do usuario e em cache local para a UX
 - Tratamento para o caso em que o Supabase exigir confirmacao por e-mail antes do primeiro login
+- Tabelas e policies para `profiles`, `posts`, `conversations`, `messages` e `momentos`
+- Providers de feed, chat e momentos conectados ao banco com fallback para demo local
 
 ### Proximo passo natural para backend real completo
 
 1. criar tabelas no Supabase para `profiles`, `posts`, `messages` e `momentos`
 2. ligar `lib/db/` a repositórios reais
 3. trocar os providers de posts, mensagens e momentos para consumir esses repositórios
+
+## Deploy na Vercel
+
+No painel da Vercel, configure estas variaveis de ambiente:
+
+```bash
+NEXT_PUBLIC_AUTH_PROVIDER=supabase
+NEXT_PUBLIC_APP_URL=https://SEU_DOMINIO
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+Se quiser usar rotas server-side/admin depois, adicione tambem:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=...
+AUTH_SECRET=...
+```
 
 ## Observacoes
 

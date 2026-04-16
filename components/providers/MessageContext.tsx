@@ -1,238 +1,202 @@
 'use client'
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-
-export interface Message {
-  id: string
-  senderId: string
-  receiverId: string
-  content: string
-  type: 'text' | 'media' | 'auction' | 'location' | 'sticker'
-  mediaUrl?: string
-  isLocked?: boolean
-  price?: number
-  auctionBid?: number
-  auctionStatus?: 'pending' | 'accepted' | 'rejected'
-  timestamp: string
-  isRead: boolean
-}
-
-export interface Conversation {
-  id: string
-  userId: string
-  userName: string
-  userAvatar: string
-  userUsername: string
-  isVerified: boolean
-  isPremium: boolean
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
-  intimacyScore: number
-  isOnline: boolean
-  messages: Message[]
-  auctionActive?: boolean
-  currentBid?: number
-}
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { getDatabaseProvider } from '@/lib/db'
+import { MOCK_CONVERSATIONS } from '@/lib/db/mock-data'
+import type { Conversation, ChatMessage as Message, NewChatMessage } from '@/types/domain'
+import { useUser } from '@/components/providers/UserContext'
 
 interface MessageContextType {
   conversations: Conversation[]
   activeConversation: Conversation | null
   setActiveConversation: (conv: Conversation | null) => void
-  sendMessage: (convId: string, message: Omit<Message, 'id' | 'timestamp' | 'isRead'>) => void
-  placeBid: (convId: string, amount: number) => void
-  markAsRead: (convId: string) => void
-  updateIntimacy: (convId: string, points: number) => void
+  sendMessage: (convId: string, message: NewChatMessage) => Promise<void>
+  placeBid: (convId: string, amount: number) => Promise<void>
+  markAsRead: (convId: string) => Promise<void>
+  updateIntimacy: (convId: string, points: number) => Promise<void>
 }
-
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-001',
-    userId: 'creator-001',
-    userName: 'Luna Estrela',
-    userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=luna&backgroundColor=7C3AED',
-    userUsername: '@lunaestela',
-    isVerified: true,
-    isPremium: true,
-    lastMessage: 'Amei sua mensagem! 💜',
-    lastMessageTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    unreadCount: 2,
-    intimacyScore: 73,
-    isOnline: true,
-    messages: [
-      {
-        id: 'msg-001',
-        senderId: 'creator-001',
-        receiverId: 'user-001',
-        content: 'Oi! Obrigada por assinar meu plano Diamond! 💜',
-        type: 'text',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        isRead: true,
-      },
-      {
-        id: 'msg-002',
-        senderId: 'user-001',
-        receiverId: 'creator-001',
-        content: 'Seu conteúdo é incrível! Quando vem o próximo?',
-        type: 'text',
-        timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-        isRead: true,
-      },
-      {
-        id: 'msg-003',
-        senderId: 'creator-001',
-        receiverId: 'user-001',
-        content: 'Amei sua mensagem! 💜',
-        type: 'text',
-        timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        isRead: false,
-      },
-      {
-        id: 'msg-004',
-        senderId: 'creator-001',
-        receiverId: 'user-001',
-        content: 'Conteúdo exclusivo para você!',
-        type: 'media',
-        mediaUrl: 'https://picsum.photos/seed/locked1/400/400',
-        isLocked: true,
-        price: 19.90,
-        timestamp: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-        isRead: false,
-      },
-    ],
-  },
-  {
-    id: 'conv-002',
-    userId: 'creator-002',
-    userName: 'Rafael Ouro',
-    userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rafael&backgroundColor=6D28D9',
-    userUsername: '@rafaelouro',
-    isVerified: true,
-    isPremium: true,
-    lastMessage: 'Vou lançar algo especial essa semana!',
-    lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    unreadCount: 0,
-    intimacyScore: 45,
-    isOnline: false,
-    messages: [
-      {
-        id: 'msg-005',
-        senderId: 'creator-002',
-        receiverId: 'user-001',
-        content: 'Vou lançar algo especial essa semana!',
-        type: 'text',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        isRead: true,
-      },
-    ],
-  },
-]
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined)
 
 export function MessageProvider({ children }: { children: React.ReactNode }) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [activeConversation, setActiveConversationState] = useState<Conversation | null>(null)
+  const { user } = useUser()
+  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
 
-  useEffect(() => {
+  const activeConversation = useMemo(
+    () => conversations.find((conversation) => conversation.id === activeConversationId) ?? null,
+    [activeConversationId, conversations]
+  )
+
+  const loadConversations = useCallback(async () => {
+    if (!user?.id) {
+      setConversations(MOCK_CONVERSATIONS)
+      return
+    }
+
     try {
-      const saved = localStorage.getItem('onlyday_conversations')
-      setConversations(saved ? JSON.parse(saved) : MOCK_CONVERSATIONS)
-    } catch (e) {
+      const nextConversations = await getDatabaseProvider().messages.listConversations(user.id)
+      setConversations(nextConversations)
+    } catch (error) {
+      console.error('[messages] failed to load conversations', error)
       setConversations(MOCK_CONVERSATIONS)
     }
-  }, [])
+  }, [user?.id])
+
+  useEffect(() => {
+    void loadConversations()
+  }, [loadConversations])
 
   const setActiveConversation = useCallback((conv: Conversation | null) => {
-    setActiveConversationState(conv)
+    setActiveConversationId(conv?.id ?? null)
   }, [])
 
-  const sendMessage = useCallback((convId: string, messageData: Omit<Message, 'id' | 'timestamp' | 'isRead'>) => {
-    const newMessage: Message = {
-      ...messageData,
-      id: 'msg-' + Date.now(),
-      timestamp: new Date().toISOString(),
-      isRead: false,
-    }
-    setConversations(prev => {
-      const updated = prev.map(conv => {
-        if (conv.id !== convId) return conv
-        return {
-          ...conv,
-          messages: [...conv.messages, newMessage],
-          lastMessage: messageData.content,
-          lastMessageTime: newMessage.timestamp,
+  const patchConversation = useCallback((conversation: Conversation) => {
+    setConversations((prev) =>
+      prev.map((item) => (item.id === conversation.id ? conversation : item))
+    )
+  }, [])
+
+  const sendMessage = useCallback(
+    async (convId: string, messageData: NewChatMessage) => {
+      try {
+        const updated = await getDatabaseProvider().messages.sendMessage(convId, messageData)
+        if (updated) {
+          patchConversation(updated)
+          return
         }
-      })
-      try { localStorage.setItem('onlyday_conversations', JSON.stringify(updated)) } catch (e) {}
-      return updated
-    })
-    setActiveConversationState(prev => {
-      if (!prev || prev.id !== convId) return prev
-      return {
-        ...prev,
-        messages: [...prev.messages, newMessage],
-        lastMessage: messageData.content,
-        lastMessageTime: newMessage.timestamp,
+      } catch (error) {
+        console.error('[messages] failed to send message', error)
       }
-    })
-  }, [])
 
-  const placeBid = useCallback((convId: string, amount: number) => {
-    const bidMessage: Message = {
-      id: 'msg-' + Date.now(),
-      senderId: 'user-001',
-      receiverId: convId,
-      content: `Lance de R$ ${amount.toFixed(2)} enviado! 🔨`,
-      type: 'auction',
-      auctionBid: amount,
-      auctionStatus: 'pending',
-      timestamp: new Date().toISOString(),
-      isRead: false,
-    }
-    setConversations(prev => {
-      const updated = prev.map(conv => conv.id !== convId ? conv : {
-        ...conv,
-        messages: [...conv.messages, bidMessage],
-        auctionActive: true,
-        currentBid: amount,
-        lastMessage: `Lance: R$ ${amount.toFixed(2)}`,
-        lastMessageTime: bidMessage.timestamp,
-      })
-      try { localStorage.setItem('onlyday_conversations', JSON.stringify(updated)) } catch (e) {}
-      return updated
-    })
-  }, [])
+      const fallbackMessage: Message = {
+        ...messageData,
+        id: `msg-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+      }
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id !== convId
+            ? conversation
+            : {
+                ...conversation,
+                messages: [...conversation.messages, fallbackMessage],
+                lastMessage: messageData.content,
+                lastMessageTime: fallbackMessage.timestamp,
+              }
+        )
+      )
+    },
+    [patchConversation]
+  )
 
-  const markAsRead = useCallback((convId: string) => {
-    setConversations(prev => {
-      const updated = prev.map(conv => conv.id !== convId ? conv : { ...conv, unreadCount: 0 })
-      try { localStorage.setItem('onlyday_conversations', JSON.stringify(updated)) } catch (e) {}
-      return updated
-    })
-  }, [])
+  const placeBid = useCallback(
+    async (convId: string, amount: number) => {
+      if (!user?.id) return
 
-  const updateIntimacy = useCallback((convId: string, points: number) => {
-    setConversations(prev => {
-      const updated = prev.map(conv => conv.id !== convId ? conv : {
-        ...conv,
-        intimacyScore: Math.min(100, conv.intimacyScore + points)
-      })
-      try { localStorage.setItem('onlyday_conversations', JSON.stringify(updated)) } catch (e) {}
-      return updated
-    })
-  }, [])
+      try {
+        const updated = await getDatabaseProvider().messages.placeBid(convId, user.id, amount)
+        if (updated) {
+          patchConversation(updated)
+          return
+        }
+      } catch (error) {
+        console.error('[messages] failed to place bid', error)
+      }
+
+      const fallbackMessage: Message = {
+        id: `msg-${Date.now()}`,
+        senderId: user.id,
+        receiverId: convId,
+        content: `Lance de R$ ${amount.toFixed(2)} enviado!`,
+        type: 'auction',
+        auctionBid: amount,
+        auctionStatus: 'pending',
+        timestamp: new Date().toISOString(),
+        isRead: false,
+      }
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id !== convId
+            ? conversation
+            : {
+                ...conversation,
+                messages: [...conversation.messages, fallbackMessage],
+                auctionActive: true,
+                currentBid: amount,
+                lastMessage: `Lance: R$ ${amount.toFixed(2)}`,
+                lastMessageTime: fallbackMessage.timestamp,
+              }
+        )
+      )
+    },
+    [patchConversation, user?.id]
+  )
+
+  const markAsRead = useCallback(
+    async (convId: string) => {
+      if (!user?.id) return
+
+      try {
+        const updated = await getDatabaseProvider().messages.markAsRead(convId, user.id)
+        if (updated) {
+          patchConversation(updated)
+          return
+        }
+      } catch (error) {
+        console.error('[messages] failed to mark conversation as read', error)
+      }
+
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id !== convId
+            ? conversation
+            : {
+                ...conversation,
+                unreadCount: 0,
+                messages: conversation.messages.map((message) => ({ ...message, isRead: true })),
+              }
+        )
+      )
+    },
+    [patchConversation, user?.id]
+  )
+
+  const updateIntimacy = useCallback(
+    async (convId: string, points: number) => {
+      try {
+        await getDatabaseProvider().messages.updateIntimacy(convId, points)
+      } catch (error) {
+        console.error('[messages] failed to update intimacy', error)
+      }
+
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id !== convId
+            ? conversation
+            : {
+                ...conversation,
+                intimacyScore: Math.min(100, Math.max(0, conversation.intimacyScore + points)),
+              }
+        )
+      )
+    },
+    []
+  )
 
   return (
-    <MessageContext.Provider value={{
-      conversations,
-      activeConversation,
-      setActiveConversation,
-      sendMessage,
-      placeBid,
-      markAsRead,
-      updateIntimacy,
-    }}>
+    <MessageContext.Provider
+      value={{
+        conversations,
+        activeConversation,
+        setActiveConversation,
+        sendMessage,
+        placeBid,
+        markAsRead,
+        updateIntimacy,
+      }}
+    >
       {children}
     </MessageContext.Provider>
   )
@@ -243,3 +207,5 @@ export function useMessages() {
   if (!context) throw new Error('useMessages must be used within MessageProvider')
   return context
 }
+
+export type { Conversation, Message }

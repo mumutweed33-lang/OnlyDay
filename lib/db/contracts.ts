@@ -1,4 +1,12 @@
-import type { AppUser } from '@/types/domain'
+import type {
+  AppUser,
+  Conversation,
+  FeedPost,
+  Momento,
+  NewChatMessage,
+  NewFeedPost,
+  NewMomento,
+} from '@/types/domain'
 
 export interface DatabaseUserRecord extends AppUser {
   email?: string
@@ -12,6 +20,31 @@ export interface UserRepository {
   update(id: string, updates: Partial<DatabaseUserRecord>): Promise<DatabaseUserRecord | null>
 }
 
+export interface PostRepository {
+  listFeed(viewerId?: string): Promise<FeedPost[]>
+  create(post: NewFeedPost): Promise<FeedPost>
+  toggleLike(postId: string, userId: string): Promise<FeedPost | null>
+  toggleSave(postId: string, userId: string): Promise<FeedPost | null>
+  delete(postId: string): Promise<void>
+}
+
+export interface MessageRepository {
+  listConversations(viewerId: string): Promise<Conversation[]>
+  sendMessage(conversationId: string, message: NewChatMessage): Promise<Conversation | null>
+  placeBid(conversationId: string, senderId: string, amount: number): Promise<Conversation | null>
+  markAsRead(conversationId: string, viewerId: string): Promise<Conversation | null>
+  updateIntimacy(conversationId: string, delta: number): Promise<Conversation | null>
+}
+
+export interface MomentoRepository {
+  listActive(viewerId?: string): Promise<Momento[]>
+  create(momento: NewMomento): Promise<Momento>
+  markViewed(momentoId: string): Promise<Momento | null>
+}
+
 export interface DatabaseProvider {
   users: UserRepository
+  posts: PostRepository
+  messages: MessageRepository
+  momentos: MomentoRepository
 }

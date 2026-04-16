@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { getAuthService } from '@/lib/auth'
+import { getDatabaseProvider } from '@/lib/db'
 import type { AppUser } from '@/types/domain'
 
 export type User = AppUser
@@ -59,7 +60,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       try {
         const session = await getAuthService().getSession()
         if (!cancelled) {
-          setUser(session.user)
+          if (session.user) {
+            try {
+              const persistedUser =
+                (await getDatabaseProvider().users.findById(session.user.id)) ?? session.user
+              setUser({ ...session.user, ...persistedUser })
+            } catch (dbError) {
+              console.error('Error loading persisted profile:', dbError)
+              setUser(session.user)
+            }
+          } else {
+            setUser(null)
+          }
           setIsLoggedIn(session.isAuthenticated)
         }
       } catch (error) {
@@ -109,6 +121,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setIsLoggedIn(session.isAuthenticated)
     setIsOnboarding(false)
     await authService.updateProfile(mergedUser)
+    try {
+      await getDatabaseProvider().users.create(mergedUser)
+    } catch (error) {
+      console.error('Error syncing profile after login:', error)
+    }
   }, [])
 
   const logout = useCallback(async () => {
@@ -121,8 +138,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const updated = await getAuthService().updateProfile(updates)
     if (updated) {
       setUser(updated)
+      try {
+        await getDatabaseProvider().users.create(updated)
+      } catch (error) {
+        console.error('Error syncing updated profile:', error)
+      }
     } else {
-      setUser((prev) => (prev ? { ...prev, ...updates } : prev))
+      setUser((prev) => {
+        const next = prev ? { ...prev, ...updates } : prev
+        if (next) {
+          void getDatabaseProvider()
+            .users.create(next)
+            .catch((error) => console.error('Error syncing optimistic profile update:', error))
+        }
+        return next
+      })
     }
   }, [])
 
