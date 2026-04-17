@@ -232,6 +232,23 @@ export class SupabaseAuthService implements AuthService {
     return buildSession(toAppUser(data.user), true)
   }
 
+  async resetPassword(email: string): Promise<void> {
+    const supabase = getSupabaseBrowserClient()
+    const cleanEmail = email.trim()
+
+    if (!cleanEmail) {
+      throw new Error('Informe seu e-mail para receber a recuperação de senha.')
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/`,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
   async signOut(): Promise<void> {
     const supabase = getSupabaseBrowserClient()
     const current = await this.getSession()

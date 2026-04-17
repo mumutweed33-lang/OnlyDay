@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Camera,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useUser } from '@/components/providers/AppProviders'
 import { BrandLockup } from '@/components/ui/BrandLogo'
+import { getAuthService } from '@/lib/auth'
 
 interface OnboardingFlowProps {
   onBack?: () => void
@@ -48,6 +50,7 @@ export function OnboardingFlow({
     password: '',
     confirmPassword: '',
     isCreator: false,
+    acceptedLegal: false,
     bio: '',
     selfie: null as string | null,
     docFront: null as string | null,
@@ -76,7 +79,8 @@ export function OnboardingFlow({
           formData.username.trim() &&
           formData.email.trim() &&
           passwordStrongEnough &&
-          passwordMatches
+          passwordMatches &&
+          formData.acceptedLegal
       )
     }
 
@@ -171,7 +175,7 @@ export function OnboardingFlow({
       const message =
         authError instanceof Error
           ? authError.message
-          : 'Nao foi possivel concluir sua autenticacao agora.'
+          : 'Não foi possível concluir sua autenticação agora.'
       setError(message)
     } finally {
       setLoading(false)
@@ -200,6 +204,28 @@ export function OnboardingFlow({
     stopCamera()
     onBack?.()
   }, [mode, onBack, step, stopCamera])
+
+  const handleForgotPassword = useCallback(async () => {
+    const email = formData.email.trim()
+
+    if (!email) {
+      setSupportHint('Informe seu e-mail primeiro para enviarmos a recuperação de senha.')
+      return
+    }
+
+    setError(null)
+
+    try {
+      await getAuthService().resetPassword(email)
+      setSupportHint(`Enviamos a recuperação de senha para ${email}. Verifique sua caixa de entrada.`)
+    } catch (resetError) {
+      const message =
+        resetError instanceof Error
+          ? resetError.message
+          : 'Não foi possível iniciar a recuperação de senha agora.'
+      setError(message)
+    }
+  }, [formData.email])
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-dark p-4">
@@ -294,6 +320,7 @@ export function OnboardingFlow({
                   <input
                     type="email"
                     placeholder="voce@email.com"
+                    autoComplete="username"
                     value={formData.email}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -307,6 +334,7 @@ export function OnboardingFlow({
                   <input
                     type="password"
                     placeholder="Digite sua senha"
+                    autoComplete="current-password"
                     value={formData.password}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, password: event.target.value }))
@@ -317,9 +345,7 @@ export function OnboardingFlow({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setSupportHint('Recuperacao de senha vai ser enviada para o seu e-mail assim que conectarmos esse fluxo por completo.')
-                  }
+                  onClick={() => void handleForgotPassword()}
                   className="text-xs font-semibold text-violet-300"
                 >
                   Esqueci minha senha
@@ -344,6 +370,7 @@ export function OnboardingFlow({
                   <input
                     type="text"
                     placeholder="Seu nome"
+                    autoComplete="name"
                     value={formData.name}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, name: event.target.value }))
@@ -360,6 +387,7 @@ export function OnboardingFlow({
                   <input
                     type="password"
                     placeholder="Repita sua senha"
+                    autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))
@@ -380,6 +408,7 @@ export function OnboardingFlow({
                     <input
                       type="text"
                       placeholder="seuusername"
+                      autoComplete="nickname"
                       value={formData.username}
                       onChange={(event) =>
                         setFormData((prev) => ({
@@ -397,6 +426,7 @@ export function OnboardingFlow({
                   <input
                     type="email"
                     placeholder="voce@email.com"
+                    autoComplete="email"
                     value={formData.email}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -410,6 +440,7 @@ export function OnboardingFlow({
                   <input
                     type="password"
                     placeholder="Crie uma senha forte"
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, password: event.target.value }))
@@ -422,6 +453,9 @@ export function OnboardingFlow({
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, isCreator: !prev.isCreator }))
                   }
+                  type="button"
+                  role="switch"
+                  aria-checked={formData.isCreator}
                   className={`w-full rounded-2xl border p-4 text-left transition-all ${
                     formData.isCreator
                       ? 'border-violet-500/50 bg-violet-500/10'
@@ -437,10 +471,10 @@ export function OnboardingFlow({
                       />
                       <div>
                         <div className="text-sm font-semibold text-white">
-                          Sou criador de conteudo
+                          Quero ativar modo criador
                         </div>
                         <div className="text-xs text-white/45">
-                          Ative um perfil voltado para monetizacao
+                          O mesmo e-mail continua valendo; sua conta só ganha recursos de criador.
                         </div>
                       </div>
                     </div>
@@ -455,6 +489,28 @@ export function OnboardingFlow({
                     </div>
                   </div>
                 </button>
+
+                <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={formData.acceptedLegal}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, acceptedLegal: event.target.checked }))
+                    }
+                    className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent accent-violet-500"
+                  />
+                  <span className="text-xs leading-relaxed text-white/60">
+                    Eu li e concordo com os{' '}
+                    <Link href="/termos" target="_blank" className="font-semibold text-violet-300 underline-offset-4 hover:underline">
+                      Termos de Uso
+                    </Link>{' '}
+                    e com a{' '}
+                    <Link href="/privacidade" target="_blank" className="font-semibold text-violet-300 underline-offset-4 hover:underline">
+                      Política de Privacidade
+                    </Link>
+                    . Também autorizo o tratamento dos dados necessários para autenticação e verificação da conta.
+                  </span>
+                </label>
               </div>
             )}
 
@@ -519,7 +575,7 @@ export function OnboardingFlow({
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
                           <Camera className="h-12 w-12 text-violet-400" />
                           <p className="text-sm text-white/55">
-                            Ative a camera so quando estiver pronto. A imagem sera usada para validacao da conta.
+                            Ative a câmera só quando estiver pronto. A imagem será usada apenas para validação da conta e proteção contra fraude.
                           </p>
                           <button
                             onClick={startCamera}
@@ -534,7 +590,7 @@ export function OnboardingFlow({
                     <div className="rounded-2xl border border-white/10 glass p-4">
                       <div className="flex items-center gap-2 text-sm text-white/60">
                         <Shield className="h-4 w-4 text-violet-400" />
-                        <span>Sua imagem so entra depois da sua permissao e ajuda a validar a conta com mais seguranca.</span>
+                        <span>Sua imagem só entra depois da sua permissão e ajuda a validar a conta com mais segurança.</span>
                       </div>
                     </div>
                   </div>

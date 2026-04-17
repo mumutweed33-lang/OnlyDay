@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Crown,
@@ -423,8 +424,45 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      <footer className="py-8 text-center text-sm text-white/28">
-        2025 OnlyDay. Todos os direitos reservados.
+      <footer className="border-t border-white/6 px-6 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-white/45 md:flex-row md:items-start md:justify-between">
+          <div className="max-w-md">
+            <div className="mb-3">
+              <BrandLockup subtitle="premium social commerce" subtitleClassName="text-[11px] uppercase tracking-[0.18em] text-white/28" />
+            </div>
+            <p className="leading-relaxed">
+              Plataforma brasileira de social commerce premium para criadores, fãs e operações de monetização com mais contexto, exclusividade e recorrência.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
+            <div>
+              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Produto</div>
+              <div className="space-y-2">
+                <Link href="/precos" className="block transition hover:text-white">Preços</Link>
+                <Link href="/faq" className="block transition hover:text-white">FAQ</Link>
+                <Link href="/contato" className="block transition hover:text-white">Contato</Link>
+              </div>
+            </div>
+            <div>
+              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Legal</div>
+              <div className="space-y-2">
+                <Link href="/termos" className="block transition hover:text-white">Termos de Uso</Link>
+                <Link href="/privacidade" className="block transition hover:text-white">Privacidade</Link>
+              </div>
+            </div>
+            <div>
+              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Lançamento</div>
+              <div className="space-y-2">
+                <button type="button" onClick={openSignUp} className="block text-left transition hover:text-white">Criar conta</button>
+                <button type="button" onClick={openSignIn} className="block text-left transition hover:text-white">Entrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto mt-8 max-w-6xl border-t border-white/6 pt-5 text-xs text-white/28">
+          © 2026 OnlyDay. Todos os direitos reservados.
+        </div>
       </footer>
     </div>
   )

@@ -101,6 +101,12 @@ export class MockAuthService implements AuthService {
     return buildSession(fallbackUser)
   }
 
+  async resetPassword(email: string): Promise<void> {
+    if (!email.trim()) {
+      throw new Error('Informe seu e-mail para receber a recuperação de senha.')
+    }
+  }
+
   async signOut(): Promise<void> {
     if (!canUseStorage()) return
     localStorage.removeItem(STORAGE_USER_KEY)

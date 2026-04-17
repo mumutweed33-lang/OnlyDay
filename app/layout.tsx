@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
 import { AppProviders } from '@/components/providers/AppProviders'
+import { env } from '@/lib/config/env'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -10,11 +11,34 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(env.appUrl),
   title: 'OnlyDay - A Plataforma Premium do Brasil',
-  description: 'Rede social premium para criadores de conteudo. Monetize sua audiencia com exclusividade e elegancia.',
-  keywords: 'criadores de conteudo, monetizacao, rede social premium, Brasil',
+  description: 'Rede social premium para criadores de conteúdo. Monetize sua audiência com exclusividade e elegância.',
+  keywords: 'criadores de conteúdo, monetização, rede social premium, Brasil',
   authors: [{ name: 'OnlyDay' }],
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'OnlyDay - A Plataforma Premium do Brasil',
+    description: 'Social commerce premium para criadores, relacionamento exclusivo e monetização com mais elegância.',
+    url: 'https://onlyday.app',
+    siteName: 'OnlyDay',
+    locale: 'pt_BR',
+    type: 'website',
+    images: [
+      {
+        url: '/brand-logo.svg',
+        width: 512,
+        height: 512,
+        alt: 'OnlyDay',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'OnlyDay - A Plataforma Premium do Brasil',
+    description: 'Social commerce premium para criadores, relacionamento exclusivo e monetização com mais elegância.',
+    images: ['/brand-logo.svg'],
+  },
   icons: {
     icon: '/brand-logo.svg',
     shortcut: '/brand-logo.svg',
