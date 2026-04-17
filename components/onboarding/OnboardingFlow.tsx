@@ -14,24 +14,31 @@ import {
   Upload,
 } from 'lucide-react'
 import { useUser } from '@/components/providers/AppProviders'
+import { BrandLockup } from '@/components/ui/BrandLogo'
 
 interface OnboardingFlowProps {
   onBack?: () => void
   onComplete?: () => void
+  initialMode?: AuthMode
 }
 
 type AuthMode = 'signUp' | 'signIn'
 
 const TOTAL_SIGNUP_STEPS = 4
 
-export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
+export function OnboardingFlow({
+  onBack,
+  onComplete,
+  initialMode = 'signUp',
+}: OnboardingFlowProps) {
   const { login } = useUser()
-  const [mode, setMode] = useState<AuthMode>('signUp')
+  const [mode, setMode] = useState<AuthMode>(initialMode)
   const [step, setStep] = useState(0)
   const [cameraActive, setCameraActive] = useState(false)
   const [selfieCapture, setSelfieCapture] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [supportHint, setSupportHint] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [formData, setFormData] = useState({
@@ -39,6 +46,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
     isCreator: false,
     bio: '',
     selfie: null as string | null,
@@ -47,6 +55,15 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
   })
 
   const totalSteps = mode === 'signIn' ? 1 : TOTAL_SIGNUP_STEPS
+  const passwordStrongEnough = formData.password.trim().length >= 8
+  const passwordMatches = formData.password === formData.confirmPassword
+
+  React.useEffect(() => {
+    setMode(initialMode)
+    setStep(0)
+    setError(null)
+    setSupportHint(null)
+  }, [initialMode])
 
   const canContinue = useMemo(() => {
     if (mode === 'signIn') {
@@ -58,7 +75,8 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
         formData.name.trim() &&
           formData.username.trim() &&
           formData.email.trim() &&
-          formData.password.trim()
+          passwordStrongEnough &&
+          passwordMatches
       )
     }
 
@@ -71,12 +89,13 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
     }
 
     return true
-  }, [formData, mode, step])
+  }, [formData, mode, passwordMatches, passwordStrongEnough, step])
 
   const handleModeChange = useCallback((nextMode: AuthMode) => {
     setMode(nextMode)
     setStep(0)
     setError(null)
+    setSupportHint(null)
   }, [])
 
   const startCamera = useCallback(async () => {
@@ -171,6 +190,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
 
   const handleBack = useCallback(() => {
     setError(null)
+    setSupportHint(null)
 
     if (step > 0 && mode === 'signUp') {
       setStep((current) => current - 1)
@@ -201,10 +221,11 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
             )}
           </button>
 
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-400" />
-            <span className="font-bold text-gradient">OnlyDay</span>
-          </div>
+          <BrandLockup
+            size={22}
+            className="flex items-center gap-2"
+            titleClassName="font-bold text-gradient"
+          />
 
           <div className="text-xs text-white/40">
             {mode === 'signIn' ? 'login' : `${step + 1}/${totalSteps}`}
@@ -264,7 +285,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                   </div>
                   <h2 className="mb-2 text-2xl font-black text-white">Entre na sua conta</h2>
                   <p className="text-white/55">
-                    Use o mesmo e-mail e senha cadastrados no Supabase.
+                    Entre com o mesmo e-mail e senha da sua conta.
                   </p>
                 </div>
 
@@ -293,6 +314,16 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                     className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                   />
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSupportHint('Recuperacao de senha vai ser enviada para o seu e-mail assim que conectarmos esse fluxo por completo.')
+                  }
+                  className="text-xs font-semibold text-violet-300"
+                >
+                  Esqueci minha senha
+                </button>
               </div>
             )}
 
@@ -319,6 +350,25 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                     }
                     className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                   />
+                  <p className="mt-2 text-[11px] text-white/35">
+                    Use pelo menos 8 caracteres para uma entrada mais segura.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Confirmar senha</label>
+                  <input
+                    type="password"
+                    placeholder="Repita sua senha"
+                    value={formData.confirmPassword}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                  {formData.confirmPassword && !passwordMatches && (
+                    <p className="mt-2 text-[11px] text-rose-300">As senhas precisam ser iguais.</p>
+                  )}
                 </div>
 
                 <div>
@@ -469,7 +519,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
                           <Camera className="h-12 w-12 text-violet-400" />
                           <p className="text-sm text-white/55">
-                            Precisamos confirmar que ha uma pessoa real por tras da conta.
+                            Ative a camera so quando estiver pronto. A imagem sera usada para validacao da conta.
                           </p>
                           <button
                             onClick={startCamera}
@@ -484,7 +534,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                     <div className="rounded-2xl border border-white/10 glass p-4">
                       <div className="flex items-center gap-2 text-sm text-white/60">
                         <Shield className="h-4 w-4 text-violet-400" />
-                        <span>Seu cadastro usa validacao real, mas a interface continua no modo demo.</span>
+                        <span>Sua imagem so entra depois da sua permissao e ajuda a validar a conta com mais seguranca.</span>
                       </div>
                     </div>
                   </div>
@@ -519,7 +569,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                   </div>
                   <h2 className="mb-2 text-2xl font-black text-white">Documentos</h2>
                   <p className="text-white/55">
-                    Nesta demo, o envio e simulado. Depois vamos ligar isso a um bucket real.
+                    Envie os documentos para concluir sua verificacao com mais seguranca.
                   </p>
                 </div>
 
@@ -584,7 +634,7 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
                   <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
                     <div className="flex items-center gap-2 text-sm text-amber-300/90">
                       <Eye className="h-4 w-4" />
-                      <span>O upload esta simulado para a UX. A integracao do storage vem depois.</span>
+                      <span>Revise bem os arquivos antes de enviar para manter sua conta protegida.</span>
                     </div>
                   </div>
                 </div>
@@ -653,6 +703,12 @@ export function OnboardingFlow({ onBack, onComplete }: OnboardingFlowProps) {
         {error && (
           <div className="mt-6 rounded-2xl border border-rose-400/25 bg-rose-500/10 p-4 text-sm text-rose-100">
             {error}
+          </div>
+        )}
+
+        {supportHint && (
+          <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-100">
+            {supportHint}
           </div>
         )}
 

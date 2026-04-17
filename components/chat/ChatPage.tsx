@@ -1,20 +1,56 @@
-'use client'
+﻿'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, BadgeCheck, Check, DollarSign, Gavel, Heart, Lock, Send, Smile, Sparkles, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Check,
+  DollarSign,
+  Gavel,
+  Heart,
+  ImagePlus,
+  Lock,
+  Send,
+  Smile,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Conversation, Message, useMessages } from '@/components/providers/MessageContext'
+import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
+import type { PublicProfile } from '@/types/domain'
 
 const EMOJIS = [':)', '<3', 'wow', 'fire', 'vip', 'ok']
 
-export function ChatPage() {
+interface ChatPageProps {
+  onOpenProfile?: (profile: PublicProfile) => void
+}
+
+export function ChatPage({ onOpenProfile }: ChatPageProps) {
   const { conversations, activeConversation, setActiveConversation, markAsRead } = useMessages()
+  const [previewProfile, setPreviewProfile] = useState<PublicProfile | null>(null)
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null)
+  const { isFollowing, toggleFollow } = useSocial()
+  const highlightedAuctions = conversations.filter((conversation) => conversation.auctionActive).slice(0, 3)
+
+  const pushFeedback = (message: string) => {
+    setActionFeedback(message)
+    window.setTimeout(() => {
+      setActionFeedback((current) => (current === message ? null : current))
+    }, 2200)
+  }
+
+  useEffect(() => {
+    return () => {
+      setActiveConversation(null)
+    }
+  }, [setActiveConversation])
 
   if (activeConversation) {
-    return <ConversationView conversation={activeConversation} />
+    return <ConversationView conversation={activeConversation} onOpenProfile={onOpenProfile} />
   }
 
   return (
@@ -25,14 +61,94 @@ export function ChatPage() {
             <h1 className="text-xl font-black text-white">Chat VIP</h1>
             <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">relacionamento premium</p>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
+          <button
+            type="button"
+            onClick={() => {
+              if (highlightedAuctions.length > 0) {
+                const nextConversation = highlightedAuctions[0]
+                setActiveConversation(nextConversation)
+                void markAsRead(nextConversation.id)
+                pushFeedback('Abrimos a conversa premium com o lance mais quente agora.')
+              } else {
+                pushFeedback('As conversas premium em destaque vão aparecer aqui assim que houver atividade.')
+              }
+            }}
+            aria-label="Abrir conversa premium em destaque"
+            className="flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-300 transition hover:border-violet-400/30 hover:bg-violet-500/16"
+          >
             <Sparkles className="h-3 w-3" />
             Premium
-          </div>
+          </button>
         </div>
       </div>
 
       <div className="space-y-2 p-3">
+        <AnimatePresence>
+          {actionFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-sm text-violet-100"
+            >
+              {actionFeedback}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {highlightedAuctions.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-white">OnlyAuction em alta</h2>
+                <p className="text-[11px] text-white/35">Conversas com lance ativo priorizadas pelo OD Core</p>
+              </div>
+              <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">
+                Auction
+              </div>
+            </div>
+
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {highlightedAuctions.map((conv) => (
+                <button
+                  key={`auction-highlight-${conv.id}`}
+                  onClick={() => {
+                    setActiveConversation(conv)
+                    void markAsRead(conv.id)
+                  }}
+                  className="w-[230px] flex-shrink-0 rounded-[24px] border border-white/8 bg-white/[0.045] p-4 text-left shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <img src={conv.userAvatar} alt={conv.userName} className="h-11 w-11 rounded-2xl border border-violet-500/30" />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-white">{conv.userName}</div>
+                      <div className="truncate text-xs text-white/35">{conv.userUsername}</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">Lance atual</div>
+                    <div className="text-lg font-black text-white">
+                      {conv.currentBid ? `R$ ${conv.currentBid.toFixed(2)}` : 'Em aquecimento'}
+                    </div>
+                    <div className="mt-1 text-xs text-white/45">{conv.lastMessage}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {conversations.length === 0 && (
+          <div className="rounded-[24px] border border-white/8 bg-white/[0.045] p-5 text-center shadow-[0_18px_55px_rgba(0,0,0,0.18)]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10">
+              <Sparkles className="h-5 w-5 text-violet-300" />
+            </div>
+            <div className="text-sm font-semibold text-white">Seu chat VIP ainda está vazio</div>
+            <p className="mt-1 text-xs leading-relaxed text-white/45">
+              Quando você seguir criadores ou abrir uma conversa pelo perfil público, tudo aparece aqui.
+            </p>
+          </div>
+        )}
         {conversations.map((conv, i) => (
           <motion.div
             key={conv.id}
@@ -41,15 +157,43 @@ export function ChatPage() {
             transition={{ delay: i * 0.05 }}
             onClick={() => {
               setActiveConversation(conv)
-              markAsRead(conv.id)
+              void markAsRead(conv.id)
             }}
             className="flex cursor-pointer items-center gap-3 rounded-[24px] border border-white/8 bg-white/[0.045] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
           >
-            <div className="relative flex-shrink-0">
+            <button
+              className="relative flex-shrink-0"
+              aria-label={`Ver conexão premium com ${conv.userName}`}
+              onClick={(event) => {
+                event.stopPropagation()
+                setPreviewProfile({
+                  id: conv.userId,
+                  name: conv.userName,
+                  username: conv.userUsername,
+                  avatar: conv.userAvatar,
+                  isVerified: conv.isVerified,
+                  isCreator: true,
+                })
+              }}
+            >
               <img src={conv.userAvatar} alt={conv.userName} className="h-12 w-12 rounded-full border-2 border-violet-500/40" />
               {conv.isOnline && <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-dark bg-green-500" />}
-            </div>
-            <div className="min-w-0 flex-1">
+            </button>
+            <button
+              className="min-w-0 flex-1 text-left"
+              aria-label={`Abrir contexto premium de ${conv.userName}`}
+              onClick={(event) => {
+                event.stopPropagation()
+                setPreviewProfile({
+                  id: conv.userId,
+                  name: conv.userName,
+                  username: conv.userUsername,
+                  avatar: conv.userAvatar,
+                  isVerified: conv.isVerified,
+                  isCreator: true,
+                })
+              }}
+            >
               <div className="mb-0.5 flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <span className="text-sm font-semibold text-white">{conv.userName}</span>
@@ -63,11 +207,11 @@ export function ChatPage() {
                 <p className="truncate text-xs text-white/50">{conv.lastMessage}</p>
                 {conv.unreadCount > 0 && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-500 px-1 text-[10px] font-bold text-white">
-                    {conv.unreadCount}
+                    {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
                   </span>
                 )}
               </div>
-            </div>
+            </button>
             <div className="flex flex-col items-center gap-1">
               <Heart className={conv.intimacyScore > 50 ? 'h-4 w-4 fill-violet-400 text-violet-400' : 'h-4 w-4 text-white/20'} />
               <div className="h-8 w-1 overflow-hidden rounded-full bg-white/10">
@@ -82,11 +226,110 @@ export function ChatPage() {
           </motion.div>
         ))}
       </div>
+
+      <AnimatePresence>
+        {previewProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white">Conexão premium</h3>
+                  <p className="text-xs text-white/40">Antes do perfil, veja o contexto da conversa</p>
+                </div>
+                <button onClick={() => setPreviewProfile(null)} aria-label="Fechar conexão premium" className="text-white/40">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="mb-4 flex items-center gap-3">
+                <img src={previewProfile.avatar} alt={previewProfile.name} className="h-14 w-14 rounded-[20px] border border-violet-500/30" />
+                <div>
+                  <div className="flex items-center gap-1 text-white">
+                    <span className="font-semibold">{previewProfile.name}</span>
+                    {previewProfile.isVerified && <BadgeCheck className="h-4 w-4 text-violet-400" />}
+                  </div>
+                  <div className="text-xs text-white/35">{previewProfile.username}</div>
+                </div>
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/30">Em comum</div>
+                  <div className="mt-1 text-sm text-white/70">Premium, criadores e conteúdo exclusivo</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/30">Intimidade</div>
+                  <div className="mt-1 text-sm font-semibold text-violet-300">Conexão aquecida</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    toggleFollow(previewProfile)
+                    pushFeedback(
+                      isFollowing(previewProfile.id)
+                        ? `Você deixou de seguir ${previewProfile.name}.`
+                        : `Agora você acompanha ${previewProfile.name}.`
+                    )
+                  }}
+                  className="rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/75"
+                >
+                  {isFollowing(previewProfile.id) ? 'Seguindo' : 'Seguir agora'}
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const targetConversation = conversations.find(
+                      (conversation) =>
+                        conversation.userId === previewProfile.id ||
+                        conversation.userUsername === previewProfile.username
+                    )
+                    if (targetConversation) {
+                      setActiveConversation(targetConversation)
+                      void markAsRead(targetConversation.id)
+                    }
+                    setPreviewProfile(null)
+                  }}
+                  className="rounded-2xl border border-violet-500/20 bg-violet-500/10 py-3 text-sm font-bold text-violet-100"
+                >
+                  Abrir conversa
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    onOpenProfile?.(previewProfile)
+                    setPreviewProfile(null)
+                  }}
+                  className="rounded-2xl btn-primary py-3 text-sm font-bold text-white"
+                >
+                  Ir para o perfil
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean }) {
+function MessageBubble({
+  message,
+  isOwn,
+  onUnlockMedia,
+}: {
+  message: Message
+  isOwn: boolean
+  onUnlockMedia?: () => void
+}) {
   const timeAgo = formatDistanceToNow(new Date(message.timestamp), { addSuffix: true, locale: ptBR })
 
   if (message.type === 'auction') {
@@ -111,7 +354,10 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-dark/55">
             <Lock className="h-6 w-6 text-violet-400" />
             <span className="text-xs font-semibold text-white">R$ {message.price?.toFixed(2)}</span>
-            <button className="rounded-lg bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-3 py-1.5 text-xs font-semibold text-white">
+            <button
+              onClick={onUnlockMedia}
+              className="rounded-lg bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-3 py-1.5 text-xs font-semibold text-white"
+            >
               Desbloquear
             </button>
           </div>
@@ -140,14 +386,42 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
   )
 }
 
-function ConversationView({ conversation }: { conversation: Conversation }) {
+function ConversationView({
+  conversation,
+  onOpenProfile,
+}: {
+  conversation: Conversation
+  onOpenProfile?: (profile: PublicProfile) => void
+}) {
   const { sendMessage, setActiveConversation, placeBid, updateIntimacy } = useMessages()
+  const { isFollowing, toggleFollow } = useSocial()
   const { user } = useUser()
   const [message, setMessage] = useState('')
   const [showAuction, setShowAuction] = useState(false)
   const [bidAmount, setBidAmount] = useState('')
   const [showEmojis, setShowEmojis] = useState(false)
+  const [showAttachment, setShowAttachment] = useState(false)
+  const [showProfilePeek, setShowProfilePeek] = useState(false)
+  const [attachmentPrice, setAttachmentPrice] = useState('')
+  const [attachmentLocked, setAttachmentLocked] = useState(true)
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const pushFeedback = (messageText: string) => {
+    setActionFeedback(messageText)
+    window.setTimeout(() => {
+      setActionFeedback((current) => (current === messageText ? null : current))
+    }, 2200)
+  }
+
+  const previewProfile: PublicProfile = {
+    id: conversation.userId,
+    name: conversation.userName,
+    username: conversation.userUsername,
+    avatar: conversation.userAvatar,
+    isVerified: conversation.isVerified,
+    isCreator: true,
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -155,7 +429,7 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
 
   const handleSend = () => {
     if (!message.trim()) return
-    sendMessage(conversation.id, {
+    void sendMessage(conversation.id, {
       senderId: user?.id || 'user-001',
       receiverId: conversation.userId,
       content: message.trim(),
@@ -163,35 +437,64 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
     })
     updateIntimacy(conversation.id, 2)
     setMessage('')
+    pushFeedback('Mensagem enviada.')
   }
 
   const handleBid = () => {
     const amount = parseFloat(bidAmount)
-    if (isNaN(amount) || amount < 10) return
-    placeBid(conversation.id, amount)
+    if (isNaN(amount) || amount < 10) {
+      pushFeedback('Defina um lance mínimo de R$ 10,00 para continuar.')
+      return
+    }
+
+    void placeBid(conversation.id, amount)
     updateIntimacy(conversation.id, 10)
     setShowAuction(false)
     setBidAmount('')
+    pushFeedback(`Lance de R$ ${amount.toFixed(2)} enviado.`)
+  }
+
+  const handleSendAttachment = () => {
+    const parsedAttachmentPrice = parseFloat(attachmentPrice)
+    if (attachmentLocked && (!Number.isFinite(parsedAttachmentPrice) || parsedAttachmentPrice < 1)) {
+      pushFeedback('Defina um valor mínimo de R$ 1,00 para bloquear esse conteúdo.')
+      return
+    }
+
+    void sendMessage(conversation.id, {
+      senderId: user?.id || 'user-001',
+      receiverId: conversation.userId,
+      content: attachmentLocked ? 'Conteúdo premium enviado no chat' : 'Conteúdo enviado no chat',
+      type: 'media',
+      mediaUrl: 'https://picsum.photos/seed/chat-premium/500/380',
+      isLocked: attachmentLocked,
+      price: attachmentLocked ? parsedAttachmentPrice : undefined,
+    })
+
+    setAttachmentPrice('')
+    setAttachmentLocked(true)
+    setShowAttachment(false)
+    pushFeedback(attachmentLocked ? 'Conteúdo premium enviado no chat.' : 'Conteúdo enviado no chat.')
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-dark pb-24">
       <div className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(6,4,12,0.84)] px-4 py-3 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
-          <button onClick={() => setActiveConversation(null)} className="rounded-xl border border-white/10 bg-white/6 p-2">
+          <button onClick={() => setActiveConversation(null)} aria-label="Voltar para a lista de conversas" className="rounded-xl border border-white/10 bg-white/6 p-2">
             <ArrowLeft className="h-5 w-5 text-white" />
           </button>
-          <div className="relative">
+          <button className="relative" aria-label={`Abrir resumo premium de ${conversation.userName}`} onClick={() => setShowProfilePeek(true)}>
             <img src={conversation.userAvatar} alt={conversation.userName} className="h-10 w-10 rounded-full border-2 border-violet-500/40" />
             {conversation.isOnline && <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-dark bg-green-500" />}
-          </div>
-          <div className="flex-1">
+          </button>
+          <button className="flex-1 text-left" aria-label={`Ver resumo premium de ${conversation.userName}`} onClick={() => setShowProfilePeek(true)}>
             <div className="flex items-center gap-1">
               <span className="text-sm font-semibold text-white">{conversation.userName}</span>
               {conversation.isVerified && <BadgeCheck className="h-3.5 w-3.5 text-violet-400" />}
             </div>
             <span className="text-xs text-white/40">{conversation.isOnline ? 'Online agora' : 'Offline'}</span>
-          </div>
+          </button>
           <div className="text-right">
             <div className="text-[10px] uppercase tracking-[0.16em] text-white/30">Intimidade</div>
             <div className="text-xs font-bold text-violet-300">{conversation.intimacyScore}%</div>
@@ -200,11 +503,102 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        <AnimatePresence>
+          {actionFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-sm text-violet-100"
+            >
+              {actionFeedback}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {conversation.messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} isOwn={msg.senderId === (user?.id || 'user-001')} />
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isOwn={msg.senderId === (user?.id || 'user-001')}
+            onUnlockMedia={() => pushFeedback('O desbloqueio real do chat entra na próxima etapa de monetização.')}
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      <AnimatePresence>
+        {showProfilePeek && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white">Conexão premium</h3>
+                  <p className="text-xs text-white/40">Contexto entre você e essa pessoa</p>
+                </div>
+                <button onClick={() => setShowProfilePeek(false)} aria-label="Fechar resumo premium" className="text-white/40">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="mb-4 flex items-center gap-3">
+                <img src={previewProfile.avatar} alt={previewProfile.name} className="h-14 w-14 rounded-[20px] border border-violet-500/30" />
+                <div>
+                  <div className="flex items-center gap-1 text-white">
+                    <span className="font-semibold">{previewProfile.name}</span>
+                    {previewProfile.isVerified && <BadgeCheck className="h-4 w-4 text-violet-400" />}
+                  </div>
+                  <div className="text-xs text-white/35">{previewProfile.username}</div>
+                </div>
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/30">Afinidades</div>
+                  <div className="mt-1 text-sm text-white/70">Relacionamento premium, conversa e recorrência</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/30">Intimidade</div>
+                  <div className="mt-1 text-sm font-semibold text-violet-300">{conversation.intimacyScore}%</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    toggleFollow(previewProfile)
+                    pushFeedback(
+                      isFollowing(previewProfile.id)
+                        ? `Você deixou de seguir ${previewProfile.name}.`
+                        : `Agora você acompanha ${previewProfile.name}.`
+                    )
+                  }}
+                  className="rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/75"
+                >
+                  {isFollowing(previewProfile.id) ? 'Seguindo' : 'Seguir agora'}
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    onOpenProfile?.(previewProfile)
+                    setShowProfilePeek(false)
+                  }}
+                  className="rounded-2xl btn-primary py-3 text-sm font-bold text-white"
+                >
+                  Ir para o perfil
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showAuction && (
@@ -219,11 +613,11 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
                 <Gavel className="h-5 w-5 text-violet-400" />
                 <span className="font-bold text-white">OnlyAuction</span>
               </div>
-              <button onClick={() => setShowAuction(false)}>
+              <button onClick={() => setShowAuction(false)} aria-label="Fechar painel de leilão">
                 <X className="h-5 w-5 text-white/40" />
               </button>
             </div>
-            <p className="mb-4 text-xs text-white/50">Lance minimo R$ 10,00. Criador responde imediatamente.</p>
+            <p className="mb-4 text-xs text-white/50">Lance mínimo de R$ 10,00. O criador responde imediatamente.</p>
             <div className="mb-4 grid grid-cols-4 gap-2">
               {[10, 25, 50, 100].map((value) => (
                 <button
@@ -257,14 +651,72 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
                 className="flex items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-5 py-2.5 text-sm font-bold text-white"
               >
                 <Gavel className="h-4 w-4" />
-                Lancar
+                Lançar
               </motion.button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="border-t border-white/5 bg-[rgba(10,8,18,0.92)] px-4 py-3 backdrop-blur-2xl">
+      <AnimatePresence>
+        {showAttachment && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="mx-4 mb-2 rounded-3xl border border-violet-500/30 bg-white/[0.045] p-6"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImagePlus className="h-5 w-5 text-violet-400" />
+                <span className="font-bold text-white">Conteúdo do chat</span>
+              </div>
+              <button onClick={() => setShowAttachment(false)} aria-label="Fechar painel de conteúdo do chat">
+                <X className="h-5 w-5 text-white/40" />
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-white/50">
+              Envie foto, arquivo ou conteúdo bloqueado com cobrança direta no chat.
+            </p>
+            <div className="mb-4 rounded-2xl border border-white/10 bg-white/6 p-4">
+              <div className="mb-3 text-sm text-white/75">Preview mock do arquivo premium</div>
+              <img src="https://picsum.photos/seed/chat-premium/500/380" alt="" className="h-48 w-full rounded-2xl object-cover" />
+            </div>
+            <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+              <div>
+                <div className="text-sm font-semibold text-white">Bloquear conteúdo</div>
+                <div className="text-xs text-white/40">Liberado somente após pagamento</div>
+              </div>
+              <button
+                onClick={() => setAttachmentLocked((prev) => !prev)}
+                className={'rounded-full px-3 py-1 text-xs font-semibold ' + (attachmentLocked ? 'bg-violet-500/20 text-violet-300' : 'bg-white/10 text-white/60')}
+              >
+                {attachmentLocked ? 'Ativo' : 'Livre'}
+              </button>
+            </div>
+            {attachmentLocked && (
+              <div className="mb-4 rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+                <input
+                  value={attachmentPrice}
+                  onChange={(event) => setAttachmentPrice(event.target.value)}
+                  type="number"
+                  placeholder="Preço para desbloqueio"
+                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/30"
+                />
+              </div>
+            )}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSendAttachment}
+              className="w-full rounded-2xl btn-primary py-3 text-sm font-bold text-white"
+            >
+              Enviar conteúdo no chat
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="sticky bottom-0 border-t border-white/5 bg-[rgba(10,8,18,0.92)] px-4 py-3 backdrop-blur-2xl">
         {showEmojis && (
           <div className="mb-3 flex flex-wrap gap-2">
             {EMOJIS.map((emoji) => (
@@ -284,20 +736,40 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
         <div className="flex items-center gap-2">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => setShowAuction(!showAuction)}
+            onClick={() => {
+              setShowAuction((prev) => !prev)
+              setShowAttachment(false)
+            }}
+            aria-label={showAuction ? 'Fechar painel de leilão' : 'Abrir painel de leilão'}
             className={'rounded-xl p-2.5 ' + (showAuction ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
           >
             <Gavel className="h-5 w-5" />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              setShowAttachment((prev) => !prev)
+              setShowAuction(false)
+            }}
+            aria-label={showAttachment ? 'Fechar painel de conteúdo do chat' : 'Abrir painel de conteúdo do chat'}
+            className={'rounded-xl p-2.5 ' + (showAttachment ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
+          >
+            <ImagePlus className="h-5 w-5" />
           </motion.button>
           <div className="flex flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-2.5">
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
               placeholder="Mensagem..."
               className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/30"
             />
-            <button onClick={() => setShowEmojis(!showEmojis)} className="text-white/30 transition-colors hover:text-violet-400">
+            <button onClick={() => setShowEmojis(!showEmojis)} aria-label={showEmojis ? 'Fechar emojis' : 'Abrir emojis'} className="text-white/30 transition-colors hover:text-violet-400">
               <Smile className="h-4 w-4" />
             </button>
           </div>
@@ -305,6 +777,7 @@ function ConversationView({ conversation }: { conversation: Conversation }) {
             whileTap={{ scale: 0.9 }}
             onClick={handleSend}
             disabled={!message.trim()}
+            aria-label="Enviar mensagem"
             className={
               'rounded-xl p-2.5 ' +
               (message.trim()

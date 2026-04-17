@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Crown,
@@ -12,7 +12,6 @@ import {
   Shield,
   Sparkles,
   Star,
-  Sun,
   TrendingUp,
   Users,
   Zap,
@@ -20,6 +19,8 @@ import {
 import { MainApp } from '@/components/app/MainApp'
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
 import { useUser } from '@/components/providers/AppProviders'
+import { BrandLockup, BrandLogo } from '@/components/ui/BrandLogo'
+import type { LoginMode } from '@/components/providers/UserContext'
 
 type Particle = {
   id: number
@@ -91,7 +92,11 @@ const TESTIMONIALS = [
 export function LandingPage() {
   const { isLoggedIn } = useUser()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingMode, setOnboardingMode] = useState<LoginMode>('signUp')
   const [particles, setParticles] = useState<Particle[]>([])
+  const featuresRef = useRef<HTMLElement | null>(null)
+  const creatorsRef = useRef<HTMLElement | null>(null)
+  const ctaRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     const nextParticles = Array.from({ length: 20 }, (_, i) => ({
@@ -104,12 +109,44 @@ export function LandingPage() {
     setParticles(nextParticles)
   }, [])
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      setShowOnboarding(false)
+    }
+  }, [isLoggedIn])
+
   if (isLoggedIn) {
     return <MainApp />
   }
 
   if (showOnboarding) {
-    return <OnboardingFlow onComplete={() => {}} />
+    return (
+      <OnboardingFlow
+        initialMode={onboardingMode}
+        onBack={() => setShowOnboarding(false)}
+        onComplete={() => {}}
+      />
+    )
+  }
+
+  const openSignIn = () => {
+    setOnboardingMode('signIn')
+    setShowOnboarding(true)
+  }
+
+  const openSignUp = () => {
+    setOnboardingMode('signUp')
+    setShowOnboarding(true)
+  }
+
+  const scrollToBlock = (target: 'features' | 'creators' | 'cta') => {
+    const refMap = {
+      features: featuresRef,
+      creators: creatorsRef,
+      cta: ctaRef,
+    }
+
+    refMap[target].current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
@@ -153,20 +190,12 @@ export function LandingPage() {
         className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-6"
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-[24px] border border-white/8 bg-black/20 px-3 py-2.5 backdrop-blur-2xl">
-          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.02 }}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl gradient-purple shadow-[0_0_35px_rgba(168,85,247,0.35)]">
-              <Sun className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-gradient">OnlyDay</span>
-              <p className="hidden text-[11px] uppercase tracking-[0.24em] text-white/35 md:block">
-                premium social commerce
-              </p>
-            </div>
+          <motion.div whileHover={{ scale: 1.02 }}>
+            <BrandLockup subtitle="premium social commerce" />
           </motion.div>
 
           <motion.button
-            onClick={() => setShowOnboarding(true)}
+            onClick={openSignIn}
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.98 }}
             className="rounded-2xl border border-violet-300/25 bg-white/7 px-5 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
@@ -225,7 +254,7 @@ export function LandingPage() {
           className="mb-6 flex flex-col gap-4 sm:flex-row"
         >
           <motion.button
-            onClick={() => setShowOnboarding(true)}
+            onClick={openSignUp}
             whileHover={{ scale: 1.03, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="group flex items-center justify-center gap-2 rounded-2xl btn-primary px-8 py-4 text-lg font-bold text-white shadow-[0_24px_60px_rgba(124,58,237,0.35)]"
@@ -236,7 +265,7 @@ export function LandingPage() {
           </motion.button>
 
           <motion.button
-            onClick={() => setShowOnboarding(true)}
+            onClick={() => scrollToBlock('features')}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/7 px-8 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-2xl"
@@ -296,7 +325,7 @@ export function LandingPage() {
           ))}
         </motion.div>
 
-        <div className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div ref={featuresRef as React.RefObject<HTMLDivElement>} className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
           {FEATURES.map((feature, index) => (
             <motion.div
               key={feature.title}
@@ -304,6 +333,7 @@ export function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.78 + index * 0.08 }}
               whileHover={{ y: -8, scale: 1.02 }}
+              onClick={() => scrollToBlock('cta')}
               className={`rounded-3xl border border-white/10 bg-gradient-to-br ${feature.color} p-6 shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl`}
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl gradient-purple shadow-[0_18px_40px_rgba(124,58,237,0.35)]">
@@ -319,7 +349,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="px-6 py-16">
+      <section ref={creatorsRef} className="px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -366,15 +396,15 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="px-6 py-16 text-center">
+      <section ref={ctaRef} className="px-6 py-16 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className="mx-auto max-w-2xl rounded-[32px] border border-violet-300/14 bg-white/[0.05] p-10 shadow-[0_26px_90px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl gradient-purple glow-pulse">
-            <Crown className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/5 glow-pulse ring-1 ring-white/10">
+            <BrandLogo size={64} />
           </div>
           <h2 className="mb-3 text-3xl font-black text-white">
             Pronto para <span className="text-gradient">dominar?</span>
@@ -383,7 +413,7 @@ export function LandingPage() {
             Entre com uma narrativa mais forte, uma interface premium e caminhos claros de monetizacao.
           </p>
           <motion.button
-            onClick={() => setShowOnboarding(true)}
+            onClick={openSignUp}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             className="w-full rounded-2xl btn-primary py-4 text-lg font-bold text-white shadow-[0_20px_50px_rgba(124,58,237,0.35)]"

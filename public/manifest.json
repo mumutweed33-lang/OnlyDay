@@ -1,0 +1,19 @@
+{
+  "name": "OnlyDay",
+  "short_name": "OnlyDay",
+  "description": "Rede social premium para criadores de conteudo no Brasil.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#7C3AED",
+  "icons": [
+    {
+      "src": "/brand-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

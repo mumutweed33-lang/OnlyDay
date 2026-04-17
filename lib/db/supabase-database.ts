@@ -87,6 +87,11 @@ type MomentoRow = {
   profiles?: ProfileRow | null
 }
 
+type OdRankScoreRow = {
+  entity_id: string
+  final_score: number | null
+}
+
 function ensureArray<T>(value?: T[] | null) {
   return value ?? []
 }
@@ -144,7 +149,7 @@ function mapPost(row: PostRow, viewerId?: string): FeedPost {
   }
 }
 
-function mapMomento(row: MomentoRow): Momento {
+function mapMomento(row: MomentoRow, overrides?: Partial<Momento>): Momento {
   const profile = normalizeProfile(row.profiles)
   return {
     id: row.id,
@@ -162,6 +167,7 @@ function mapMomento(row: MomentoRow): Momento {
     duration: row.duration,
     expiresAt: row.expires_at,
     createdAt: row.created_at,
+    ...overrides,
   }
 }
 
@@ -208,12 +214,48 @@ export class SupabaseUserRepository implements UserRepository {
 export class SupabasePostRepository implements PostRepository {
   async listFeed(viewerId?: string) {
     const supabase = getSupabaseBrowserClient()
+    let rankedIds: string[] = []
+
+    if (viewerId) {
+      const { data: rankedData, error: rankedError } = await supabase
+        .from('od_rank_scores')
+        .select('entity_id, final_score')
+        .eq('viewer_profile_id', viewerId)
+        .eq('surface', 'feed')
+        .eq('entity_type', 'post')
+        .order('final_score', { ascending: false })
+        .limit(80)
+
+      if (!rankedError) {
+        rankedIds = ((rankedData as OdRankScoreRow[]) ?? []).map((row) => row.entity_id)
+      } else {
+        console.warn('[od-core] feed ranking unavailable, falling back to recency', rankedError.message)
+      }
+    }
+
     const { data, error } = await supabase
       .from('posts')
       .select('*, profiles:profiles(*)')
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return ((data as PostRow[]) ?? []).map((row) => mapPost(row, viewerId))
+
+    const mapped = ((data as PostRow[]) ?? []).map((row) => mapPost(row, viewerId))
+    if (rankedIds.length === 0) {
+      return mapped
+    }
+
+    const positionById = new Map(rankedIds.map((id, index) => [id, index]))
+    return mapped.sort((left, right) => {
+      const leftRank = positionById.get(left.id)
+      const rightRank = positionById.get(right.id)
+
+      if (leftRank === undefined && rightRank === undefined) {
+        return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+      }
+      if (leftRank === undefined) return 1
+      if (rightRank === undefined) return -1
+      return leftRank - rightRank
+    })
   }
 
   async create(post: NewFeedPost) {
@@ -440,7 +482,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
       .gte('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return ((data as MomentoRow[]) ?? []).map(mapMomento)
+    return ((data as MomentoRow[]) ?? []).map((row) => mapMomento(row))
   }
 
   async create(momento: NewMomento) {
@@ -481,7 +523,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
       .select('*, profiles:profiles(*)')
       .single()
     if (updateError) throw new Error(updateError.message)
-    return mapMomento(updated as MomentoRow)
+    return mapMomento(updated as MomentoRow, { hasViewed: true })
   }
 }
 

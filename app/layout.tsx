@@ -11,10 +11,15 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'OnlyDay - A Plataforma Premium do Brasil',
-  description: 'Rede social premium para criadores de conteúdo. Monetize sua audiência com exclusividade e elegância.',
-  keywords: 'criadores de conteúdo, monetização, rede social premium, Brasil',
+  description: 'Rede social premium para criadores de conteudo. Monetize sua audiencia com exclusividade e elegancia.',
+  keywords: 'criadores de conteudo, monetizacao, rede social premium, Brasil',
   authors: [{ name: 'OnlyDay' }],
   manifest: '/manifest.json',
+  icons: {
+    icon: '/brand-logo.svg',
+    shortcut: '/brand-logo.svg',
+    apple: '/brand-logo.svg',
+  },
 }
 
 export const viewport: Viewport = {

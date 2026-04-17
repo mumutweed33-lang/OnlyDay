@@ -19,13 +19,13 @@ interface PostContextType {
 const PostContext = createContext<PostContextType | undefined>(undefined)
 
 export function PostProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useUser()
+  const { user, updateUser } = useUser()
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS)
 
   const loadPosts = useCallback(async () => {
     try {
       const nextPosts = await getDatabaseProvider().posts.listFeed(user?.id)
-      setPosts(nextPosts)
+      setPosts(nextPosts.length > 0 ? nextPosts : MOCK_POSTS)
     } catch (error) {
       console.error('[posts] failed to load feed, using fallback', error)
       setPosts(MOCK_POSTS)
@@ -37,9 +37,14 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
   }, [loadPosts])
 
   const addPost = useCallback(async (postData: NewFeedPost) => {
+    const isOwnPost = postData.userId === user?.id
+
     try {
       const created = await getDatabaseProvider().posts.create(postData)
       setPosts((prev) => [created, ...prev])
+      if (isOwnPost && user) {
+        await updateUser({ posts: (user.posts ?? 0) + 1 })
+      }
     } catch (error) {
       console.error('[posts] failed to create post', error)
       const fallbackPost: Post = {
@@ -53,8 +58,11 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
         isSaved: false,
       }
       setPosts((prev) => [fallbackPost, ...prev])
+      if (isOwnPost && user) {
+        await updateUser({ posts: (user.posts ?? 0) + 1 })
+      }
     }
-  }, [])
+  }, [updateUser, user])
 
   const likePost = useCallback(
     async (postId: string) => {
@@ -103,6 +111,8 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
   )
 
   const deletePost = useCallback(async (postId: string) => {
+    const deletedPost = posts.find((post) => post.id === postId)
+
     try {
       await getDatabaseProvider().posts.delete(postId)
     } catch (error) {
@@ -110,7 +120,11 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
     }
 
     setPosts((prev) => prev.filter((post) => post.id !== postId))
-  }, [])
+
+    if (deletedPost?.userId === user?.id && user) {
+      await updateUser({ posts: Math.max(0, (user.posts ?? 0) - 1) })
+    }
+  }, [posts, updateUser, user])
 
   return (
     <PostContext.Provider value={{ posts, addPost, likePost, savePost, deletePost }}>

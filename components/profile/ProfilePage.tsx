@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
+  BarChart3,
   BadgeCheck,
   Crown,
   Edit3,
@@ -12,21 +13,90 @@ import {
   LogOut,
   Sparkles,
   Star,
+  X,
 } from 'lucide-react'
+import { PostDetailModal } from '@/components/feed/PostDetailModal'
 import { usePosts } from '@/components/providers/PostContext'
+import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
+import type { FeedPost } from '@/types/domain'
 
-export function ProfilePage() {
-  const { user, logout } = useUser()
+interface ProfilePageProps {
+  onOpenDashboard?: () => void
+  onOpenTag?: (tag: string) => void
+}
+
+export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
+  const { user, logout, updateUser } = useUser()
   const { posts } = usePosts()
+  const { getFollowingCount } = useSocial()
   const [activeTab, setActiveTab] = useState('posts')
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [draftName, setDraftName] = useState('')
+  const [draftBio, setDraftBio] = useState('')
+  const [draftLocation, setDraftLocation] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
 
-  const userPosts = posts.filter((p) => p.userId === (user?.id || 'user-001'))
+  const userPosts = useMemo(
+    () =>
+      posts.filter(
+        (post) =>
+          post.userId === (user?.id || 'user-001') ||
+          post.userUsername === user?.username
+      ),
+    [posts, user?.id, user?.username]
+  )
+  const premiumPosts = userPosts.filter((post) => post.isLocked)
+  const likedPosts = posts.filter((post) => post.isLiked)
 
   if (!user) return null
 
+  const visiblePosts =
+    activeTab === 'locked' ? premiumPosts : activeTab === 'liked' ? likedPosts : userPosts
+
+  const openEditModal = () => {
+    setDraftName(user.name ?? '')
+    setDraftBio(user.bio ?? '')
+    setDraftLocation(user.location || '')
+    setShowEditModal(true)
+  }
+
+  useEffect(() => {
+    if (!showEditModal) return
+    setDraftName(user.name ?? '')
+    setDraftBio(user.bio ?? '')
+    setDraftLocation(user.location || '')
+  }, [showEditModal, user.bio, user.location, user.name])
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    try {
+      await updateUser({
+        name: draftName.trim() || user.name,
+        bio: draftBio.trim() || user.bio,
+        location: draftLocation.trim() || undefined,
+      })
+      setShowEditModal(false)
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    setShowLogoutConfirm(false)
+    await logout()
+  }
+
   return (
     <div className="min-h-screen bg-dark pb-28">
+      <PostDetailModal
+        post={selectedPost}
+        viewerId={user.id}
+        onClose={() => setSelectedPost(null)}
+        onOpenTag={onOpenTag}
+      />
       <div className="relative">
         <div className="relative h-40 overflow-hidden bg-[linear-gradient(135deg,#1a0938_0%,#34125f_38%,#18122f_100%)]">
           <div
@@ -60,6 +130,7 @@ export function ProfilePage() {
             <div className="flex gap-2">
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                onClick={openEditModal}
                 className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-sm text-white/70 backdrop-blur-xl"
               >
                 <Edit3 className="h-4 w-4" />
@@ -67,7 +138,7 @@ export function ProfilePage() {
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-white/40 transition-colors hover:text-red-400"
               >
                 <LogOut className="h-4 w-4" />
@@ -82,13 +153,32 @@ export function ProfilePage() {
             </div>
             <p className="mb-2 text-sm text-violet-400">{user.username}</p>
             <p className="text-sm leading-relaxed text-white/60">{user.bio}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
+                Perfil privado do dono da conta
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                Outros usuários veem somente seu perfil público
+              </span>
+            </div>
+
+            {user.isCreator && (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={onOpenDashboard}
+                className="mt-4 flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(124,58,237,0.28)]"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Abrir meu dashboard
+              </motion.button>
+            )}
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-3">
             {[
-              { label: 'Posts', value: user.posts || userPosts.length },
+              { label: 'Posts', value: userPosts.length },
               { label: 'Seguidores', value: user.followers.toLocaleString('pt-BR') },
-              { label: 'Seguindo', value: user.following.toLocaleString('pt-BR') },
+              { label: 'Seguindo', value: getFollowingCount(user.following).toLocaleString('pt-BR') },
             ].map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-4 text-center">
                 <div className="text-xl font-black text-white">{stat.value}</div>
@@ -98,17 +188,25 @@ export function ProfilePage() {
           </div>
 
           <div className="mb-4 flex items-center gap-2">
-            <div
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (user.isCreator) {
+                  onOpenDashboard?.()
+                  return
+                }
+                openEditModal()
+              }}
               className={
-                'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ' +
+                'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ' +
                 (user.plan === 'diamond'
                   ? 'border border-violet-500/30 bg-violet-500/20 text-violet-300'
-                  : 'border border-white/10 bg-white/6 text-white/45')
+                  : 'border border-white/10 bg-white/6 text-white/45 hover:border-violet-500/30 hover:text-white')
               }
             >
               {user.plan === 'diamond' ? <Crown className="h-3 w-3" /> : <Star className="h-3 w-3" />}
               {user.plan === 'free' ? 'Plano Free' : user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
-            </div>
+            </motion.button>
             {user.isVerified && (
               <div className="flex items-center gap-1.5 rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400">
                 <BadgeCheck className="h-3 w-3" />
@@ -145,19 +243,44 @@ export function ProfilePage() {
       </div>
 
       <div className="p-4">
-        {userPosts.length === 0 ? (
+        {activeTab === 'liked' && (
+          <div className="mb-4 rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+              <Heart className="h-4 w-4 text-violet-400" />
+              Seus curtidos
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-white/45">
+              Essa área é visível para você e para quem visitar seu perfil público, como você pediu.
+            </p>
+          </div>
+        )}
+
+        {visiblePosts.length === 0 ? (
           <div className="py-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-500/20 bg-white/6">
               <Sparkles className="h-8 w-8 text-violet-400" />
             </div>
-            <p className="text-sm text-white/50">Nenhum post ainda</p>
-            <p className="mt-1 text-xs text-white/30">Comece a compartilhar seu conteudo</p>
+            <p className="text-sm text-white/50">
+              {activeTab === 'locked'
+                ? 'Nenhum post premium ainda'
+                : activeTab === 'liked'
+                  ? 'Você ainda não curtiu nada'
+                  : 'Nenhum post ainda'}
+            </p>
+            <p className="mt-1 text-xs text-white/30">
+              {activeTab === 'locked'
+                ? 'Seus conteúdos premium vão aparecer aqui'
+                : activeTab === 'liked'
+                  ? 'Quando você curtir algo, ele aparece aqui'
+                  : 'Comece a compartilhar seu conteúdo'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {userPosts.map((post) => (
-              <div
+            {visiblePosts.map((post) => (
+              <button
                 key={post.id}
+                onClick={() => setSelectedPost(post)}
                 className="relative aspect-square overflow-hidden rounded-2xl bg-violet-900/20 ring-1 ring-white/6"
               >
                 {post.media?.[0] ? (
@@ -172,11 +295,144 @@ export function ProfilePage() {
                     <Lock className="h-3 w-3 text-violet-400" />
                   </div>
                 )}
-              </div>
+                {activeTab === 'liked' && (
+                  <div className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-dark/80">
+                    <Heart className="h-3 w-3 fill-violet-400 text-violet-400" />
+                  </div>
+                )}
+              </button>
             ))}
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white">Editar meu perfil</h3>
+                  <p className="text-xs text-white/40">Seu perfil premium, do seu jeito.</p>
+                </div>
+                <button onClick={() => setShowEditModal(false)} aria-label="Fechar edição de perfil" className="text-white/35">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-xs text-white/45">Nome</label>
+                  <input
+                    value={draftName}
+                    onChange={(event) => setDraftName(event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-white/45">Bio premium</label>
+                  <textarea
+                    value={draftBio}
+                    onChange={(event) => setDraftBio(event.target.value)}
+                    rows={4}
+                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-white/45">Local</label>
+                  <input
+                    value={draftLocation}
+                    onChange={(event) => setDraftLocation(event.target.value)}
+                    placeholder="Cidade ou região"
+                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                  />
+                </div>
+                <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+                    <Sparkles className="h-4 w-4 text-violet-300" />
+                    Direção de bio
+                  </div>
+                  <p className="text-xs leading-relaxed text-white/55">
+                    Foque em presença, nicho, valor e energia. Poucas linhas, identidade forte e sem poluir.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex gap-3">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  aria-label="Cancelar edição de perfil"
+                  className="flex-1 rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/70"
+                >
+                  Cancelar
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSaveProfile}
+                  disabled={savingProfile}
+                  className="flex-1 rounded-2xl btn-primary py-3 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {savingProfile ? 'Salvando...' : 'Salvar perfil'}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-sm rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15">
+                  <LogOut className="h-5 w-5 text-rose-300" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">Sair da conta?</h3>
+                  <p className="text-xs text-white/45">Você vai voltar para a home inicial.</p>
+                </div>
+              </div>
+              <div className="grid gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  aria-label="Cancelar saída da conta"
+                  className="rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/70"
+                >
+                  Continuar aqui
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleLogout}
+                  className="rounded-2xl border border-rose-500/20 bg-rose-500/10 py-3 text-sm font-bold text-rose-100"
+                >
+                  Sim, sair agora
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

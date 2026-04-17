@@ -3,13 +3,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { getDatabaseProvider } from '@/lib/db'
 import { MOCK_CONVERSATIONS } from '@/lib/db/mock-data'
+import { queueOdRefresh, trackOdEvent } from '@/lib/od-core/signal'
+import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { Conversation, ChatMessage as Message, NewChatMessage } from '@/types/domain'
+import type { PublicProfile } from '@/types/domain'
 import { useUser } from '@/components/providers/UserContext'
 
 interface MessageContextType {
   conversations: Conversation[]
   activeConversation: Conversation | null
   setActiveConversation: (conv: Conversation | null) => void
+  openConversationForProfile: (profile: PublicProfile) => void
   sendMessage: (convId: string, message: NewChatMessage) => Promise<void>
   placeBid: (convId: string, amount: number) => Promise<void>
   markAsRead: (convId: string) => Promise<void>
@@ -17,6 +21,11 @@ interface MessageContextType {
 }
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined)
+
+interface OdConversationRankRow {
+  entity_id: string
+  final_score: number | null
+}
 
 export function MessageProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
@@ -36,7 +45,48 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const nextConversations = await getDatabaseProvider().messages.listConversations(user.id)
-      setConversations(nextConversations)
+      let rankedIds: string[] = []
+
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data, error } = await supabase
+          .from('od_rank_scores')
+          .select('entity_id, final_score')
+          .eq('viewer_profile_id', user.id)
+          .in('surface', ['chat_vip', 'auction'])
+          .eq('entity_type', 'conversation')
+          .order('final_score', { ascending: false })
+          .limit(80)
+
+        if (!error) {
+          rankedIds = ((data as OdConversationRankRow[]) ?? []).map((row) => row.entity_id)
+        } else {
+          console.warn('[od-core] chat ranking unavailable, using conversation recency', error.message)
+        }
+      } catch (rankingError) {
+        console.error('[od-core] failed to load chat ranking', rankingError)
+      }
+
+      const withFallback = nextConversations.length > 0 ? nextConversations : MOCK_CONVERSATIONS
+      if (rankedIds.length === 0) {
+        setConversations(withFallback)
+        return
+      }
+
+      const positionById = new Map(rankedIds.map((id, index) => [id, index]))
+      const sortedConversations = [...withFallback].sort((left, right) => {
+        const leftRank = positionById.get(left.id)
+        const rightRank = positionById.get(right.id)
+
+        if (leftRank === undefined && rightRank === undefined) {
+          return new Date(right.lastMessageTime).getTime() - new Date(left.lastMessageTime).getTime()
+        }
+        if (leftRank === undefined) return 1
+        if (rightRank === undefined) return -1
+        return leftRank - rightRank
+      })
+
+      setConversations(sortedConversations)
     } catch (error) {
       console.error('[messages] failed to load conversations', error)
       setConversations(MOCK_CONVERSATIONS)
@@ -48,8 +98,73 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
   }, [loadConversations])
 
   const setActiveConversation = useCallback((conv: Conversation | null) => {
+    if (conv && user?.id) {
+      void trackOdEvent({
+        actorProfileId: user.id,
+        targetProfileId: conv.userId,
+        conversationId: conv.id,
+        surface: 'chat_vip',
+        eventType: 'chat_open',
+      })
+      queueOdRefresh(user.id)
+    }
     setActiveConversationId(conv?.id ?? null)
-  }, [])
+  }, [user?.id])
+
+  const openConversationForProfile = useCallback(
+    (profile: PublicProfile) => {
+      const existingConversation = conversations.find(
+        (conversation) =>
+          conversation.userId === profile.id || conversation.userUsername === profile.username
+      )
+
+      if (existingConversation) {
+        if (user?.id) {
+          void trackOdEvent({
+            actorProfileId: user.id,
+            targetProfileId: profile.id,
+            conversationId: existingConversation.id,
+            surface: 'chat_vip',
+            eventType: 'chat_open',
+          })
+          queueOdRefresh(user.id)
+        }
+        setActiveConversationId(existingConversation.id)
+        return
+      }
+
+      const nextConversation: Conversation = {
+        id: `conv-${Date.now()}`,
+        userId: profile.id,
+        userName: profile.name,
+        userAvatar: profile.avatar,
+        userUsername: profile.username,
+        isVerified: profile.isVerified,
+        isPremium: profile.isCreator,
+        lastMessage: 'Nova conversa iniciada.',
+        lastMessageTime: new Date().toISOString(),
+        unreadCount: 0,
+        intimacyScore: 12,
+        isOnline: true,
+        messages: [],
+      }
+
+      setConversations((prev) => [nextConversation, ...prev])
+      setActiveConversationId(nextConversation.id)
+      if (user?.id) {
+        void trackOdEvent({
+          actorProfileId: user.id,
+          targetProfileId: profile.id,
+          conversationId: nextConversation.id,
+          surface: 'chat_vip',
+          eventType: 'chat_open',
+          metadata: { createdConversation: true },
+        })
+        queueOdRefresh(user.id)
+      }
+    },
+    [conversations, user?.id]
+  )
 
   const patchConversation = useCallback((conversation: Conversation) => {
     setConversations((prev) =>
@@ -59,6 +174,18 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = useCallback(
     async (convId: string, messageData: NewChatMessage) => {
+      if (user?.id) {
+        const targetConversation = conversations.find((conversation) => conversation.id === convId)
+        void trackOdEvent({
+          actorProfileId: user.id,
+          targetProfileId: targetConversation?.userId ?? messageData.receiverId,
+          conversationId: convId,
+          surface: 'chat_vip',
+          eventType: 'chat_reply',
+          metadata: { type: messageData.type, locked: !!messageData.isLocked },
+        })
+        queueOdRefresh(user.id)
+      }
       try {
         const updated = await getDatabaseProvider().messages.sendMessage(convId, messageData)
         if (updated) {
@@ -88,12 +215,22 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         )
       )
     },
-    [patchConversation]
+    [conversations, patchConversation, user?.id]
   )
 
   const placeBid = useCallback(
     async (convId: string, amount: number) => {
       if (!user?.id) return
+      const targetConversation = conversations.find((conversation) => conversation.id === convId)
+      void trackOdEvent({
+        actorProfileId: user.id,
+        targetProfileId: targetConversation?.userId,
+        conversationId: convId,
+        surface: 'auction',
+        eventType: 'auction_bid',
+        eventValue: amount,
+      })
+      queueOdRefresh(user.id)
 
       try {
         const updated = await getDatabaseProvider().messages.placeBid(convId, user.id, amount)
@@ -131,7 +268,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         )
       )
     },
-    [patchConversation, user?.id]
+    [conversations, patchConversation, user?.id]
   )
 
   const markAsRead = useCallback(
@@ -191,6 +328,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         conversations,
         activeConversation,
         setActiveConversation,
+        openConversationForProfile,
         sendMessage,
         placeBid,
         markAsRead,

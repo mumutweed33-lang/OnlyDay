@@ -129,7 +129,9 @@ export interface Momento {
   userName: string
   userAvatar: string
   userUsername: string
+  userBio?: string
   isVerified: boolean
+  isCreator?: boolean
   media: string
   mediaType: MediaType
   isLocked: boolean
@@ -147,7 +149,9 @@ export interface NewMomento {
   userName: string
   userAvatar: string
   userUsername: string
+  userBio?: string
   isVerified: boolean
+  isCreator?: boolean
   media: string
   mediaType: MediaType
   isLocked: boolean
@@ -156,4 +160,36 @@ export interface NewMomento {
   duration: number
   expiresAt: string
   hasViewed?: boolean
+}
+
+export interface PublicProfile {
+  id: string
+  name: string
+  username: string
+  avatar: string
+  bio?: string
+  isVerified: boolean
+  isCreator: boolean
+}
+
+export interface PostComment {
+  id: string
+  postId: string
+  userId: string
+  userName: string
+  userUsername: string
+  userAvatar: string
+  content: string
+  createdAt: string
+}
+
+export type NotificationType = 'like' | 'comment' | 'follow' | 'share' | 'system'
+
+export interface AppNotification {
+  id: string
+  type: NotificationType
+  title: string
+  description: string
+  createdAt: string
+  read: boolean
 }

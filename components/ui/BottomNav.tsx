@@ -2,9 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BarChart3, Home, MessageCircle, PlusCircle, Search, User } from 'lucide-react'
+import { Home, MessageCircle, PlusCircle, Search, User } from 'lucide-react'
 import { useMessages } from '@/components/providers/MessageContext'
-import { useUser } from '@/components/providers/UserContext'
 
 interface BottomNavProps {
   activeTab: string
@@ -12,7 +11,6 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
-  const { user } = useUser()
   const { conversations } = useMessages()
 
   const totalUnread = conversations.reduce((acc, c) => acc + c.unreadCount, 0)
@@ -22,11 +20,7 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
     { id: 'explore', icon: Search, label: 'Explorar' },
     { id: 'create', icon: PlusCircle, label: 'Criar', special: true },
     { id: 'chat', icon: MessageCircle, label: 'Chat', badge: totalUnread > 0 ? totalUnread : null },
-    {
-      id: user?.isCreator ? 'empire' : 'profile',
-      icon: user?.isCreator ? BarChart3 : User,
-      label: user?.isCreator ? 'Empire' : 'Perfil',
-    },
+    { id: 'profile', icon: User, label: 'Perfil' },
   ]
 
   return (

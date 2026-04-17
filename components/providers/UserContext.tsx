@@ -28,11 +28,11 @@ interface UserContextType {
 
 const defaultUser: User = {
   id: 'user-001',
-  name: 'Voce',
+  name: 'Você',
   username: '@voce',
   email: 'voce@onlyday.local',
   avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user001&backgroundColor=7C3AED',
-  bio: 'Criador de conteudo premium no OnlyDay',
+  bio: 'Criador de conteúdo premium no OnlyDay',
   isCreator: false,
   isVerified: false,
   isPremium: false,
@@ -46,6 +46,19 @@ const defaultUser: User = {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
+
+function normalizeCreatorState(
+  baseUser: Partial<User> | null | undefined,
+  updates: Partial<User>
+): Partial<User> {
+  const nextPlan = updates.plan ?? baseUser?.plan ?? 'free'
+  const explicitCreatorFlag = updates.isCreator ?? baseUser?.isCreator ?? false
+
+  return {
+    ...updates,
+    isCreator: nextPlan !== 'free' ? true : explicitCreatorFlag,
+  }
+}
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -64,7 +77,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             try {
               const persistedUser =
                 (await getDatabaseProvider().users.findById(session.user.id)) ?? session.user
-              setUser({ ...session.user, ...persistedUser })
+              setUser({
+                ...session.user,
+                ...normalizeCreatorState(session.user, persistedUser),
+                ...persistedUser,
+              })
             } catch (dbError) {
               console.error('Error loading persisted profile:', dbError)
               setUser(session.user)
@@ -111,12 +128,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (!session.user) {
       throw new Error(
         mode === 'signIn'
-          ? 'Nao foi possivel entrar com esta conta.'
-          : 'Nao foi possivel criar sua conta agora.'
+      ? 'Não foi possível entrar com esta conta.'
+      : 'Não foi possível criar sua conta agora.'
       )
     }
 
-    const mergedUser = { ...nextUser, ...session.user, email: session.user.email || email }
+    const mergedUser = {
+      ...nextUser,
+      ...normalizeCreatorState(nextUser, session.user),
+      ...session.user,
+      email: session.user.email || email,
+    }
     setUser(mergedUser)
     setIsLoggedIn(session.isAuthenticated)
     setIsOnboarding(false)
@@ -135,7 +157,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
-    const updated = await getAuthService().updateProfile(updates)
+    const normalizedUpdates = normalizeCreatorState(user, updates)
+    const updated = await getAuthService().updateProfile(normalizedUpdates)
     if (updated) {
       setUser(updated)
       try {
@@ -145,7 +168,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } else {
       setUser((prev) => {
-        const next = prev ? { ...prev, ...updates } : prev
+        const next = prev ? { ...prev, ...normalizeCreatorState(prev, updates) } : prev
         if (next) {
           void getDatabaseProvider()
             .users.create(next)
@@ -154,7 +177,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return next
       })
     }
-  }, [])
+  }, [user])
 
   const completeOnboarding = useCallback(() => {
     setIsOnboarding(false)
