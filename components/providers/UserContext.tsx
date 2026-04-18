@@ -60,6 +60,16 @@ function normalizeCreatorState(
   }
 }
 
+function normalizeUsername(value: string) {
+  const cleaned = value
+    .trim()
+    .toLowerCase()
+    .replace(/^@+/, '')
+    .replace(/[^a-z0-9_]/g, '')
+
+  return cleaned ? `@${cleaned}` : ''
+}
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -157,7 +167,28 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
-    const normalizedUpdates = normalizeCreatorState(user, updates)
+    if (!user) return
+
+    const normalizedUsername =
+      typeof updates.username === 'string' ? normalizeUsername(updates.username) : undefined
+
+    if (updates.username !== undefined) {
+      if (!normalizedUsername || normalizedUsername.length < 4) {
+        throw new Error('Escolha um @username com pelo menos 3 caracteres.')
+      }
+
+      if (normalizedUsername !== user.username) {
+        const existingUser = await getDatabaseProvider().users.findByUsername(normalizedUsername)
+        if (existingUser && existingUser.id !== user.id) {
+          throw new Error('Esse @username ja esta em uso. Escolha outro.')
+        }
+      }
+    }
+
+    const normalizedUpdates = normalizeCreatorState(user, {
+      ...updates,
+      ...(normalizedUsername ? { username: normalizedUsername } : {}),
+    })
     const updated = await getAuthService().updateProfile(normalizedUpdates)
     if (updated) {
       setUser(updated)

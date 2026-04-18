@@ -35,11 +35,13 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [draftName, setDraftName] = useState('')
+  const [draftUsername, setDraftUsername] = useState('')
   const [draftBio, setDraftBio] = useState('')
   const [draftLocation, setDraftLocation] = useState('')
   const [draftAvatar, setDraftAvatar] = useState('')
   const [draftCoverImage, setDraftCoverImage] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [saveProfileError, setSaveProfileError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
@@ -63,21 +65,25 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
 
   const openEditModal = () => {
     setDraftName(user.name ?? '')
+    setDraftUsername(user.username ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
     setDraftAvatar(user.avatar || '')
     setDraftCoverImage(user.coverImage || '')
+    setSaveProfileError(null)
     setShowEditModal(true)
   }
 
   useEffect(() => {
     if (!showEditModal) return
     setDraftName(user.name ?? '')
+    setDraftUsername(user.username ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
     setDraftAvatar(user.avatar || '')
     setDraftCoverImage(user.coverImage || '')
-  }, [showEditModal, user.avatar, user.bio, user.coverImage, user.location, user.name])
+    setSaveProfileError(null)
+  }, [showEditModal, user.avatar, user.bio, user.coverImage, user.location, user.name, user.username])
 
   const readImageFile = (file: File, onLoad: (value: string) => void) => {
     if (!file.type.startsWith('image/')) return
@@ -93,15 +99,23 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
 
   const handleSaveProfile = async () => {
     setSavingProfile(true)
+    setSaveProfileError(null)
     try {
       await updateUser({
         name: draftName.trim() || user.name,
+        username: draftUsername,
         bio: draftBio.trim() || user.bio,
         location: draftLocation.trim() || undefined,
         avatar: draftAvatar || user.avatar,
         coverImage: draftCoverImage || undefined,
       })
       setShowEditModal(false)
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Nao foi possivel salvar seu perfil agora.'
+      setSaveProfileError(message)
     } finally {
       setSavingProfile(false)
     }
@@ -426,6 +440,27 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                   />
                 </div>
                 <div>
+                  <label className="mb-1 block text-xs text-white/45">Username</label>
+                  <div className="flex items-center rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+                    <span className="mr-1 text-sm font-semibold text-violet-300">@</span>
+                    <input
+                      value={draftUsername.replace(/^@+/, '')}
+                      onChange={(event) => {
+                        const nextUsername = event.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9_]/g, '')
+                        setDraftUsername(`@${nextUsername}`)
+                        if (saveProfileError) setSaveProfileError(null)
+                      }}
+                      placeholder="seuusername"
+                      className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                    />
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+                    Se esse @ ja estiver sendo usado por outra conta, o app vai pedir para escolher outro.
+                  </p>
+                </div>
+                <div>
                   <label className="mb-1 block text-xs text-white/45">Bio premium</label>
                   <textarea
                     value={draftBio}
@@ -452,6 +487,12 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                     Foque em presença, nicho, valor e energia. Poucas linhas, identidade forte e sem poluir.
                   </p>
                 </div>
+
+                {saveProfileError && (
+                  <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-100">
+                    {saveProfileError}
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 flex gap-3">
