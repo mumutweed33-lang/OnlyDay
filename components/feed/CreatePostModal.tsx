@@ -23,6 +23,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
   const [posting, setPosting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const mediaInputRef = useRef<HTMLInputElement>(null)
 
   const normalizedPrice = price.replace(',', '.').trim()
   const parsedPrice = normalizedPrice ? Number(normalizedPrice) : NaN
@@ -64,7 +65,25 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
   }
 
   const handleImageUpload = () => {
-    setMediaPreview(`https://picsum.photos/seed/post-${Date.now()}/800/600`)
+    mediaInputRef.current?.click()
+  }
+
+  const handleSelectedImage = (file?: File) => {
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setSubmitError('Escolha um arquivo de imagem para publicar.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setMediaPreview(reader.result)
+        setSubmitError(null)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -102,6 +121,16 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
       </div>
 
       <div className="flex-1 overflow-auto p-4">
+        <input
+          ref={mediaInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(event) => {
+            handleSelectedImage(event.target.files?.[0])
+            event.target.value = ''
+          }}
+        />
         <div className="flex gap-3">
           <img
             src={user?.avatar}
@@ -132,6 +161,12 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
                   <X className="h-4 w-4 text-white" />
                 </button>
               </div>
+            )}
+
+            {mediaPreview && (
+              <p className="mt-2 text-[11px] text-white/35">
+                Imagem original anexada sem reduzir qualidade no preview atual.
+              </p>
             )}
 
             <div className="mt-3 flex flex-wrap gap-2">

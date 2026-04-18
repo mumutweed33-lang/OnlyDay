@@ -59,7 +59,7 @@ export function OnboardingFlow({
   })
 
   const totalSteps = mode === 'signIn' ? 1 : TOTAL_SIGNUP_STEPS
-  const passwordStrongEnough = formData.password.trim().length >= 8
+  const passwordStrongEnough = formData.password.trim().length >= 6
   const passwordMatches = formData.password === formData.confirmPassword
 
   React.useEffect(() => {
@@ -390,26 +390,6 @@ export function OnboardingFlow({
                     }
                     className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                   />
-                  <p className="mt-2 text-[11px] text-white/35">
-                    Use pelo menos 8 caracteres para uma entrada mais segura.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm text-white/60">Confirmar senha</label>
-                  <input
-                    type="password"
-                    placeholder="Repita sua senha"
-                    autoComplete="new-password"
-                    value={formData.confirmPassword}
-                    onChange={(event) =>
-                      setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))
-                    }
-                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
-                  />
-                  {formData.confirmPassword && !passwordMatches && (
-                    <p className="mt-2 text-[11px] text-rose-300">As senhas precisam ser iguais.</p>
-                  )}
                 </div>
 
                 <div>
@@ -460,6 +440,26 @@ export function OnboardingFlow({
                     }
                     className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                   />
+                  <p className={`mt-2 text-[11px] ${formData.password && !passwordStrongEnough ? 'text-rose-300' : 'text-white/35'}`}>
+                    Use pelo menos 6 caracteres.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Confirmar senha</label>
+                  <input
+                    type="password"
+                    placeholder="Repita sua senha"
+                    autoComplete="new-password"
+                    value={formData.confirmPassword}
+                    onChange={(event) =>
+                      setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
+                  />
+                  {formData.confirmPassword && !passwordMatches && (
+                    <p className="mt-2 text-[11px] text-rose-300">As senhas precisam ser iguais.</p>
+                  )}
                 </div>
 
                 <button

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BarChart3,
@@ -9,6 +9,7 @@ import {
   Edit3,
   Grid3X3,
   Heart,
+  ImagePlus,
   Lock,
   LogOut,
   Sparkles,
@@ -36,8 +37,12 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const [draftName, setDraftName] = useState('')
   const [draftBio, setDraftBio] = useState('')
   const [draftLocation, setDraftLocation] = useState('')
+  const [draftAvatar, setDraftAvatar] = useState('')
+  const [draftCoverImage, setDraftCoverImage] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   const userPosts = useMemo(
     () =>
@@ -60,6 +65,8 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
     setDraftName(user.name ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
+    setDraftAvatar(user.avatar || '')
+    setDraftCoverImage(user.coverImage || '')
     setShowEditModal(true)
   }
 
@@ -68,7 +75,21 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
     setDraftName(user.name ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
-  }, [showEditModal, user.bio, user.location, user.name])
+    setDraftAvatar(user.avatar || '')
+    setDraftCoverImage(user.coverImage || '')
+  }, [showEditModal, user.avatar, user.bio, user.coverImage, user.location, user.name])
+
+  const readImageFile = (file: File, onLoad: (value: string) => void) => {
+    if (!file.type.startsWith('image/')) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        onLoad(reader.result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSaveProfile = async () => {
     setSavingProfile(true)
@@ -77,6 +98,8 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
         name: draftName.trim() || user.name,
         bio: draftBio.trim() || user.bio,
         location: draftLocation.trim() || undefined,
+        avatar: draftAvatar || user.avatar,
+        coverImage: draftCoverImage || undefined,
       })
       setShowEditModal(false)
     } finally {
@@ -99,6 +122,13 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
       />
       <div className="relative">
         <div className="relative h-40 overflow-hidden bg-[linear-gradient(135deg,#1a0938_0%,#34125f_38%,#18122f_100%)]">
+          {user.coverImage && (
+            <img
+              src={user.coverImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
           <div
             className="absolute inset-0 opacity-20"
             style={{
@@ -331,6 +361,62 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               </div>
 
               <div className="space-y-4">
+                <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+                  <div className="relative h-32 bg-[linear-gradient(135deg,#1a0938_0%,#34125f_38%,#18122f_100%)]">
+                    {draftCoverImage && (
+                      <img src={draftCoverImage} alt="" className="h-full w-full object-cover" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => coverInputRef.current?.click()}
+                      className="absolute bottom-3 right-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-xs font-semibold text-white backdrop-blur-xl"
+                    >
+                      <ImagePlus className="h-4 w-4" />
+                      Trocar capa
+                    </button>
+                  </div>
+                  <div className="-mt-8 flex items-end gap-3 px-4 pb-4">
+                    <img
+                      src={draftAvatar || user.avatar}
+                      alt={draftName || user.name}
+                      className="h-20 w-20 rounded-[24px] border-4 border-[#0f0a18] object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="mb-1 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-xs font-semibold text-white/75"
+                    >
+                      <ImagePlus className="h-4 w-4" />
+                      Trocar foto
+                    </button>
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) readImageFile(file, setDraftAvatar)
+                      event.target.value = ''
+                    }}
+                  />
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) readImageFile(file, setDraftCoverImage)
+                      event.target.value = ''
+                    }}
+                  />
+                  <p className="px-4 pb-4 text-[11px] leading-relaxed text-white/40">
+                    A imagem escolhida e preservada sem compressao no preview. Para 8K real em producao, o proximo passo e ligar um storage dedicado.
+                  </p>
+                </div>
+
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Nome</label>
                   <input
