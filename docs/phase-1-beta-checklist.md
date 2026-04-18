@@ -73,7 +73,7 @@ Objetivo:
 ## 9. Estabilidade tecnica
 - [x] `tsc --noEmit` passando
 - [x] `npm run build` passando
-- [ ] Site publicado carregando na Vercel
+- [x] Site publicado carregando na Vercel
 - [ ] Sem erros criticos visiveis para o usuario final
 
 ## 10. Criterio de saida da Fase 1
