@@ -60,6 +60,11 @@ class MockUserRepository implements UserRepository {
     return users.find((item) => item.username === username) ?? null
   }
 
+  async list(limit = 100) {
+    const users = readStorage<DatabaseUserRecord[]>(STORAGE_KEYS.users, [])
+    return users.slice(0, limit)
+  }
+
   async create(user: DatabaseUserRecord) {
     const users = readStorage<DatabaseUserRecord[]>(STORAGE_KEYS.users, [])
     const next = [user, ...users.filter((item) => item.id !== user.id)]

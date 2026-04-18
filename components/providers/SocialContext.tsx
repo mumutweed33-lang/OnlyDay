@@ -5,6 +5,7 @@ import { useMessages } from '@/components/providers/MessageContext'
 import { useMomentos } from '@/components/providers/MomentoContext'
 import { usePosts } from '@/components/providers/PostContext'
 import { useUser } from '@/components/providers/UserContext'
+import { getDatabaseProvider } from '@/lib/db'
 import { queueOdRefresh, trackOdEvent } from '@/lib/od-core/signal'
 import type { AppNotification, FeedPost, PostComment, PublicProfile } from '@/types/domain'
 
@@ -99,6 +100,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { posts } = usePosts()
   const { conversations } = useMessages()
   const { creatorMomentos } = useMomentos()
+  const [directoryProfiles, setDirectoryProfiles] = useState<PublicProfile[]>([])
   const [followedIds, setFollowedIds] = useState<string[]>([])
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
   const [notifications, setNotifications] = useState<AppNotification[]>([])
@@ -148,6 +150,43 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     writeStorage(COMMENTS_STORAGE_KEY, seededComments)
   }, [commentsByPost, posts])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDirectoryProfiles() {
+      if (!user?.id) {
+        setDirectoryProfiles([])
+        return
+      }
+
+      try {
+        const profiles = await getDatabaseProvider().users.list(200)
+        if (cancelled) return
+
+        setDirectoryProfiles(
+          profiles.map((profile) => ({
+            id: profile.id,
+            name: profile.name,
+            username: profile.username,
+            avatar: profile.avatar,
+            bio: profile.bio,
+            isVerified: profile.isVerified,
+            isCreator: profile.isCreator,
+          }))
+        )
+      } catch (error) {
+        console.error('[social] failed to load profile directory', error)
+        if (!cancelled) setDirectoryProfiles([])
+      }
+    }
+
+    void loadDirectoryProfiles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
+
   const persistNotifications = useCallback((next: AppNotification[]) => {
     setNotifications(next)
     writeStorage(NOTIFICATIONS_STORAGE_KEY, next)
@@ -168,6 +207,10 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
 
   const knownProfiles = useMemo(() => {
     const registry = new Map<string, PublicProfile>()
+
+    directoryProfiles.forEach((profile) => {
+      registry.set(profile.id, profile)
+    })
 
     if (user) {
       registry.set(user.id, {
@@ -216,7 +259,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     })
 
     return Array.from(registry.values())
-  }, [conversations, creatorMomentos, posts, user])
+  }, [conversations, creatorMomentos, directoryProfiles, posts, user])
 
   const trendingTopics = useMemo(() => {
     const tagMap = new Map<string, number>()

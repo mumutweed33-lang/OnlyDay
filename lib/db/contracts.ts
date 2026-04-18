@@ -16,6 +16,7 @@ export interface DatabaseUserRecord extends AppUser {
 export interface UserRepository {
   findById(id: string): Promise<DatabaseUserRecord | null>
   findByUsername(username: string): Promise<DatabaseUserRecord | null>
+  list(limit?: number): Promise<DatabaseUserRecord[]>
   create(user: DatabaseUserRecord): Promise<DatabaseUserRecord>
   update(id: string, updates: Partial<DatabaseUserRecord>): Promise<DatabaseUserRecord | null>
 }

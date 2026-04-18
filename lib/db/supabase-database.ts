@@ -190,6 +190,20 @@ export class SupabaseUserRepository implements UserRepository {
     return normalizeProfile(data as ProfileRow)
   }
 
+  async list(limit = 100) {
+    const supabase = getSupabaseBrowserClient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (error) throw new Error(error.message)
+    return ((data as ProfileRow[]) ?? [])
+      .map((profile) => normalizeProfile(profile))
+      .filter((profile): profile is DatabaseUserRecord => Boolean(profile))
+  }
+
   async create(user: DatabaseUserRecord) {
     const supabase = getSupabaseBrowserClient()
     const payload = { ...user, updated_at: new Date().toISOString() }
