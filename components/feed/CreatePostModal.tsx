@@ -41,21 +41,26 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
     setPosting(true)
     await new Promise((resolve) => setTimeout(resolve, 700))
 
-    await addPost({
-      userId: user?.id || 'user-001',
-      userName: user?.name || 'Usuario',
-      userAvatar: user?.avatar || '',
-      userUsername: user?.username || '@usuario',
-      isVerified: user?.isVerified || false,
-      content: content.trim(),
-      media: mediaPreview ? [{ type: 'image', url: mediaPreview }] : undefined,
-      isLocked,
-      price: isLocked ? parsedPrice : undefined,
-      hashtags: content.match(/#(\w+)/g)?.map((hashtag) => hashtag.slice(1)) || [],
-    })
-
-    setPosting(false)
-    onClose()
+    try {
+      await addPost({
+        userId: user?.id || 'user-001',
+        userName: user?.name || 'Usuario',
+        userAvatar: user?.avatar || '',
+        userUsername: user?.username || '@usuario',
+        isVerified: user?.isVerified || false,
+        content: content.trim(),
+        media: mediaPreview ? [{ type: 'image', url: mediaPreview }] : undefined,
+        isLocked,
+        price: isLocked ? parsedPrice : undefined,
+        hashtags: content.match(/#(\w+)/g)?.map((hashtag) => hashtag.slice(1)) || [],
+      })
+      onClose()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel publicar agora.'
+      setSubmitError(`Nao consegui salvar esse post na comunidade. ${message}`)
+    } finally {
+      setPosting(false)
+    }
   }
 
   const addEmoji = (emoji: string) => {

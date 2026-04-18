@@ -494,23 +494,16 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
       </div>
 
       {posts.length === 0 && (
-        <div className="flex flex-col items-center gap-4 px-4 py-8">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-full animate-pulse rounded-3xl border border-white/8 bg-white/[0.04] p-4 shadow-[0_16px_50px_rgba(0,0,0,0.2)]"
-            >
-              <div className="mb-3 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-white/5" />
-                <div className="flex-1">
-                  <div className="mb-1 h-3 w-24 rounded bg-white/5" />
-                  <div className="h-2 w-16 rounded bg-white/5" />
-                </div>
-              </div>
-              <div className="mb-1 h-3 w-full rounded bg-white/5" />
-              <div className="h-3 w-3/4 rounded bg-white/5" />
+        <div className="px-4 py-8">
+          <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-5 text-center shadow-[0_16px_50px_rgba(0,0,0,0.2)]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-400/15">
+              <Sparkles className="h-5 w-5 text-violet-300" />
             </div>
-          ))}
+            <h3 className="text-sm font-bold text-white">Nenhum post real ainda</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/45">
+              Assim que alguem da comunidade publicar, o conteudo aparece aqui para todos.
+            </p>
+          </div>
         </div>
       )}
 

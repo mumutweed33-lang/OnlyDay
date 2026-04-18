@@ -2,7 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { getDatabaseProvider } from '@/lib/db'
-import { MOCK_CONVERSATIONS } from '@/lib/db/mock-data'
 import { queueOdRefresh, trackOdEvent } from '@/lib/od-core/signal'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { Conversation, ChatMessage as Message, NewChatMessage } from '@/types/domain'
@@ -29,7 +28,7 @@ interface OdConversationRankRow {
 
 export function MessageProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
-  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS)
+  const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
 
   const activeConversation = useMemo(
@@ -39,7 +38,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
   const loadConversations = useCallback(async () => {
     if (!user?.id) {
-      setConversations(MOCK_CONVERSATIONS)
+      setConversations([])
       return
     }
 
@@ -67,7 +66,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         console.error('[od-core] failed to load chat ranking', rankingError)
       }
 
-      const withFallback = nextConversations.length > 0 ? nextConversations : MOCK_CONVERSATIONS
+      const withFallback = nextConversations
       if (rankedIds.length === 0) {
         setConversations(withFallback)
         return
@@ -89,7 +88,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
       setConversations(sortedConversations)
     } catch (error) {
       console.error('[messages] failed to load conversations', error)
-      setConversations(MOCK_CONVERSATIONS)
+      setConversations([])
     }
   }, [user?.id])
 

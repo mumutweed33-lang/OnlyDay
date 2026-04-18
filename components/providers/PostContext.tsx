@@ -2,7 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { getDatabaseProvider } from '@/lib/db'
-import { MOCK_POSTS } from '@/lib/db/mock-data'
 import type { FeedPost, NewFeedPost } from '@/types/domain'
 import { useUser } from '@/components/providers/UserContext'
 
@@ -20,20 +19,34 @@ const PostContext = createContext<PostContextType | undefined>(undefined)
 
 export function PostProvider({ children }: { children: React.ReactNode }) {
   const { user, updateUser } = useUser()
-  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS)
+  const [posts, setPosts] = useState<Post[]>([])
 
   const loadPosts = useCallback(async () => {
     try {
       const nextPosts = await getDatabaseProvider().posts.listFeed(user?.id)
-      setPosts(nextPosts.length > 0 ? nextPosts : MOCK_POSTS)
+      setPosts(nextPosts)
     } catch (error) {
-      console.error('[posts] failed to load feed, using fallback', error)
-      setPosts(MOCK_POSTS)
+      console.error('[posts] failed to load community feed', error)
+      setPosts([])
     }
   }, [user?.id])
 
   useEffect(() => {
     void loadPosts()
+
+    const refreshOnFocus = () => {
+      void loadPosts()
+    }
+    const refreshInterval = window.setInterval(() => {
+      void loadPosts()
+    }, 30000)
+
+    window.addEventListener('focus', refreshOnFocus)
+
+    return () => {
+      window.clearInterval(refreshInterval)
+      window.removeEventListener('focus', refreshOnFocus)
+    }
   }, [loadPosts])
 
   const addPost = useCallback(async (postData: NewFeedPost) => {
@@ -47,20 +60,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('[posts] failed to create post', error)
-      const fallbackPost: Post = {
-        ...postData,
-        id: `post-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        isLiked: false,
-        isSaved: false,
-      }
-      setPosts((prev) => [fallbackPost, ...prev])
-      if (isOwnPost && user) {
-        await updateUser({ posts: (user.posts ?? 0) + 1 })
-      }
+      throw error
     }
   }, [updateUser, user])
 

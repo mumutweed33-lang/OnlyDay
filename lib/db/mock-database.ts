@@ -18,7 +18,6 @@ import type {
   PostRepository,
   UserRepository,
 } from '@/lib/db/contracts'
-import { MOCK_CONVERSATIONS, MOCK_MOMENTOS, MOCK_POSTS } from '@/lib/db/mock-data'
 
 const STORAGE_KEYS = {
   posts: 'onlyday_posts',
@@ -89,7 +88,7 @@ class MockUserRepository implements UserRepository {
 
 class MockPostRepository implements PostRepository {
   async listFeed() {
-    return readStorage<FeedPost[]>(STORAGE_KEYS.posts, MOCK_POSTS)
+    return readStorage<FeedPost[]>(STORAGE_KEYS.posts, [])
   }
 
   async create(post: NewFeedPost) {
@@ -147,7 +146,7 @@ class MockPostRepository implements PostRepository {
 
 class MockMessageRepository implements MessageRepository {
   async listConversations(_viewerId: string): Promise<Conversation[]> {
-    return readStorage<Conversation[]>(STORAGE_KEYS.conversations, MOCK_CONVERSATIONS)
+    return readStorage<Conversation[]>(STORAGE_KEYS.conversations, [])
   }
 
   async createConversation(viewer: AppUser, profile: PublicProfile) {
@@ -241,7 +240,7 @@ class MockMessageRepository implements MessageRepository {
       lastMessage: `Lance: R$ ${amount.toFixed(2)}`,
     }
 
-    const all = readStorage<Conversation[]>(STORAGE_KEYS.conversations, MOCK_CONVERSATIONS).map(
+    const all = readStorage<Conversation[]>(STORAGE_KEYS.conversations, []).map(
       (item) => (item.id === conversationId ? nextConversation : item)
     )
     writeStorage(STORAGE_KEYS.conversations, all)
@@ -282,7 +281,7 @@ class MockMessageRepository implements MessageRepository {
 
 class MockMomentoRepository implements MomentoRepository {
   async listActive() {
-    return readStorage<Momento[]>(STORAGE_KEYS.momentos, MOCK_MOMENTOS)
+    return readStorage<Momento[]>(STORAGE_KEYS.momentos, [])
   }
 
   async create(momento: NewMomento) {

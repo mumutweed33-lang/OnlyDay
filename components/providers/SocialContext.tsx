@@ -68,33 +68,6 @@ function uid(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function buildSeedComments(posts: FeedPost[]): Record<string, PostComment[]> {
-  const templates = [
-    { name: 'Marina Luz', username: '@marinaluz', seed: 'marina', content: 'Esse post ficou muito forte. Quero ver a proxima parte.' },
-    { name: 'Caio Heat', username: '@caioheat', seed: 'caio', content: 'Curti a energia desse conteudo. Continua nessa linha.' },
-    { name: 'Nina Gold', username: '@ninagold', seed: 'nina', content: 'Isso aqui tem cara de premium mesmo. Bom demais.' },
-  ]
-
-  return posts.reduce<Record<string, PostComment[]>>((accumulator, post, index) => {
-    if (!post.comments) return accumulator
-
-    accumulator[post.id] = templates
-      .slice(0, Math.min(templates.length, Math.max(1, Math.min(post.comments, 3))))
-      .map((template, commentIndex) => ({
-        id: `seed-comment-${post.id}-${commentIndex}`,
-        postId: post.id,
-        userId: `seed-user-${template.seed}-${index}`,
-        userName: template.name,
-        userUsername: template.username,
-        userAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${template.seed}-${index}`,
-        content: template.content,
-        createdAt: new Date(Date.now() - (commentIndex + 1) * 45 * 60 * 1000).toISOString(),
-      }))
-
-    return accumulator
-  }, {})
-}
-
 export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const { posts } = usePosts()
@@ -108,47 +81,10 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setFollowedIds(readStorage<string[]>(FOLLOWING_STORAGE_KEY, []))
-    setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, buildSeedComments(posts)))
+    setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, {}))
     setSharesByPost(readStorage<Record<string, number>>(SHARES_STORAGE_KEY, {}))
-    setNotifications(
-      readStorage<AppNotification[]>(NOTIFICATIONS_STORAGE_KEY, [
-        {
-          id: 'notif-like-seed',
-          type: 'like',
-          title: 'Nova curtida no seu conteúdo',
-          description: 'Luna Estrela curtiu uma das suas publicações recentes.',
-          createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-          read: false,
-        },
-        {
-          id: 'notif-follow-seed',
-          type: 'follow',
-          title: 'Novo seguidor',
-          description: 'Rafael Ouro começou a seguir você.',
-          createdAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-          read: false,
-        },
-        {
-          id: 'notif-suggested-seed',
-          type: 'system',
-          title: 'Sugestão premium do dia',
-          description: 'Criadores em ascensão e assuntos quentes foram atualizados no Explorar.',
-          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-          read: true,
-        },
-      ])
-    )
+    setNotifications(readStorage<AppNotification[]>(NOTIFICATIONS_STORAGE_KEY, []))
   }, [])
-
-  useEffect(() => {
-    if (Object.keys(commentsByPost).length > 0 || posts.length === 0) return
-
-    const seededComments = buildSeedComments(posts)
-    if (Object.keys(seededComments).length === 0) return
-
-    setCommentsByPost(seededComments)
-    writeStorage(COMMENTS_STORAGE_KEY, seededComments)
-  }, [commentsByPost, posts])
 
   useEffect(() => {
     let cancelled = false
@@ -181,9 +117,15 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     }
 
     void loadDirectoryProfiles()
+    const refreshInterval = window.setInterval(() => {
+      void loadDirectoryProfiles()
+    }, 30000)
+    window.addEventListener('focus', loadDirectoryProfiles)
 
     return () => {
       cancelled = true
+      window.clearInterval(refreshInterval)
+      window.removeEventListener('focus', loadDirectoryProfiles)
     }
   }, [user?.id])
 

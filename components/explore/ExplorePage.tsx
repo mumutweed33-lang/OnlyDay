@@ -9,23 +9,27 @@ import { useUser } from '@/components/providers/UserContext'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { PublicProfile } from '@/types/domain'
 
-const RISING_CREATORS = [
-  { id: 'creator-001', name: 'Luna Estrela', username: '@lunaestela', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=luna&backgroundColor=7C3AED', followers: '124K', growth: '+2.3K', verified: true, category: 'Lifestyle' },
-  { id: 'creator-003', name: 'Sofia Dark', username: '@sofiadark', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sofia&backgroundColor=5B21B6', followers: '89K', growth: '+1.8K', verified: true, category: 'Arte' },
-  { id: 'creator-004', name: 'Viktor Elite', username: '@viktrelite', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=viktor&backgroundColor=4C1D95', followers: '203K', growth: '+4.1K', verified: true, category: 'Business' },
-  { id: 'creator-005', name: 'Aria Mystic', username: '@ariamystic', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=aria&backgroundColor=7C3AED', followers: '45K', growth: '+890', verified: false, category: 'Musica' },
-  { id: 'creator-006', name: 'Marco Vibe', username: '@marcovibe', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marco&backgroundColor=6D28D9', followers: '31K', growth: '+650', verified: false, category: 'Fitness' },
-]
+const CATEGORIES = ['Tudo', 'Comunidade', 'Lifestyle', 'Arte', 'Musica', 'Fitness', 'Business']
 
-const CATEGORIES = ['Tudo', 'Lifestyle', 'Arte', 'Musica', 'Fitness', 'Business']
+type ExploreCreatorCard = {
+  id: string
+  name: string
+  username: string
+  avatar: string
+  followers: string
+  growth: string
+  verified: boolean
+  category: string
+}
 
-type ExploreCreatorCard = (typeof RISING_CREATORS)[number]
 type OdExploreRankRow = {
   entity_id: string
   final_score: number | null
 }
 
 function inferCreatorCategory(profile?: PublicProfile) {
+  if (profile && !profile.isCreator) return 'Comunidade'
+
   const bio = profile?.bio?.toLowerCase() ?? ''
 
   if (bio.includes('business')) return 'Business'
@@ -40,9 +44,7 @@ function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCrea
     id: profile.id,
     name: profile.name,
     username: profile.username,
-    avatar:
-      profile.avatar ||
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}&backgroundColor=7C3AED`,
+    avatar: profile.avatar,
     followers: new Intl.NumberFormat('pt-BR', {
       notation: 'compact',
       maximumFractionDigits: 1,
@@ -122,35 +124,28 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         }
 
         const rankedIds = ((data as OdExploreRankRow[]) ?? []).map((row) => row.entity_id)
-        const fallbackById = new Map(RISING_CREATORS.map((creator) => [creator.id, creator]))
         const profileById = new Map(knownProfiles.map((profile) => [profile.id, profile]))
 
         const nextCreators = rankedIds
           .map((id, index) => {
             const knownProfile = profileById.get(id)
-            const fallback = fallbackById.get(id)
 
-            if (!knownProfile && !fallback) return null
+            if (!knownProfile) return null
 
-            const category = fallback?.category ?? inferCreatorCategory(knownProfile)
+            const category = inferCreatorCategory(knownProfile)
 
-            const baseFollowers = fallback
-              ? parseCompactFollowers(fallback.followers)
-              : Math.max(250, 1800 - index * 55)
+            const baseFollowers = Math.max(0, 1800 - index * 55)
 
             return {
               id,
-              name: knownProfile?.name ?? fallback?.name ?? 'Criador OnlyDay',
-              username: knownProfile?.username ?? fallback?.username ?? '@onlyday',
-              avatar:
-                knownProfile?.avatar ??
-                fallback?.avatar ??
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${id}&backgroundColor=7C3AED`,
+              name: knownProfile.name,
+              username: knownProfile.username,
+              avatar: knownProfile.avatar,
               followers: new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })
                 .format(baseFollowers)
                 .toUpperCase(),
-              growth: fallback?.growth ?? `+${Math.max(120, 780 - index * 18)}`,
-              verified: knownProfile?.isVerified ?? fallback?.verified ?? false,
+              growth: `+${Math.max(0, 780 - index * 18)}`,
+              verified: knownProfile.isVerified,
               category,
             } satisfies ExploreCreatorCard
           })
@@ -189,9 +184,12 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       name: creator.name,
       username: creator.username,
       avatar: creator.avatar,
-      bio: `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
+      bio:
+        creator.category === 'Comunidade'
+          ? 'Perfil da comunidade OnlyDay.'
+          : `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
       isVerified: creator.verified,
-      isCreator: true,
+      isCreator: creator.category !== 'Comunidade',
     })
 
     setActionFeedback(
@@ -204,15 +202,18 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
   const topTrend = trendingTopics[0]?.tag ?? 'OnlyDay'
   const radarQuery = trendingTopics.slice(0, 3).map((topic) => topic.tag).join(' ')
 
-  const openCreatorProfile = (creator: (typeof RISING_CREATORS)[number]) => {
+  const openCreatorProfile = (creator: ExploreCreatorCard) => {
     onOpenProfile?.({
       id: creator.id,
       name: creator.name,
       username: creator.username,
       avatar: creator.avatar,
-      bio: `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
+      bio:
+        creator.category === 'Comunidade'
+          ? 'Perfil da comunidade OnlyDay.'
+          : `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
       isVerified: creator.verified,
-      isCreator: true,
+      isCreator: creator.category !== 'Comunidade',
     })
   }
 
@@ -223,14 +224,8 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       registry.set(creator.id, creator)
     })
 
-    RISING_CREATORS.forEach((creator) => {
-      if (!registry.has(creator.id)) {
-        registry.set(creator.id, creator)
-      }
-    })
-
     knownProfiles
-      .filter((profile) => profile.isCreator)
+      .filter((profile) => profile.id !== user?.id)
       .forEach((profile, index) => {
         if (!registry.has(profile.id)) {
           registry.set(profile.id, mapProfileToCreatorCard(profile, index))
@@ -238,7 +233,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       })
 
     return Array.from(registry.values())
-  }, [knownProfiles, rankedCreators])
+  }, [knownProfiles, rankedCreators, user?.id])
 
   const filteredCreators =
     activeCategory === 'Tudo'
@@ -361,7 +356,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
             <div>
               <div className="mb-3 flex items-center gap-2">
                 <Users className="h-5 w-5 text-violet-400" />
-                <h2 className="font-bold text-white">Criadores em ascensão</h2>
+                <h2 className="font-bold text-white">Pessoas em ascensão</h2>
               </div>
               <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
                 {CATEGORIES.map((category) => (
@@ -470,7 +465,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
               ))}
               {matchingCreators.length === 0 && (
                 <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 text-sm text-white/45">
-                  Nenhum criador encontrado para essa busca.
+                  Nenhum perfil encontrado para essa busca.
                 </div>
               )}
             </div>

@@ -2,7 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { getDatabaseProvider } from '@/lib/db'
-import { MOCK_MOMENTOS } from '@/lib/db/mock-data'
 import { useUser } from '@/components/providers/UserContext'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { Momento, NewMomento } from '@/types/domain'
@@ -86,7 +85,7 @@ function isUnlocked(entry?: CreatorAccessState) {
 
 export function MomentoProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
-  const [momentos, setMomentos] = useState<Momento[]>(MOCK_MOMENTOS)
+  const [momentos, setMomentos] = useState<Momento[]>([])
   const [activeMomentoId, setActiveMomentoId] = useState<string | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [currentCreatorId, setCurrentCreatorId] = useState<string | null>(null)
@@ -103,10 +102,10 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
     async function loadMomentos() {
       try {
         const nextMomentos = await getDatabaseProvider().momentos.listActive()
-        setMomentos(nextMomentos.length > 0 ? nextMomentos : MOCK_MOMENTOS)
+        setMomentos(nextMomentos)
       } catch (error) {
         console.error('[momentos] failed to load momentos', error)
-        setMomentos(MOCK_MOMENTOS)
+        setMomentos([])
       }
     }
 
