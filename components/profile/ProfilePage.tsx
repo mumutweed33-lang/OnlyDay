@@ -433,11 +433,13 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
 
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Nome</label>
-                  <input
-                    value={draftName}
-                    onChange={(event) => setDraftName(event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
-                  />
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
+                    <input
+                      value={draftName}
+                      onChange={(event) => setDraftName(event.target.value)}
+                      className="w-full appearance-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Username</label>
@@ -453,7 +455,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                         if (saveProfileError) setSaveProfileError(null)
                       }}
                       placeholder="seuusername"
-                      className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                      className="flex-1 appearance-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
                     />
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-white/35">
@@ -462,21 +464,25 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Bio premium</label>
-                  <textarea
-                    value={draftBio}
-                    onChange={(event) => setDraftBio(event.target.value)}
-                    rows={4}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
-                  />
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
+                    <textarea
+                      value={draftBio}
+                      onChange={(event) => setDraftBio(event.target.value)}
+                      rows={4}
+                      className="w-full resize-none appearance-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Local</label>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
                   <input
                     value={draftLocation}
                     onChange={(event) => setDraftLocation(event.target.value)}
                     placeholder="Cidade ou região"
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
-                  />
+                      className="w-full appearance-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                    />
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
