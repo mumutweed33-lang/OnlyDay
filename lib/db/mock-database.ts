@@ -1,12 +1,14 @@
 'use client'
 
 import type {
+  AppUser,
   Conversation,
   FeedPost,
   Momento,
   NewChatMessage,
   NewFeedPost,
   NewMomento,
+  PublicProfile,
 } from '@/types/domain'
 import type {
   DatabaseProvider,
@@ -148,6 +150,38 @@ class MockMessageRepository implements MessageRepository {
     return readStorage<Conversation[]>(STORAGE_KEYS.conversations, MOCK_CONVERSATIONS)
   }
 
+  async createConversation(viewer: AppUser, profile: PublicProfile) {
+    const current = await this.listConversations(viewer.id)
+    const existingConversation =
+      current.find(
+        (conversation) =>
+          conversation.userId === profile.id || conversation.userUsername === profile.username
+      ) ?? null
+
+    if (existingConversation) {
+      return existingConversation
+    }
+
+    const newConversation: Conversation = {
+      id: `conv-${Date.now()}`,
+      userId: profile.id,
+      userName: profile.name,
+      userAvatar: profile.avatar,
+      userUsername: profile.username,
+      isVerified: profile.isVerified,
+      isPremium: profile.isCreator,
+      lastMessage: 'Nova conversa iniciada.',
+      lastMessageTime: new Date().toISOString(),
+      unreadCount: 0,
+      intimacyScore: 12,
+      isOnline: true,
+      messages: [],
+    }
+
+    writeStorage(STORAGE_KEYS.conversations, [newConversation, ...current])
+    return newConversation
+  }
+
   async sendMessage(
     conversationId: string,
     message: NewChatMessage
@@ -184,9 +218,14 @@ class MockMessageRepository implements MessageRepository {
     senderId: string,
     amount: number
   ): Promise<Conversation | null> {
+    const current = await this.listConversations(senderId)
+    const targetConversation = current.find((conversation) => conversation.id === conversationId)
+
+    if (!targetConversation) return null
+
     const conversation: Conversation | null = await this.sendMessage(conversationId, {
       senderId,
-      receiverId: conversationId,
+      receiverId: targetConversation.userId,
       content: `Lance de R$ ${amount.toFixed(2)} enviado!`,
       type: 'auction',
       auctionBid: amount,

@@ -113,7 +113,8 @@ export function OnboardingFlow({
       }
       setCameraActive(true)
     } catch {
-      setCameraActive(true)
+      setCameraActive(false)
+      setError('Não foi possível acessar sua câmera. Libere a permissão para continuar.')
     }
   }, [])
 

@@ -493,24 +493,26 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         ))}
       </div>
 
-      <div className="flex flex-col items-center gap-4 px-4 py-8">
-        {[1, 2].map((i) => (
-          <div
-            key={i}
-            className="w-full animate-pulse rounded-3xl border border-white/8 bg-white/[0.04] p-4 shadow-[0_16px_50px_rgba(0,0,0,0.2)]"
-          >
-            <div className="mb-3 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-white/5" />
-              <div className="flex-1">
-                <div className="mb-1 h-3 w-24 rounded bg-white/5" />
-                <div className="h-2 w-16 rounded bg-white/5" />
+      {posts.length === 0 && (
+        <div className="flex flex-col items-center gap-4 px-4 py-8">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="w-full animate-pulse rounded-3xl border border-white/8 bg-white/[0.04] p-4 shadow-[0_16px_50px_rgba(0,0,0,0.2)]"
+            >
+              <div className="mb-3 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-white/5" />
+                <div className="flex-1">
+                  <div className="mb-1 h-3 w-24 rounded bg-white/5" />
+                  <div className="h-2 w-16 rounded bg-white/5" />
+                </div>
               </div>
+              <div className="mb-1 h-3 w-full rounded bg-white/5" />
+              <div className="h-3 w-3/4 rounded bg-white/5" />
             </div>
-            <div className="mb-1 h-3 w-full rounded bg-white/5" />
-            <div className="h-3 w-3/4 rounded bg-white/5" />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <AnimatePresence>
         {actionFeedback && (

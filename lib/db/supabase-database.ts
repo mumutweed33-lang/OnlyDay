@@ -9,6 +9,7 @@ import type {
   NewChatMessage,
   NewFeedPost,
   NewMomento,
+  PublicProfile,
 } from '@/types/domain'
 import type {
   DatabaseProvider,
@@ -23,6 +24,12 @@ type ProfileRow = Partial<AppUser> & {
   id: string
   email?: string | null
   updated_at?: string | null
+  is_creator?: boolean | null
+  is_verified?: boolean | null
+  is_premium?: boolean | null
+  joined_at?: string | null
+  cover_image?: string | null
+  intimacy_score?: number | null
 }
 
 type PostRow = {
@@ -92,6 +99,11 @@ type OdRankScoreRow = {
   final_score: number | null
 }
 
+type ConversationParticipantRow = {
+  user_a: string
+  user_b: string
+}
+
 function ensureArray<T>(value?: T[] | null) {
   return value ?? []
 }
@@ -107,20 +119,45 @@ function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | nul
       profile.avatar ||
       'https://api.dicebear.com/7.x/avataaars/svg?seed=onlyday&backgroundColor=7C3AED',
     bio: profile.bio || 'Criador de conteudo premium no OnlyDay',
-    isCreator: Boolean(profile.isCreator),
-    isVerified: Boolean(profile.isVerified),
-    isPremium: Boolean(profile.isPremium),
+    isCreator: Boolean(profile.is_creator ?? profile.isCreator),
+    isVerified: Boolean(profile.is_verified ?? profile.isVerified),
+    isPremium: Boolean(profile.is_premium ?? profile.isPremium),
     followers: Number(profile.followers ?? 0),
     following: Number(profile.following ?? 0),
     posts: Number(profile.posts ?? 0),
     balance: Number(profile.balance ?? 0),
     plan: profile.plan || 'free',
-    joinedAt: profile.joinedAt || new Date().toISOString(),
-    coverImage: profile.coverImage,
+    joinedAt: profile.joined_at || profile.joinedAt || new Date().toISOString(),
+    coverImage: profile.cover_image || profile.coverImage,
     website: profile.website,
     location: profile.location,
-    intimacyScore: Number(profile.intimacyScore ?? 0),
+    intimacyScore: Number(profile.intimacy_score ?? profile.intimacyScore ?? 0),
     updatedAt: profile.updated_at ?? undefined,
+  }
+}
+
+function toProfilePayload(user: Partial<DatabaseUserRecord>) {
+  return {
+    id: user.id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+    bio: user.bio,
+    is_creator: user.isCreator,
+    is_verified: user.isVerified,
+    is_premium: user.isPremium,
+    followers: user.followers,
+    following: user.following,
+    posts: user.posts,
+    balance: user.balance,
+    plan: user.plan,
+    joined_at: user.joinedAt,
+    cover_image: user.coverImage,
+    website: user.website,
+    location: user.location,
+    intimacy_score: user.intimacyScore,
+    updated_at: new Date().toISOString(),
   }
 }
 
@@ -206,7 +243,7 @@ export class SupabaseUserRepository implements UserRepository {
 
   async create(user: DatabaseUserRecord) {
     const supabase = getSupabaseBrowserClient()
-    const payload = { ...user, updated_at: new Date().toISOString() }
+    const payload = toProfilePayload(user)
     const { data, error } = await supabase.from('profiles').upsert(payload).select('*').single()
     if (error) throw new Error(error.message)
     return normalizeProfile(data as ProfileRow)!
@@ -216,7 +253,7 @@ export class SupabaseUserRepository implements UserRepository {
     const supabase = getSupabaseBrowserClient()
     const { data, error } = await supabase
       .from('profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(toProfilePayload(updates))
       .eq('id', id)
       .select('*')
       .single()
@@ -370,7 +407,7 @@ export class SupabaseMessageRepository implements MessageRepository {
     const supabase = getSupabaseBrowserClient()
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, creator_profile:profiles(*)')
+      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
       .or(`user_a.eq.${viewerId},user_b.eq.${viewerId}`)
       .order('last_message_time', { ascending: false })
     if (error) throw new Error(error.message)
@@ -400,6 +437,86 @@ export class SupabaseMessageRepository implements MessageRepository {
         } satisfies Conversation
       })
     )
+  }
+
+  async createConversation(viewer: AppUser, profile: PublicProfile) {
+    const supabase = getSupabaseBrowserClient()
+    const { data: existingData, error: existingError } = await supabase
+      .from('conversations')
+      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
+      .or(
+        `and(user_a.eq.${viewer.id},user_b.eq.${profile.id}),and(user_a.eq.${profile.id},user_b.eq.${viewer.id})`
+      )
+      .maybeSingle()
+
+    if (existingError) throw new Error(existingError.message)
+
+    if (existingData) {
+      const row = existingData as ConversationRow
+      const profileRecord = normalizeProfile(row.creator_profile)
+      const messages = await loadMessagesForConversation(row.id)
+      const unreadCount = row.user_a === viewer.id ? row.unread_count_a : row.unread_count_b
+
+      return {
+        id: row.id,
+        userId: profileRecord?.id || profile.id,
+        userName: profileRecord?.name || profile.name,
+        userAvatar: profileRecord?.avatar || profile.avatar,
+        userUsername: profileRecord?.username || profile.username,
+        isVerified: Boolean(profileRecord?.isVerified ?? profile.isVerified),
+        isPremium: Boolean(profileRecord?.isPremium ?? profile.isCreator),
+        lastMessage: row.last_message || 'Nova conversa iniciada.',
+        lastMessageTime: row.last_message_time || new Date().toISOString(),
+        unreadCount: unreadCount ?? 0,
+        intimacyScore: row.intimacy_score ?? 0,
+        isOnline: false,
+        messages,
+        auctionActive: Boolean(row.auction_active),
+        currentBid: row.current_bid ?? undefined,
+      } satisfies Conversation
+    }
+
+    const payload = {
+      creator_profile_id: profile.isCreator ? profile.id : viewer.id,
+      user_a: viewer.id,
+      user_b: profile.id,
+      last_message: 'Nova conversa iniciada.',
+      last_message_time: new Date().toISOString(),
+      unread_count_a: 0,
+      unread_count_b: 0,
+      intimacy_score: 12,
+      auction_active: false,
+      current_bid: null,
+    }
+
+    const { data, error } = await supabase
+      .from('conversations')
+      .insert(payload)
+      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    const row = data as ConversationRow
+    const profileRecord = normalizeProfile(row.creator_profile)
+
+    return {
+      id: row.id,
+      userId: profileRecord?.id || profile.id,
+      userName: profileRecord?.name || profile.name,
+      userAvatar: profileRecord?.avatar || profile.avatar,
+      userUsername: profileRecord?.username || profile.username,
+      isVerified: Boolean(profileRecord?.isVerified ?? profile.isVerified),
+      isPremium: Boolean(profileRecord?.isPremium ?? profile.isCreator),
+      lastMessage: row.last_message || 'Nova conversa iniciada.',
+      lastMessageTime: row.last_message_time || new Date().toISOString(),
+      unreadCount: 0,
+      intimacyScore: row.intimacy_score ?? 12,
+      isOnline: false,
+      messages: [],
+      auctionActive: Boolean(row.auction_active),
+      currentBid: row.current_bid ?? undefined,
+    } satisfies Conversation
   }
 
   async sendMessage(conversationId: string, message: NewChatMessage) {
@@ -433,15 +550,28 @@ export class SupabaseMessageRepository implements MessageRepository {
   }
 
   async placeBid(conversationId: string, senderId: string, amount: number) {
+    const supabase = getSupabaseBrowserClient()
+    const { data: conversationRow, error: conversationError } = await supabase
+      .from('conversations')
+      .select('user_a, user_b')
+      .eq('id', conversationId)
+      .single()
+
+    if (conversationError) throw new Error(conversationError.message)
+
+    const participants = conversationRow as ConversationParticipantRow
+    const receiverId =
+      participants.user_a === senderId ? participants.user_b : participants.user_a
+
     const conversation = await this.sendMessage(conversationId, {
       senderId,
-      receiverId: conversationId,
+      receiverId,
       content: `Lance de R$ ${amount.toFixed(2)} enviado!`,
       type: 'auction',
       auctionBid: amount,
       auctionStatus: 'pending',
     })
-    const supabase = getSupabaseBrowserClient()
+
     await supabase
       .from('conversations')
       .update({

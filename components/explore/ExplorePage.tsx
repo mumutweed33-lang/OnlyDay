@@ -25,6 +25,36 @@ type OdExploreRankRow = {
   final_score: number | null
 }
 
+function inferCreatorCategory(profile?: PublicProfile) {
+  const bio = profile?.bio?.toLowerCase() ?? ''
+
+  if (bio.includes('business')) return 'Business'
+  if (bio.includes('fitness')) return 'Fitness'
+  if (bio.includes('arte')) return 'Arte'
+  if (bio.includes('mus')) return 'Musica'
+  return 'Lifestyle'
+}
+
+function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCreatorCard {
+  return {
+    id: profile.id,
+    name: profile.name,
+    username: profile.username,
+    avatar:
+      profile.avatar ||
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}&backgroundColor=7C3AED`,
+    followers: new Intl.NumberFormat('pt-BR', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    })
+      .format(Math.max(250, 1800 - index * 55))
+      .toUpperCase(),
+    growth: `+${Math.max(120, 780 - index * 18)}`,
+    verified: profile.isVerified,
+    category: inferCreatorCategory(profile),
+  }
+}
+
 function parseCompactFollowers(value: string) {
   const normalized = value.trim().toUpperCase()
   if (normalized.endsWith('K')) {
@@ -102,17 +132,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
 
             if (!knownProfile && !fallback) return null
 
-            const category =
-              fallback?.category ??
-              (knownProfile?.bio?.toLowerCase().includes('business')
-                ? 'Business'
-                : knownProfile?.bio?.toLowerCase().includes('fitness')
-                  ? 'Fitness'
-                  : knownProfile?.bio?.toLowerCase().includes('arte')
-                    ? 'Arte'
-                    : knownProfile?.bio?.toLowerCase().includes('mus')
-                      ? 'Musica'
-                      : 'Lifestyle')
+            const category = fallback?.category ?? inferCreatorCategory(knownProfile)
 
             const baseFollowers = fallback
               ? parseCompactFollowers(fallback.followers)
@@ -197,11 +217,28 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
   }
 
   const discoveryCreators = useMemo(() => {
-    if (rankedCreators.length === 0) return RISING_CREATORS
+    const registry = new Map<string, ExploreCreatorCard>()
 
-    const rankedIds = new Set(rankedCreators.map((creator) => creator.id))
-    return [...rankedCreators, ...RISING_CREATORS.filter((creator) => !rankedIds.has(creator.id))]
-  }, [rankedCreators])
+    rankedCreators.forEach((creator) => {
+      registry.set(creator.id, creator)
+    })
+
+    RISING_CREATORS.forEach((creator) => {
+      if (!registry.has(creator.id)) {
+        registry.set(creator.id, creator)
+      }
+    })
+
+    knownProfiles
+      .filter((profile) => profile.isCreator)
+      .forEach((profile, index) => {
+        if (!registry.has(profile.id)) {
+          registry.set(profile.id, mapProfileToCreatorCard(profile, index))
+        }
+      })
+
+    return Array.from(registry.values())
+  }, [knownProfiles, rankedCreators])
 
   const filteredCreators =
     activeCategory === 'Tudo'

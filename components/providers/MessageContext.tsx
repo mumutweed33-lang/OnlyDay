@@ -113,6 +113,8 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
   const openConversationForProfile = useCallback(
     (profile: PublicProfile) => {
+      if (!user) return
+
       const existingConversation = conversations.find(
         (conversation) =>
           conversation.userId === profile.id || conversation.userUsername === profile.username
@@ -133,37 +135,29 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const nextConversation: Conversation = {
-        id: `conv-${Date.now()}`,
-        userId: profile.id,
-        userName: profile.name,
-        userAvatar: profile.avatar,
-        userUsername: profile.username,
-        isVerified: profile.isVerified,
-        isPremium: profile.isCreator,
-        lastMessage: 'Nova conversa iniciada.',
-        lastMessageTime: new Date().toISOString(),
-        unreadCount: 0,
-        intimacyScore: 12,
-        isOnline: true,
-        messages: [],
-      }
-
-      setConversations((prev) => [nextConversation, ...prev])
-      setActiveConversationId(nextConversation.id)
-      if (user?.id) {
-        void trackOdEvent({
-          actorProfileId: user.id,
-          targetProfileId: profile.id,
-          conversationId: nextConversation.id,
-          surface: 'chat_vip',
-          eventType: 'chat_open',
-          metadata: { createdConversation: true },
-        })
-        queueOdRefresh(user.id)
-      }
+      void (async () => {
+        try {
+          const nextConversation = await getDatabaseProvider().messages.createConversation(user, profile)
+          setConversations((prev) => {
+            const alreadyExists = prev.some((conversation) => conversation.id === nextConversation.id)
+            return alreadyExists ? prev : [nextConversation, ...prev]
+          })
+          setActiveConversationId(nextConversation.id)
+          void trackOdEvent({
+            actorProfileId: user.id,
+            targetProfileId: profile.id,
+            conversationId: nextConversation.id,
+            surface: 'chat_vip',
+            eventType: 'chat_open',
+            metadata: { createdConversation: true },
+          })
+          queueOdRefresh(user.id)
+        } catch (error) {
+          console.error('[messages] failed to create conversation', error)
+        }
+      })()
     },
-    [conversations, user?.id]
+    [conversations, user]
   )
 
   const patchConversation = useCallback((conversation: Conversation) => {

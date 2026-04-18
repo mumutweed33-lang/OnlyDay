@@ -6,6 +6,7 @@ import type {
   NewChatMessage,
   NewFeedPost,
   NewMomento,
+  PublicProfile,
 } from '@/types/domain'
 
 export interface DatabaseUserRecord extends AppUser {
@@ -31,6 +32,7 @@ export interface PostRepository {
 
 export interface MessageRepository {
   listConversations(viewerId: string): Promise<Conversation[]>
+  createConversation(viewer: AppUser, profile: PublicProfile): Promise<Conversation>
   sendMessage(conversationId: string, message: NewChatMessage): Promise<Conversation | null>
   placeBid(conversationId: string, senderId: string, amount: number): Promise<Conversation | null>
   markAsRead(conversationId: string, viewerId: string): Promise<Conversation | null>
