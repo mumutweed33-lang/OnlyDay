@@ -362,9 +362,9 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
-              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
             >
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex shrink-0 items-center justify-between">
                 <div>
                   <h3 className="text-lg font-black text-white">Editar meu perfil</h3>
                   <p className="text-xs text-white/40">Seu perfil premium, do seu jeito.</p>
@@ -374,7 +374,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
                 <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
                   <div className="relative h-32 bg-[linear-gradient(135deg,#1a0938_0%,#34125f_38%,#18122f_100%)]">
                     {draftCoverImage && (
@@ -398,7 +398,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                     <button
                       type="button"
                       onClick={() => avatarInputRef.current?.click()}
-                      className="mb-1 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-xs font-semibold text-white/75"
+                      className="mb-1 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-white/75"
                     >
                       <ImagePlus className="h-4 w-4" />
                       Trocar foto
@@ -436,12 +436,12 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                   <input
                     value={draftName}
                     onChange={(event) => setDraftName(event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-white/45">Username</label>
-                  <div className="flex items-center rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+                  <div className="flex items-center rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
                     <span className="mr-1 text-sm font-semibold text-violet-300">@</span>
                     <input
                       value={draftUsername.replace(/^@+/, '')}
@@ -466,7 +466,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                     value={draftBio}
                     onChange={(event) => setDraftBio(event.target.value)}
                     rows={4}
-                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
                   />
                 </div>
                 <div>
@@ -475,7 +475,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                     value={draftLocation}
                     onChange={(event) => setDraftLocation(event.target.value)}
                     placeholder="Cidade ou região"
-                    className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
                   />
                 </div>
                 <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
@@ -495,11 +495,11 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 )}
               </div>
 
-              <div className="mt-5 flex gap-3">
+              <div className="mt-5 flex shrink-0 gap-3 border-t border-white/10 pt-4">
                 <button
                   onClick={() => setShowEditModal(false)}
                   aria-label="Cancelar edição de perfil"
-                  className="flex-1 rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/70"
+                  className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] py-3 text-sm font-semibold text-white/70"
                 >
                   Cancelar
                 </button>
