@@ -41,6 +41,7 @@ export function OnboardingFlow({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [supportHint, setSupportHint] = useState<string | null>(null)
+  const [cameraFallbackAvailable, setCameraFallbackAvailable] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [formData, setFormData] = useState({
@@ -112,8 +113,10 @@ export function OnboardingFlow({
         await videoRef.current.play()
       }
       setCameraActive(true)
+      setCameraFallbackAvailable(false)
     } catch {
       setCameraActive(false)
+      setCameraFallbackAvailable(true)
       setError('Não foi possível acessar sua câmera. Libere a permissão para continuar.')
     }
   }, [])
@@ -127,6 +130,15 @@ export function OnboardingFlow({
       }))
       setSelfieCapture(false)
     }, 1200)
+  }, [])
+
+  const useDemoSelfie = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      selfie: `https://api.dicebear.com/7.x/avataaars/svg?seed=demo-${Date.now()}&backgroundColor=7C3AED`,
+    }))
+    setError(null)
+    setSupportHint('Selfie demo aplicada para liberar o teste de cadastro neste beta.')
   }, [])
 
   const stopCamera = useCallback(() => {
@@ -584,6 +596,15 @@ export function OnboardingFlow({
                           >
                             Ativar camera
                           </button>
+                          {cameraFallbackAvailable && (
+                            <button
+                              type="button"
+                              onClick={useDemoSelfie}
+                              className="rounded-xl border border-white/10 bg-white/6 px-6 py-3 text-sm font-semibold text-white/70"
+                            >
+                              Usar selfie demo
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

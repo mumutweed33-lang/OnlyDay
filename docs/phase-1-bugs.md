@@ -67,3 +67,19 @@ Use este arquivo durante a QA funcional do beta fechado.
 - Atual: no sandbox falha com spawn EPERM; fora do sandbox abriu porta mas ficou instavel/lento para requests HTTP
 - Severidade: bloqueador de QA visual, nao necessariamente de produto
 - Status: aberto
+
+## Bug 8
+- Tela: Onboarding / cadastro
+- Acao: criar nova conta em navegador sem camera liberada
+- Esperado: usuario consegue continuar o cadastro em modo de teste controlado
+- Atual: etapa de selfie bloqueava a criacao da conta se a camera falhasse
+- Severidade: medio
+- Status: corrigido
+
+## Bug 9
+- Tela: Onboarding / cadastro Supabase
+- Acao: criar conta quando o Supabase exige confirmacao de e-mail ou o e-mail ja existe
+- Esperado: mensagem orienta claramente o proximo passo
+- Atual: erro tecnico/ambiguous fazia parecer que o cadastro simplesmente nao funcionava
+- Severidade: medio
+- Status: corrigido

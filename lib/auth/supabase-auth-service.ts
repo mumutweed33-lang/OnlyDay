@@ -147,6 +147,20 @@ function toUserMetadata(user: Partial<AppUser>) {
   }
 }
 
+function normalizeAuthError(message: string) {
+  const normalized = message.toLowerCase()
+
+  if (normalized.includes('already registered') || normalized.includes('already been registered')) {
+    return 'Esse e-mail já tem uma conta. Use Entrar ou escolha outro e-mail para criar uma nova conta.'
+  }
+
+  if (normalized.includes('invalid login credentials')) {
+    return 'E-mail ou senha incorretos. Confira os dados e tente novamente.'
+  }
+
+  return message
+}
+
 export class SupabaseAuthService implements AuthService {
   async getSession(): Promise<AuthSession> {
     const supabase = getSupabaseBrowserClient()
@@ -192,7 +206,7 @@ export class SupabaseAuthService implements AuthService {
     })
 
     if (error) {
-      throw new Error(error.message)
+      throw new Error(normalizeAuthError(error.message))
     }
 
     if (!data.user) {
@@ -201,7 +215,7 @@ export class SupabaseAuthService implements AuthService {
 
     if (!data.session) {
       throw new Error(
-        'Conta criada. Confirme o e-mail enviado pelo Supabase antes de entrar.'
+        'Conta criada, mas o Supabase exigiu confirmação por e-mail antes do primeiro acesso. Para testar várias contas agora, confirme o e-mail recebido ou desative "Confirm email" no painel do Supabase em Authentication > Providers > Email.'
       )
     }
 
@@ -222,7 +236,7 @@ export class SupabaseAuthService implements AuthService {
     })
 
     if (error) {
-      throw new Error(error.message)
+      throw new Error(normalizeAuthError(error.message))
     }
 
     if (!data.user) {
