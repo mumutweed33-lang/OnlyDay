@@ -143,16 +143,34 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       )
     }
 
-    const mergedUser = {
-      ...nextUser,
-      ...normalizeCreatorState(nextUser, session.user),
-      ...session.user,
-      email: session.user.email || email,
+    let persistedUser: User | null = null
+    try {
+      persistedUser = await getDatabaseProvider().users.findById(session.user.id)
+    } catch (error) {
+      console.error('Error loading profile after auth:', error)
     }
+
+    const mergedUser =
+      mode === 'signIn'
+        ? {
+            ...session.user,
+            ...(persistedUser ? normalizeCreatorState(session.user, persistedUser) : {}),
+            ...(persistedUser ?? {}),
+            email: persistedUser?.email || session.user.email || email,
+          }
+        : {
+            ...nextUser,
+            ...normalizeCreatorState(nextUser, session.user),
+            ...session.user,
+            email: session.user.email || email,
+          }
+
     setUser(mergedUser)
     setIsLoggedIn(session.isAuthenticated)
     setIsOnboarding(false)
-    await authService.updateProfile(mergedUser)
+    if (mode === 'signUp' || persistedUser) {
+      await authService.updateProfile(mergedUser)
+    }
     try {
       await getDatabaseProvider().users.create(mergedUser)
     } catch (error) {
