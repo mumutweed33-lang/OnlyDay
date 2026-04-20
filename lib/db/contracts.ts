@@ -1,4 +1,5 @@
 import type {
+  AppNotification,
   AppUser,
   Conversation,
   FeedPost,
@@ -6,6 +7,7 @@ import type {
   NewChatMessage,
   NewFeedPost,
   NewMomento,
+  NotificationType,
   PublicProfile,
 } from '@/types/domain'
 
@@ -46,9 +48,26 @@ export interface MomentoRepository {
   markViewed(momentoId: string): Promise<Momento | null>
 }
 
+export interface CreateNotificationInput {
+  recipientId: string
+  actorId?: string
+  type: NotificationType
+  title: string
+  description: string
+  postId?: string
+  conversationId?: string
+}
+
+export interface NotificationRepository {
+  list(recipientId: string, limit?: number): Promise<AppNotification[]>
+  create(notification: CreateNotificationInput): Promise<AppNotification | null>
+  markAllRead(recipientId: string): Promise<void>
+}
+
 export interface DatabaseProvider {
   users: UserRepository
   posts: PostRepository
   messages: MessageRepository
   momentos: MomentoRepository
+  notifications: NotificationRepository
 }

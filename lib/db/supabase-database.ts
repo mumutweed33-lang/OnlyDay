@@ -3,19 +3,23 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type {
   AppUser,
+  AppNotification,
   Conversation,
   FeedPost,
   Momento,
   NewChatMessage,
   NewFeedPost,
   NewMomento,
+  NotificationType,
   PublicProfile,
 } from '@/types/domain'
 import type {
+  CreateNotificationInput,
   DatabaseProvider,
   DatabaseUserRecord,
   MessageRepository,
   MomentoRepository,
+  NotificationRepository,
   PostRepository,
   UserRepository,
 } from '@/lib/db/contracts'
@@ -95,6 +99,20 @@ type MomentoRow = {
   expires_at: string
   created_at: string
   profiles?: ProfileRow | null
+}
+
+type NotificationRow = {
+  id: string
+  recipient_id: string
+  actor_id: string | null
+  type: NotificationType
+  title: string
+  description: string
+  post_id: string | null
+  conversation_id: string | null
+  read: boolean
+  created_at: string
+  actor_profile?: ProfileRow | null
 }
 
 type OdRankScoreRow = {
@@ -215,6 +233,24 @@ function mapMomento(row: MomentoRow, overrides?: Partial<Momento>): Momento {
     expiresAt: row.expires_at,
     createdAt: row.created_at,
     ...overrides,
+  }
+}
+
+function mapNotification(row: NotificationRow): AppNotification {
+  const actor = normalizeProfile(row.actor_profile)
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    description: row.description,
+    actorId: row.actor_id ?? undefined,
+    actorName: actor?.name,
+    actorUsername: actor?.username,
+    actorAvatar: actor?.avatar,
+    postId: row.post_id ?? undefined,
+    conversationId: row.conversation_id ?? undefined,
+    createdAt: row.created_at,
+    read: row.read,
   }
 }
 
@@ -705,9 +741,62 @@ export class SupabaseMomentoRepository implements MomentoRepository {
   }
 }
 
+export class SupabaseNotificationRepository implements NotificationRepository {
+  async list(recipientId: string, limit = 50) {
+    const supabase = getSupabaseBrowserClient()
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*, actor_profile:profiles!notifications_actor_id_fkey(*)')
+      .eq('recipient_id', recipientId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw new Error(error.message)
+    return ((data as unknown as NotificationRow[]) ?? []).map((row) => mapNotification(row))
+  }
+
+  async create(notification: CreateNotificationInput) {
+    if (notification.actorId && notification.actorId === notification.recipientId) {
+      return null
+    }
+
+    const supabase = getSupabaseBrowserClient()
+    const payload = {
+      recipient_id: notification.recipientId,
+      actor_id: notification.actorId ?? null,
+      type: notification.type,
+      title: notification.title,
+      description: notification.description,
+      post_id: notification.postId ?? null,
+      conversation_id: notification.conversationId ?? null,
+      read: false,
+    }
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(payload)
+      .select('*, actor_profile:profiles!notifications_actor_id_fkey(*)')
+      .single()
+
+    if (error) throw new Error(error.message)
+    return mapNotification(data as unknown as NotificationRow)
+  }
+
+  async markAllRead(recipientId: string) {
+    const supabase = getSupabaseBrowserClient()
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('recipient_id', recipientId)
+      .eq('read', false)
+
+    if (error) throw new Error(error.message)
+  }
+}
+
 export class SupabaseDatabaseProvider implements DatabaseProvider {
   users = new SupabaseUserRepository()
   posts = new SupabasePostRepository()
   messages = new SupabaseMessageRepository()
   momentos = new SupabaseMomentoRepository()
+  notifications = new SupabaseNotificationRepository()
 }

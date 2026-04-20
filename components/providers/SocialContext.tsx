@@ -7,11 +7,10 @@ import { usePosts } from '@/components/providers/PostContext'
 import { useUser } from '@/components/providers/UserContext'
 import { getDatabaseProvider } from '@/lib/db'
 import { queueOdRefresh, trackOdEvent } from '@/lib/od-core/signal'
-import type { AppNotification, FeedPost, PostComment, PublicProfile } from '@/types/domain'
+import type { AppNotification, FeedPost, NotificationType, PostComment, PublicProfile } from '@/types/domain'
 
 const FOLLOWING_STORAGE_KEY = 'onlyday_following'
 const COMMENTS_STORAGE_KEY = 'onlyday_comments'
-const NOTIFICATIONS_STORAGE_KEY = 'onlyday_notifications'
 const SHARES_STORAGE_KEY = 'onlyday_shares'
 
 function normalizeDisplayName(value: string) {
@@ -68,6 +67,16 @@ function uid(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+type NotificationDraft = {
+  recipientId?: string
+  actorId?: string
+  type: NotificationType
+  title: string
+  description: string
+  postId?: string
+  conversationId?: string
+}
+
 export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const { posts } = usePosts()
@@ -83,8 +92,36 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     setFollowedIds(readStorage<string[]>(FOLLOWING_STORAGE_KEY, []))
     setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, {}))
     setSharesByPost(readStorage<Record<string, number>>(SHARES_STORAGE_KEY, {}))
-    setNotifications(readStorage<AppNotification[]>(NOTIFICATIONS_STORAGE_KEY, []))
   }, [])
+
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setNotifications([])
+      return
+    }
+
+    try {
+      const nextNotifications = await getDatabaseProvider().notifications.list(user.id, 60)
+      setNotifications(nextNotifications)
+    } catch (error) {
+      console.error('[notifications] failed to load notifications', error)
+      setNotifications([])
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    void loadNotifications()
+
+    const refreshInterval = window.setInterval(() => {
+      void loadNotifications()
+    }, 15000)
+    window.addEventListener('focus', loadNotifications)
+
+    return () => {
+      window.clearInterval(refreshInterval)
+      window.removeEventListener('focus', loadNotifications)
+    }
+  }, [loadNotifications])
 
   useEffect(() => {
     let cancelled = false
@@ -129,22 +166,24 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.id])
 
-  const persistNotifications = useCallback((next: AppNotification[]) => {
-    setNotifications(next)
-    writeStorage(NOTIFICATIONS_STORAGE_KEY, next)
-  }, [])
-
   const pushNotification = useCallback(
-    (notification: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => {
-      const nextNotification: AppNotification = {
-        ...notification,
-        id: uid('notif'),
-        createdAt: new Date().toISOString(),
-        read: false,
+    async (notification: NotificationDraft) => {
+      const recipientId = notification.recipientId ?? user?.id
+      if (!recipientId) return
+
+      try {
+        const created = await getDatabaseProvider().notifications.create({
+          ...notification,
+          recipientId,
+        })
+        if (created && recipientId === user?.id) {
+          setNotifications((current) => [created, ...current].slice(0, 60))
+        }
+      } catch (error) {
+        console.error('[notifications] failed to create notification', error)
       }
-      persistNotifications([nextNotification, ...notifications].slice(0, 40))
     },
-    [notifications, persistNotifications]
+    [user?.id]
   )
 
   const knownProfiles = useMemo(() => {
@@ -266,6 +305,14 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         metadata: { contentLength: content.trim().length },
       })
       queueOdRefresh(user.id)
+      void pushNotification({
+        recipientId: post.userId,
+        actorId: user.id,
+        type: 'comment',
+        title: `${user.name} comentou no seu post`,
+        description: content.trim(),
+        postId: post.id,
+      })
       pushNotification({
         type: 'comment',
         title: 'Comentário enviado',
@@ -299,6 +346,18 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         })
         queueOdRefresh(user.id)
       }
+      if (user?.id) {
+        void pushNotification({
+          recipientId: post.userId,
+          actorId: user.id,
+          type: 'share',
+          title: `${user.name} compartilhou seu post`,
+          description: targetLabel
+            ? `Compartilhado com ${normalizeDisplayName(targetLabel)}.`
+            : 'Seu post foi compartilhado.',
+          postId: post.id,
+        })
+      }
       pushNotification({
         type: 'share',
         title: 'Post compartilhado',
@@ -321,6 +380,14 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
           eventType: 'post_like',
         })
         queueOdRefresh(user.id)
+        void pushNotification({
+          recipientId: post.userId,
+          actorId: user.id,
+          type: 'like',
+          title: `${user.name} curtiu seu post`,
+          description: `${user.username} interagiu com seu conteudo.`,
+          postId: post.id,
+        })
       }
       pushNotification({
         type: 'like',
@@ -332,8 +399,12 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   )
 
   const markNotificationsRead = useCallback(() => {
-    persistNotifications(notifications.map((notification) => ({ ...notification, read: true })))
-  }, [notifications, persistNotifications])
+    if (!user?.id) return
+    setNotifications((current) => current.map((notification) => ({ ...notification, read: true })))
+    void getDatabaseProvider()
+      .notifications.markAllRead(user.id)
+      .catch((error) => console.error('[notifications] failed to mark read', error))
+  }, [user?.id])
 
   const isFollowing = useCallback(
     (profileId: string) => followedIds.includes(profileId),
@@ -358,6 +429,16 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         metadata: { following: !alreadyFollowing },
       })
       queueOdRefresh(user.id)
+
+      if (!alreadyFollowing) {
+        void pushNotification({
+          recipientId: profile.id,
+          actorId: user.id,
+          type: 'follow',
+          title: `${user.name} comecou a seguir voce`,
+          description: `${user.username} agora acompanha suas novidades.`,
+        })
+      }
 
       pushNotification({
         type: alreadyFollowing ? 'system' : 'follow',

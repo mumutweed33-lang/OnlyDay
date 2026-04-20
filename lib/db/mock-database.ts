@@ -2,6 +2,7 @@
 
 import type {
   AppUser,
+  AppNotification,
   Conversation,
   FeedPost,
   Momento,
@@ -13,8 +14,10 @@ import type {
 import type {
   DatabaseProvider,
   DatabaseUserRecord,
+  CreateNotificationInput,
   MessageRepository,
   MomentoRepository,
+  NotificationRepository,
   PostRepository,
   UserRepository,
 } from '@/lib/db/contracts'
@@ -23,6 +26,7 @@ const STORAGE_KEYS = {
   posts: 'onlyday_posts',
   conversations: 'onlyday_conversations',
   momentos: 'onlyday_momentos',
+  notifications: 'onlyday_notifications',
   users: 'onlyday_profiles',
 }
 
@@ -154,6 +158,42 @@ class MockPostRepository implements PostRepository {
     writeStorage(
       STORAGE_KEYS.posts,
       current.filter((post) => post.id !== postId)
+    )
+  }
+}
+
+class MockNotificationRepository implements NotificationRepository {
+  async list(recipientId: string, limit = 50) {
+    const notifications = readStorage<AppNotification[]>(STORAGE_KEYS.notifications, [])
+    return notifications
+      .filter((notification) => !notification.actorId || notification.id.includes(recipientId))
+      .slice(0, limit)
+  }
+
+  async create(notification: CreateNotificationInput) {
+    const current = readStorage<AppNotification[]>(STORAGE_KEYS.notifications, [])
+    const next: AppNotification = {
+      id: `${notification.recipientId}-notif-${Date.now()}`,
+      type: notification.type,
+      title: notification.title,
+      description: notification.description,
+      actorId: notification.actorId,
+      postId: notification.postId,
+      conversationId: notification.conversationId,
+      createdAt: new Date().toISOString(),
+      read: false,
+    }
+    writeStorage(STORAGE_KEYS.notifications, [next, ...current].slice(0, 80))
+    return next
+  }
+
+  async markAllRead(recipientId: string) {
+    const current = readStorage<AppNotification[]>(STORAGE_KEYS.notifications, [])
+    writeStorage(
+      STORAGE_KEYS.notifications,
+      current.map((notification) =>
+        notification.id.startsWith(`${recipientId}-`) ? { ...notification, read: true } : notification
+      )
     )
   }
 }
@@ -332,4 +372,5 @@ export class MockDatabaseProvider implements DatabaseProvider {
   posts = new MockPostRepository()
   messages = new MockMessageRepository()
   momentos = new MockMomentoRepository()
+  notifications = new MockNotificationRepository()
 }

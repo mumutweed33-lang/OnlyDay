@@ -101,6 +101,22 @@ create table if not exists public.follows (
   constraint follows_no_self_follow check (follower_id <> following_id)
 );
 
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  actor_id uuid references public.profiles(id) on delete set null,
+  type text not null check (type in ('like', 'comment', 'follow', 'share', 'message', 'system')),
+  title text not null,
+  description text not null,
+  post_id uuid references public.posts(id) on delete cascade,
+  conversation_id uuid references public.conversations(id) on delete cascade,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_recipient_created_idx
+on public.notifications (recipient_id, created_at desc);
+
 alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles add column if not exists followers_count integer not null default 0;
 alter table public.profiles add column if not exists following_count integer not null default 0;
@@ -114,6 +130,7 @@ alter table public.momentos enable row level security;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
 alter table public.follows enable row level security;
+alter table public.notifications enable row level security;
 
 drop policy if exists "profiles readable by everyone" on public.profiles;
 create policy "profiles readable by everyone"
@@ -206,6 +223,25 @@ on public.follows for all
 to authenticated
 using (auth.uid() = follower_id)
 with check (auth.uid() = follower_id);
+
+drop policy if exists "notifications visible to recipient" on public.notifications;
+create policy "notifications visible to recipient"
+on public.notifications for select
+to authenticated
+using (auth.uid() = recipient_id);
+
+drop policy if exists "notifications insert by actor" on public.notifications;
+create policy "notifications insert by actor"
+on public.notifications for insert
+to authenticated
+with check (actor_id is null or auth.uid() = actor_id);
+
+drop policy if exists "notifications update by recipient" on public.notifications;
+create policy "notifications update by recipient"
+on public.notifications for update
+to authenticated
+using (auth.uid() = recipient_id)
+with check (auth.uid() = recipient_id);
 
 create or replace function public.handle_confirmed_auth_user_profile()
 returns trigger

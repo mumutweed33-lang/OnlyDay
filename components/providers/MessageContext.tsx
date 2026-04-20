@@ -142,6 +142,16 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
             return alreadyExists ? prev : [nextConversation, ...prev]
           })
           setActiveConversationId(nextConversation.id)
+          void getDatabaseProvider()
+            .notifications.create({
+              recipientId: profile.id,
+              actorId: user.id,
+              type: 'message',
+              title: `${user.name} iniciou uma conversa`,
+              description: 'Toque para abrir o chat.',
+              conversationId: nextConversation.id,
+            })
+            .catch((error) => console.error('[notifications] failed to notify conversation', error))
           void trackOdEvent({
             actorProfileId: user.id,
             targetProfileId: profile.id,
@@ -183,6 +193,18 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         const updated = await getDatabaseProvider().messages.sendMessage(convId, messageData)
         if (updated) {
           patchConversation(updated)
+          if (user?.id && messageData.receiverId !== user.id) {
+            void getDatabaseProvider()
+              .notifications.create({
+                recipientId: messageData.receiverId,
+                actorId: user.id,
+                type: 'message',
+                title: `${user.name} enviou uma mensagem`,
+                description: messageData.content || 'Voce recebeu uma nova mensagem.',
+                conversationId: convId,
+              })
+              .catch((error) => console.error('[notifications] failed to notify message', error))
+          }
           return
         }
       } catch (error) {

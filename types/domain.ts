@@ -185,7 +185,7 @@ export interface PostComment {
   createdAt: string
 }
 
-export type NotificationType = 'like' | 'comment' | 'follow' | 'share' | 'system'
+export type NotificationType = 'like' | 'comment' | 'follow' | 'share' | 'message' | 'system'
 
 export interface AppNotification {
   id: string
@@ -194,4 +194,10 @@ export interface AppNotification {
   description: string
   createdAt: string
   read: boolean
+  actorId?: string
+  actorName?: string
+  actorUsername?: string
+  actorAvatar?: string
+  postId?: string
+  conversationId?: string
 }
