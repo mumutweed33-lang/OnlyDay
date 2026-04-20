@@ -33,21 +33,21 @@ type Particle = {
 
 const STATS = [
   {
-    label: 'Criadores ativos',
-    value: '50K+',
-    detail: 'crescimento semanal consistente',
+    label: 'Beta fechado',
+    value: 'Real',
+    detail: 'testes com contas reais cadastradas',
     icon: Users,
   },
   {
-    label: 'GMV mensal',
-    value: 'R$2M+',
-    detail: 'assinaturas, vault e leiloes',
+    label: 'Dados',
+    value: 'Sem demo',
+    detail: 'feed e busca sem perfis falsos',
     icon: TrendingUp,
   },
   {
-    label: 'Satisfacao media',
-    value: '4.9',
-    detail: 'experiencia focada em retencao',
+    label: 'Conexao',
+    value: '@user',
+    detail: 'encontre pessoas por nome e username',
     icon: Star,
   },
 ]
@@ -70,23 +70,6 @@ const FEATURES = [
     title: 'OnlyAuction',
     desc: 'Leiloes de atencao para transformar urgencia e proximidade em uma mecanica de monetizacao.',
     color: 'from-sky-500/20 via-indigo-500/10 to-transparent',
-  },
-]
-
-const TESTIMONIALS = [
-  {
-    name: 'Luna Estrela',
-    role: 'Criadora de Conteudo',
-    earning: 'R$ 18.500/mes',
-    avatar: 'Luna',
-    text: '"Em tres meses, minha operacao ficou mais premium e minha audiencia passou a pagar com menos friccao."',
-  },
-  {
-    name: 'Kai Noir',
-    role: 'Fotografo',
-    earning: 'R$ 12.000/mes',
-    avatar: 'Kai',
-    text: '"O Vault virou minha melhor alavanca. Parece exclusivo de verdade, e isso muda a resposta do publico."',
   },
 ]
 
@@ -358,42 +341,21 @@ export function LandingPage() {
           className="mb-10 text-center"
         >
           <h2 className="mb-3 text-3xl font-bold text-white">
-            Criadores que <span className="text-gradient">faturam</span>
+            Comunidade <span className="text-gradient">real</span>
           </h2>
-          <p className="text-white/50">Historias reais de quem monetiza com uma operacao mais exclusiva.</p>
+          <p className="text-white/50">
+            Nesta fase, so aparecem contas, posts e conexoes criadas por usuarios reais do teste.
+          </p>
         </motion.div>
 
-        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
-          {TESTIMONIALS.map((creator, index) => (
-            <motion.div
-              key={creator.name}
-              initial={{ opacity: 0, x: index === 0 ? -24 : 24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.15 }}
-              className="rounded-3xl border border-white/10 bg-white/[0.045] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl"
-            >
-              <div className="mb-4 flex items-center gap-3">
-                <img
-                  src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${creator.avatar}`}
-                  alt={creator.name}
-                  className="h-12 w-12 rounded-full ring-2 ring-violet-400/70"
-                />
-                <div>
-                  <div className="flex items-center gap-1 text-white">
-                    <span className="font-semibold">{creator.name}</span>
-                    <Shield className="h-3.5 w-3.5 text-violet-300" />
-                  </div>
-                  <div className="text-xs text-white/45">{creator.role}</div>
-                </div>
-                <div className="ml-auto text-right">
-                  <div className="text-sm font-bold text-gradient">{creator.earning}</div>
-                  <div className="text-xs text-white/35">media mensal</div>
-                </div>
-              </div>
-              <p className="text-sm italic leading-relaxed text-white/64">{creator.text}</p>
-            </motion.div>
-          ))}
+        <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/[0.045] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-400/20">
+            <Users className="h-5 w-5 text-violet-300" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Convide pessoas e teste como rede social</h3>
+          <p className="mt-2 text-sm leading-relaxed text-white/55">
+            Cada pessoa cria uma conta com e-mail e senha, depois pode buscar outras contas pelo nome ou @username.
+          </p>
         </div>
       </section>
 

@@ -30,7 +30,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
         userBio: user.bio,
         isVerified: user.isVerified,
         isCreator: user.isCreator,
-        media: `https://picsum.photos/seed/${user.id}-${Date.now()}/720/1280`,
+        media: user.avatar,
         mediaType: 'image',
         isLocked: false,
         duration: 5000,

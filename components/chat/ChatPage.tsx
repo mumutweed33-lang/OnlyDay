@@ -466,7 +466,7 @@ function ConversationView({
       receiverId: conversation.userId,
       content: attachmentLocked ? 'Conteúdo premium enviado no chat' : 'Conteúdo enviado no chat',
       type: 'media',
-      mediaUrl: 'https://picsum.photos/seed/chat-premium/500/380',
+      mediaUrl: undefined,
       isLocked: attachmentLocked,
       price: attachmentLocked ? parsedAttachmentPrice : undefined,
     })
@@ -679,8 +679,7 @@ function ConversationView({
               Envie foto, arquivo ou conteúdo bloqueado com cobrança direta no chat.
             </p>
             <div className="mb-4 rounded-2xl border border-white/10 bg-white/6 p-4">
-              <div className="mb-3 text-sm text-white/75">Preview mock do arquivo premium</div>
-              <img src="https://picsum.photos/seed/chat-premium/500/380" alt="" className="h-48 w-full rounded-2xl object-cover" />
+              <div className="text-sm text-white/75">Anexo real sera escolhido pelo usuario na proxima etapa.</div>
             </div>
             <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
               <div>

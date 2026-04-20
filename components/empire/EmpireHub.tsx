@@ -41,12 +41,13 @@ const PLANS = [
   },
 ]
 
-const TRANSACTIONS = [
-  { user: 'Luna_Fan_01', amount: 149.9, plan: 'Diamond', time: '2 min atras', positive: true },
-  { user: 'Rafael_Gold', amount: 75, plan: 'Leilao', time: '15 min atras', positive: true },
-  { user: 'Sofia_Vip', amount: 29.9, plan: 'Post', time: '1h atras', positive: true },
-  { user: 'Voce', amount: -500, plan: 'Pix', time: '3h atras', positive: false },
-]
+const TRANSACTIONS: Array<{
+  user: string
+  amount: number
+  plan: string
+  time: string
+  positive: boolean
+}> = []
 
 interface ReachExplanationRow {
   snapshot_date: string
@@ -349,8 +350,8 @@ export function EmpireHub() {
                 {[
                   { label: 'Receita Bruta', value: 'R$ ' + grossRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), icon: DollarSign, color: 'text-green-400', trend: '+23%' },
                   { label: 'Receita Liquida', value: 'R$ ' + netRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), icon: TrendingUp, color: 'text-violet-400', trend: '+23%' },
-                  { label: 'Assinantes', value: '364', icon: Users, color: 'text-blue-400', trend: '+8' },
-                  { label: 'Posts Premium', value: '47', icon: BarChart3, color: 'text-amber-400', trend: '+12' },
+                  { label: 'Seguidores', value: String(user?.followers ?? 0), icon: Users, color: 'text-blue-400', trend: 'real' },
+                  { label: 'Posts Premium', value: String(posts.filter((post) => post.userId === user?.id && post.isLocked).length), icon: BarChart3, color: 'text-amber-400', trend: 'real' },
                 ].map((stat) => (
                   <motion.div
                     key={stat.label}
