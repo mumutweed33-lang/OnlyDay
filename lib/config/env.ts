@@ -6,21 +6,25 @@ function readEnv(name: string): string | undefined {
   return value && value.trim().length > 0 ? value : undefined
 }
 
+function cleanEnv(value?: string): string | undefined {
+  return value && value.trim().length > 0 ? value : undefined
+}
+
 const isProduction = process.env.NODE_ENV === 'production'
 const authProvider =
-  (readEnv('NEXT_PUBLIC_AUTH_PROVIDER') as AuthProvider | undefined) ??
+  (cleanEnv(process.env.NEXT_PUBLIC_AUTH_PROVIDER) as AuthProvider | undefined) ??
   (isProduction ? 'supabase' : 'mock')
 const paymentsProvider =
-  (readEnv('NEXT_PUBLIC_PAYMENTS_PROVIDER') as PaymentsProvider | undefined) ?? 'mock'
+  (cleanEnv(process.env.NEXT_PUBLIC_PAYMENTS_PROVIDER) as PaymentsProvider | undefined) ?? 'mock'
 
 export const env = {
-  appUrl: readEnv('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3000',
+  appUrl: cleanEnv(process.env.NEXT_PUBLIC_APP_URL) ?? 'http://localhost:3000',
   authProvider,
   paymentsProvider,
   authSecret: readEnv('AUTH_SECRET'),
   databaseUrl: readEnv('DATABASE_URL'),
-  supabaseUrl: readEnv('NEXT_PUBLIC_SUPABASE_URL'),
-  supabaseAnonKey: readEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+  supabaseUrl: cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  supabaseAnonKey: cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
   supabaseServiceRoleKey: readEnv('SUPABASE_SERVICE_ROLE_KEY'),
   mercadoPagoAccessToken: readEnv('MERCADO_PAGO_ACCESS_TOKEN'),
   mercadoPagoWebhookUrl: readEnv('MERCADO_PAGO_WEBHOOK_URL'),
