@@ -120,10 +120,15 @@ function toAppUser(user: SupabaseUser, fallback?: Partial<AppUser>): AppUser {
   return profile
 }
 
-function buildSession(user: AppUser | null, isAuthenticated = Boolean(user)): AuthSession {
+function buildSession(
+  user: AppUser | null,
+  isAuthenticated = Boolean(user),
+  extras?: Pick<AuthSession, 'emailVerificationRequired' | 'email'>
+): AuthSession {
   return {
     user,
     isAuthenticated,
+    ...extras,
   }
 }
 
@@ -158,6 +163,10 @@ function normalizeAuthError(message: string) {
     return 'E-mail ou senha incorretos. Confira os dados e tente novamente.'
   }
 
+  if (normalized.includes('email not confirmed')) {
+    return 'Confirme seu e-mail antes de entrar. Enviamos um link de verificacao para sua caixa de entrada.'
+  }
+
   return message
 }
 
@@ -171,6 +180,14 @@ export class SupabaseAuthService implements AuthService {
     }
 
     const currentUser = data.session?.user ?? null
+    if (currentUser && !currentUser.email_confirmed_at) {
+      await supabase.auth.signOut()
+      return buildSession(null, false, {
+        emailVerificationRequired: true,
+        email: currentUser.email,
+      })
+    }
+
     return buildSession(currentUser ? toAppUser(currentUser) : null)
   }
 
@@ -181,6 +198,8 @@ export class SupabaseAuthService implements AuthService {
       email: input.email,
       password: input.password,
       options: {
+        emailRedirectTo:
+          typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
         data: toUserMetadata({
           name: input.name,
           username,
@@ -213,10 +232,15 @@ export class SupabaseAuthService implements AuthService {
       throw new Error('Nao foi possivel criar a conta no Supabase.')
     }
 
-    if (!data.session) {
-      throw new Error(
-        'Conta criada, mas o Supabase exigiu confirmação por e-mail antes do primeiro acesso. Para testar várias contas agora, confirme o e-mail recebido ou desative "Confirm email" no painel do Supabase em Authentication > Providers > Email.'
-      )
+    if (!data.session || !data.user.email_confirmed_at) {
+      if (data.session) {
+        await supabase.auth.signOut()
+      }
+
+      return buildSession(null, false, {
+        emailVerificationRequired: true,
+        email: input.email,
+      })
     }
 
     return buildSession(toAppUser(data.user), true)
@@ -241,6 +265,13 @@ export class SupabaseAuthService implements AuthService {
 
     if (!data.user) {
       throw new Error('Nao encontramos uma conta valida para este login.')
+    }
+
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut()
+      throw new Error(
+        'Confirme seu e-mail antes de entrar. Enviamos um link de verificacao para sua caixa de entrada.'
+      )
     }
 
     return buildSession(toAppUser(data.user), true)

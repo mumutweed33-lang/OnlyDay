@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { getAuthService } from '@/lib/auth'
 import { getDatabaseProvider } from '@/lib/db'
-import type { AppUser } from '@/types/domain'
+import type { AppUser, AuthSession } from '@/types/domain'
 
 export type User = AppUser
 export type LoginMode = 'signUp' | 'signIn'
@@ -19,7 +19,7 @@ interface UserContextType {
   isLoggedIn: boolean
   isOnboarding: boolean
   onboardingStep: number
-  login: (userData: LoginInput) => Promise<void>
+  login: (userData: LoginInput) => Promise<AuthSession>
   logout: () => Promise<void>
   updateUser: (updates: Partial<User>) => Promise<void>
   setOnboardingStep: (step: number) => void
@@ -85,13 +85,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) {
           if (session.user) {
             try {
-              const persistedUser =
-                (await getDatabaseProvider().users.findById(session.user.id)) ?? session.user
-              setUser({
+              const storedUser = await getDatabaseProvider().users.findById(session.user.id)
+              const persistedUser = storedUser ?? session.user
+              const nextUser = {
                 ...session.user,
                 ...normalizeCreatorState(session.user, persistedUser),
                 ...persistedUser,
-              })
+              }
+              setUser(nextUser)
+              if (!storedUser) {
+                void getDatabaseProvider()
+                  .users.create(nextUser)
+                  .catch((syncError) =>
+                    console.error('Error syncing confirmed profile:', syncError)
+                  )
+              }
             } catch (dbError) {
               console.error('Error loading persisted profile:', dbError)
               setUser(session.user)
@@ -136,6 +144,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           })
 
     if (!session.user) {
+      if (session.emailVerificationRequired) {
+        setUser(null)
+        setIsLoggedIn(false)
+        setIsOnboarding(false)
+        return session
+      }
+
       throw new Error(
         mode === 'signIn'
       ? 'Não foi possível entrar com esta conta.'
@@ -176,6 +191,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error syncing profile after login:', error)
     }
+    return session
   }, [])
 
   const logout = useCallback(async () => {

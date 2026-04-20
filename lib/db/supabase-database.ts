@@ -51,6 +51,7 @@ type PostRow = {
 
 type ConversationRow = {
   id: string
+  creator_profile_id: string
   user_a: string
   user_b: string
   last_message: string | null
@@ -61,6 +62,8 @@ type ConversationRow = {
   auction_active: boolean | null
   current_bid: number | null
   creator_profile?: ProfileRow | null
+  user_a_profile?: ProfileRow | null
+  user_b_profile?: ProfileRow | null
 }
 
 type MessageRow = {
@@ -103,6 +106,13 @@ type ConversationParticipantRow = {
   user_a: string
   user_b: string
 }
+
+const conversationSelect = [
+  '*',
+  'creator_profile:profiles!conversations_creator_profile_id_fkey(*)',
+  'user_a_profile:profiles!conversations_user_a_fkey(*)',
+  'user_b_profile:profiles!conversations_user_b_fkey(*)',
+].join(', ')
 
 function ensureArray<T>(value?: T[] | null) {
   return value ?? []
@@ -407,15 +417,17 @@ export class SupabaseMessageRepository implements MessageRepository {
     const supabase = getSupabaseBrowserClient()
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
+      .select(conversationSelect)
       .or(`user_a.eq.${viewerId},user_b.eq.${viewerId}`)
       .order('last_message_time', { ascending: false })
     if (error) throw new Error(error.message)
 
-    const rows = (data as ConversationRow[]) ?? []
+    const rows = (data as unknown as ConversationRow[]) ?? []
     return Promise.all(
       rows.map(async (row) => {
-        const profile = normalizeProfile(row.creator_profile)
+        const otherParticipant =
+          row.user_a === viewerId ? normalizeProfile(row.user_b_profile) : normalizeProfile(row.user_a_profile)
+        const profile = otherParticipant ?? normalizeProfile(row.creator_profile)
         const messages = await loadMessagesForConversation(row.id)
         const unreadCount = row.user_a === viewerId ? row.unread_count_a : row.unread_count_b
         return {
@@ -443,7 +455,7 @@ export class SupabaseMessageRepository implements MessageRepository {
     const supabase = getSupabaseBrowserClient()
     const { data: existingData, error: existingError } = await supabase
       .from('conversations')
-      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
+      .select(conversationSelect)
       .or(
         `and(user_a.eq.${viewer.id},user_b.eq.${profile.id}),and(user_a.eq.${profile.id},user_b.eq.${viewer.id})`
       )
@@ -452,8 +464,10 @@ export class SupabaseMessageRepository implements MessageRepository {
     if (existingError) throw new Error(existingError.message)
 
     if (existingData) {
-      const row = existingData as ConversationRow
-      const profileRecord = normalizeProfile(row.creator_profile)
+      const row = existingData as unknown as ConversationRow
+      const otherParticipant =
+        row.user_a === viewer.id ? normalizeProfile(row.user_b_profile) : normalizeProfile(row.user_a_profile)
+      const profileRecord = otherParticipant ?? normalizeProfile(row.creator_profile)
       const messages = await loadMessagesForConversation(row.id)
       const unreadCount = row.user_a === viewer.id ? row.unread_count_a : row.unread_count_b
 
@@ -492,13 +506,15 @@ export class SupabaseMessageRepository implements MessageRepository {
     const { data, error } = await supabase
       .from('conversations')
       .insert(payload)
-      .select('*, creator_profile:profiles!conversations_creator_profile_id_fkey(*)')
+      .select(conversationSelect)
       .single()
 
     if (error) throw new Error(error.message)
 
-    const row = data as ConversationRow
-    const profileRecord = normalizeProfile(row.creator_profile)
+    const row = data as unknown as ConversationRow
+    const otherParticipant =
+      row.user_a === viewer.id ? normalizeProfile(row.user_b_profile) : normalizeProfile(row.user_a_profile)
+    const profileRecord = otherParticipant ?? normalizeProfile(row.creator_profile)
 
     return {
       id: row.id,

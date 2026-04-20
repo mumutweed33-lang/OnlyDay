@@ -28,6 +28,8 @@ export interface AppUser {
 export interface AuthSession {
   user: AppUser | null
   isAuthenticated: boolean
+  emailVerificationRequired?: boolean
+  email?: string
 }
 
 export interface CreateAccountInput {

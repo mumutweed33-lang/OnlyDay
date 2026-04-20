@@ -162,7 +162,7 @@ export function OnboardingFlow({
           password: formData.password,
         })
       } else {
-        await login({
+        const session = await login({
           mode: 'signUp',
           name: formData.name || 'Usuario Premium',
           username: `@${formData.username.replace(/^@+/, '')}`,
@@ -180,6 +180,16 @@ export function OnboardingFlow({
           plan: 'free',
           joinedAt: new Date().toISOString(),
         })
+
+        if (session.emailVerificationRequired) {
+          stopCamera()
+          setMode('signIn')
+          setStep(0)
+          setSupportHint(
+            `Conta criada. Enviamos um link de verificacao para ${session.email || formData.email}. Confirme o e-mail antes de entrar.`
+          )
+          return
+        }
       }
 
       stopCamera()
