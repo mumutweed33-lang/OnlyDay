@@ -6,7 +6,10 @@ function readEnv(name: string): string | undefined {
   return value && value.trim().length > 0 ? value : undefined
 }
 
-const authProvider = (readEnv('NEXT_PUBLIC_AUTH_PROVIDER') as AuthProvider | undefined) ?? 'mock'
+const isProduction = process.env.NODE_ENV === 'production'
+const authProvider =
+  (readEnv('NEXT_PUBLIC_AUTH_PROVIDER') as AuthProvider | undefined) ??
+  (isProduction ? 'supabase' : 'mock')
 const paymentsProvider =
   (readEnv('NEXT_PUBLIC_PAYMENTS_PROVIDER') as PaymentsProvider | undefined) ?? 'mock'
 

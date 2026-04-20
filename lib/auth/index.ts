@@ -43,6 +43,12 @@ class MissingSupabaseAuthService implements AuthService {
 export function getAuthService(): AuthService {
   if (clientAuthService) return clientAuthService
 
+  if (process.env.NODE_ENV === 'production' && env.authProvider !== 'supabase') {
+    console.warn('[auth] Auth mock bloqueado em producao. Configure Supabase para autenticar.')
+    clientAuthService = new MissingSupabaseAuthService()
+    return clientAuthService
+  }
+
   switch (env.authProvider) {
     case 'supabase':
       if (hasSupabaseClientEnv()) {

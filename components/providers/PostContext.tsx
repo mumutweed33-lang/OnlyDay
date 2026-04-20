@@ -74,17 +74,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
         setPosts((prev) => prev.map((post) => (post.id === postId ? updated : post)))
       } catch (error) {
         console.error('[posts] failed to toggle like', error)
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? Math.max(0, post.likes - 1) : post.likes + 1,
-                }
-              : post
-          )
-        )
+        throw error
       }
     },
     [user?.id]
@@ -100,11 +90,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
         setPosts((prev) => prev.map((post) => (post.id === postId ? updated : post)))
       } catch (error) {
         console.error('[posts] failed to toggle save', error)
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId ? { ...post, isSaved: !post.isSaved } : post
-          )
-        )
+        throw error
       }
     },
     [user?.id]
@@ -117,6 +103,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
       await getDatabaseProvider().posts.delete(postId)
     } catch (error) {
       console.error('[posts] failed to delete post', error)
+      throw error
     }
 
     setPosts((prev) => prev.filter((post) => post.id !== postId))

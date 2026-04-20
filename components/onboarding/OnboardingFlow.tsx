@@ -61,6 +61,8 @@ export function OnboardingFlow({
   const totalSteps = mode === 'signIn' ? 1 : TOTAL_SIGNUP_STEPS
   const passwordStrongEnough = formData.password.trim().length >= 6
   const passwordMatches = formData.password === formData.confirmPassword
+  const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+  const usernameLooksValid = /^[a-z0-9_]{3,20}$/.test(formData.username.trim())
 
   React.useEffect(() => {
     setMode(initialMode)
@@ -71,14 +73,14 @@ export function OnboardingFlow({
 
   const canContinue = useMemo(() => {
     if (mode === 'signIn') {
-      return Boolean(formData.email.trim() && formData.password.trim())
+      return Boolean(emailLooksValid && formData.password.trim())
     }
 
     if (step === 0) {
       return Boolean(
         formData.name.trim() &&
-          formData.username.trim() &&
-          formData.email.trim() &&
+          usernameLooksValid &&
+          emailLooksValid &&
           passwordStrongEnough &&
           passwordMatches &&
           formData.acceptedLegal
@@ -94,7 +96,7 @@ export function OnboardingFlow({
     }
 
     return true
-  }, [formData, mode, passwordMatches, passwordStrongEnough, step])
+  }, [emailLooksValid, formData, mode, passwordMatches, passwordStrongEnough, step, usernameLooksValid])
 
   const handleModeChange = useCallback((nextMode: AuthMode) => {
     setMode(nextMode)
@@ -182,11 +184,17 @@ export function OnboardingFlow({
         })
 
         if (session.emailVerificationRequired) {
+          const verificationEmail = session.email || formData.email
           stopCamera()
           setMode('signIn')
           setStep(0)
           setSupportHint(
-            `Conta criada. Enviamos um link de verificacao para ${session.email || formData.email}. Confirme o e-mail antes de entrar.`
+            `Conta criada. Enviamos um link de verificacao para ${verificationEmail}. Confirme o e-mail antes de entrar.`
+          )
+          window.history.pushState(
+            null,
+            '',
+            `/verificar-email?email=${encodeURIComponent(verificationEmail)}`
           )
           return
         }
@@ -422,6 +430,11 @@ export function OnboardingFlow({
                       className="w-full rounded-xl border border-white/10 glass py-3 pl-8 pr-4 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                     />
                   </div>
+                  {formData.username && !usernameLooksValid && (
+                    <p className="mt-2 text-[11px] text-rose-300">
+                      Use 3 a 20 caracteres: letras, numeros e underline. Nao use e-mail como @.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -436,6 +449,11 @@ export function OnboardingFlow({
                     }
                     className="w-full rounded-xl border border-white/10 glass px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-violet-500/50"
                   />
+                  {formData.email && !emailLooksValid && (
+                    <p className="mt-2 text-[11px] text-rose-300">
+                      Informe um e-mail valido para receber a confirmacao.
+                    </p>
+                  )}
                 </div>
 
                 <div>

@@ -187,26 +187,8 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('[messages] failed to send message', error)
+        throw error
       }
-
-      const fallbackMessage: Message = {
-        ...messageData,
-        id: `msg-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        isRead: false,
-      }
-      setConversations((prev) =>
-        prev.map((conversation) =>
-          conversation.id !== convId
-            ? conversation
-            : {
-                ...conversation,
-                messages: [...conversation.messages, fallbackMessage],
-                lastMessage: messageData.content,
-                lastMessageTime: fallbackMessage.timestamp,
-              }
-        )
-      )
     },
     [conversations, patchConversation, user?.id]
   )
@@ -233,33 +215,8 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('[messages] failed to place bid', error)
+        throw error
       }
-
-      const fallbackMessage: Message = {
-        id: `msg-${Date.now()}`,
-        senderId: user.id,
-        receiverId: convId,
-        content: `Lance de R$ ${amount.toFixed(2)} enviado!`,
-        type: 'auction',
-        auctionBid: amount,
-        auctionStatus: 'pending',
-        timestamp: new Date().toISOString(),
-        isRead: false,
-      }
-      setConversations((prev) =>
-        prev.map((conversation) =>
-          conversation.id !== convId
-            ? conversation
-            : {
-                ...conversation,
-                messages: [...conversation.messages, fallbackMessage],
-                auctionActive: true,
-                currentBid: amount,
-                lastMessage: `Lance: R$ ${amount.toFixed(2)}`,
-                lastMessageTime: fallbackMessage.timestamp,
-              }
-        )
-      )
     },
     [conversations, patchConversation, user?.id]
   )

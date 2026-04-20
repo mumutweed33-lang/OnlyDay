@@ -6,7 +6,22 @@ import { PostProvider, usePosts } from '@/components/providers/PostContext'
 import { MessageProvider, useMessages } from '@/components/providers/MessageContext'
 import { MomentoProvider, useMomentos } from '@/components/providers/MomentoContext'
 import { SocialProvider, useSocial } from '@/components/providers/SocialContext'
-import { cleanupLegacyDemoStorage } from '@/lib/storage/legacy-demo-cleanup'
+import {
+  cleanupLegacyDemoStorage,
+  clearLegacyUserStorageAfterRealAuth,
+} from '@/lib/storage/legacy-demo-cleanup'
+
+function RealAuthStorageCleanup() {
+  const { isLoggedIn } = useUser()
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      clearLegacyUserStorageAfterRealAuth()
+    }
+  }, [isLoggedIn])
+
+  return null
+}
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -15,6 +30,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
 
   return (
     <UserProvider>
+      <RealAuthStorageCleanup />
       <PostProvider>
         <MessageProvider>
           <MomentoProvider>

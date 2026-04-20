@@ -410,15 +410,8 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
       return
     } catch (error) {
       console.error('[momentos] failed to create momento', error)
+      throw error
     }
-
-    const fallbackMomento: Momento = {
-      ...momentoData,
-      id: `mom-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      viewCount: 0,
-    }
-    setMomentos((prev) => [fallbackMomento, ...prev])
   }, [])
 
   return (

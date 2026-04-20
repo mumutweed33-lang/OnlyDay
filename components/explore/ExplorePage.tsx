@@ -6,6 +6,7 @@ import { BadgeCheck, Flame, Hash, Search, Sparkles, TrendingUp, Users } from 'lu
 import { usePosts } from '@/components/providers/PostContext'
 import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
+import { getDatabaseProvider } from '@/lib/db'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { PublicProfile } from '@/types/domain'
 
@@ -78,6 +79,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
   const [activeCategory, setActiveCategory] = useState('Tudo')
   const [searching, setSearching] = useState(false)
   const [rankedCreators, setRankedCreators] = useState<ExploreCreatorCard[]>([])
+  const [serverSearchCreators, setServerSearchCreators] = useState<ExploreCreatorCard[]>([])
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const { posts } = usePosts()
   const { user } = useUser()
@@ -176,6 +178,55 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
     }
   }
 
+  useEffect(() => {
+    let cancelled = false
+    const query = searchQuery.trim()
+
+    if (query.length < 2 || !user?.id) {
+      setServerSearchCreators([])
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      setSearching(true)
+      getDatabaseProvider()
+        .users.search(query, 20)
+        .then((profiles) => {
+          if (cancelled) return
+          setServerSearchCreators(
+            profiles
+              .filter((profile) => profile.id !== user.id)
+              .map((profile, index) =>
+                mapProfileToCreatorCard(
+                  {
+                    id: profile.id,
+                    name: profile.name,
+                    username: profile.username,
+                    avatar: profile.avatar,
+                    bio: profile.bio,
+                    isVerified: profile.isVerified,
+                    isCreator: profile.isCreator,
+                  },
+                  index
+                )
+              )
+          )
+        })
+        .catch((error) => {
+          console.error('[explore] failed to search real profiles', error)
+          if (!cancelled) setServerSearchCreators([])
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false)
+        })
+    }, 250)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+    }
+  }, [searchQuery, user?.id])
+
   const handleFollowCreator = (creator: ExploreCreatorCard) => {
     const following = isFollowing(creator.id)
 
@@ -240,11 +291,21 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       ? discoveryCreators
       : discoveryCreators.filter((creator) => creator.category === activeCategory)
 
-  const matchingCreators = discoveryCreators.filter(
+  const localMatchingCreators = discoveryCreators.filter(
     (creator) =>
       creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       creator.username.toLowerCase().includes(searchQuery.toLowerCase())
   )
+  const matchingCreators = searchQuery
+    ? Array.from(
+        new Map(
+          [...serverSearchCreators, ...localMatchingCreators].map((creator) => [
+            creator.id,
+            creator,
+          ])
+        ).values()
+      )
+    : localMatchingCreators
 
   const matchingTopics = trendingTopics.filter((topic) =>
     topic.tag.toLowerCase().includes(searchQuery.toLowerCase())

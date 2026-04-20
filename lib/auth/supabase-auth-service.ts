@@ -3,6 +3,7 @@
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type { AuthService, SignInInput } from '@/lib/auth/contracts'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+import { env } from '@/lib/config/env'
 import type { AppUser, AuthSession, CreateAccountInput } from '@/types/domain'
 
 const PROFILE_CACHE_KEY = 'onlyday_supabase_profile'
@@ -27,8 +28,20 @@ function canUseStorage() {
 }
 
 function normalizeUsername(username?: string | null) {
-  const cleaned = (username ?? '').trim().replace(/^@+/, '')
-  return `@${cleaned || 'usuario'}`
+  const cleaned = (username ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^@+/, '')
+    .replace(/[^a-z0-9_]/g, '')
+    .slice(0, 20)
+  return cleaned ? `@${cleaned}` : ''
+}
+
+function assertValidUsername(username: string) {
+  const handle = username.replace(/^@+/, '')
+  if (!/^[a-z0-9_]{3,20}$/.test(handle)) {
+    throw new Error('Escolha um @username com 3 a 20 caracteres, usando apenas letras, numeros e _.')
+  }
 }
 
 function getAvatarSeed(value: string) {
@@ -194,12 +207,27 @@ export class SupabaseAuthService implements AuthService {
   async signUp(input: CreateAccountInput): Promise<AuthSession> {
     const supabase = getSupabaseBrowserClient()
     const username = normalizeUsername(input.username)
+    assertValidUsername(username)
+
+    const { data: existingUsername, error: usernameError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle()
+
+    if (usernameError) {
+      throw new Error(usernameError.message)
+    }
+
+    if (existingUsername) {
+      throw new Error('Esse @username ja esta em uso. Escolha outro.')
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
       options: {
-        emailRedirectTo:
-          typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
+        emailRedirectTo: `${env.appUrl.replace(/\/$/, '')}/auth/callback`,
         data: toUserMetadata({
           name: input.name,
           username,

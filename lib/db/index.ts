@@ -15,6 +15,11 @@ export function getDatabaseProvider(): DatabaseProvider {
     return databaseProvider
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    databaseProvider = new SupabaseDatabaseProvider()
+    return databaseProvider
+  }
+
   databaseProvider = new MockDatabaseProvider()
   return databaseProvider
 }

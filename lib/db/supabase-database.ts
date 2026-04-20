@@ -251,6 +251,24 @@ export class SupabaseUserRepository implements UserRepository {
       .filter((profile): profile is DatabaseUserRecord => Boolean(profile))
   }
 
+  async search(query: string, limit = 20) {
+    const supabase = getSupabaseBrowserClient()
+    const normalized = query.trim().replace(/^@+/, '')
+    if (!normalized) return []
+
+    const escaped = normalized.replace(/[%_]/g, '\\$&')
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`username.ilike.%${escaped}%,name.ilike.%${escaped}%`)
+      .limit(limit)
+
+    if (error) throw new Error(error.message)
+    return ((data as ProfileRow[]) ?? [])
+      .map((profile) => normalizeProfile(profile))
+      .filter((profile): profile is DatabaseUserRecord => Boolean(profile))
+  }
+
   async create(user: DatabaseUserRecord) {
     const supabase = getSupabaseBrowserClient()
     const payload = toProfilePayload(user)

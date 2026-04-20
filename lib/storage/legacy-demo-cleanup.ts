@@ -5,6 +5,9 @@ const LEGACY_DEMO_KEYS = [
   'onlyday_conversations',
   'onlyday_momentos',
   'onlyday_comments',
+  'onlyday_profiles',
+  'onlyday_following',
+  'onlyday_shares',
 ]
 
 const LEGACY_DEMO_MARKERS = [
@@ -46,5 +49,13 @@ export function cleanupLegacyDemoStorage() {
   const notifications = window.localStorage.getItem('onlyday_notifications')
   if (hasLegacyDemoContent(notifications)) {
     window.localStorage.removeItem('onlyday_notifications')
+  }
+}
+
+export function clearLegacyUserStorageAfterRealAuth() {
+  if (!canUseStorage()) return
+
+  for (const key of [...LEGACY_DEMO_KEYS, 'onlyday_notifications']) {
+    window.localStorage.removeItem(key)
   }
 }
