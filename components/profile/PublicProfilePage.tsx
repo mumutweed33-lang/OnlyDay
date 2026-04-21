@@ -121,7 +121,7 @@ export function PublicProfilePage({
             {[
               { label: 'Posts', value: publicPosts.length },
               { label: 'Premium', value: premiumPosts.length },
-              { label: 'Seguidores', value: getFollowerCount(profile.id, publicPosts.length * 7).toLocaleString('pt-BR') },
+              { label: 'Seguidores', value: getFollowerCount(profile.id).toLocaleString('pt-BR') },
             ].map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-4 text-center">
                 <div className="text-xl font-black text-white">{stat.value}</div>

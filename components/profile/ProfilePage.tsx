@@ -30,7 +30,7 @@ interface ProfilePageProps {
 export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const { user, logout, updateUser } = useUser()
   const { posts } = usePosts()
-  const { getFollowingCount } = useSocial()
+  const { getFollowerCount, getFollowingCount } = useSocial()
   const [activeTab, setActiveTab] = useState('posts')
   const [showEditModal, setShowEditModal] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
@@ -221,8 +221,8 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
           <div className="mb-4 grid grid-cols-3 gap-3">
             {[
               { label: 'Posts', value: userPosts.length },
-              { label: 'Seguidores', value: user.followers.toLocaleString('pt-BR') },
-              { label: 'Seguindo', value: getFollowingCount(user.following).toLocaleString('pt-BR') },
+              { label: 'Seguidores', value: getFollowerCount(user.id).toLocaleString('pt-BR') },
+              { label: 'Seguindo', value: getFollowingCount().toLocaleString('pt-BR') },
             ].map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-4 text-center">
                 <div className="text-xl font-black text-white">{stat.value}</div>

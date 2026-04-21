@@ -7,11 +7,16 @@ import { usePosts } from '@/components/providers/PostContext'
 import { useUser } from '@/components/providers/UserContext'
 import { getDatabaseProvider } from '@/lib/db'
 import { queueOdRefresh, trackOdEvent } from '@/lib/od-core/signal'
+import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { AppNotification, FeedPost, NotificationType, PostComment, PublicProfile } from '@/types/domain'
 
-const FOLLOWING_STORAGE_KEY = 'onlyday_following'
 const COMMENTS_STORAGE_KEY = 'onlyday_comments'
 const SHARES_STORAGE_KEY = 'onlyday_shares'
+
+type FollowRow = {
+  follower_id: string
+  following_id: string
+}
 
 function normalizeDisplayName(value: string) {
   const trimmed = value.trim()
@@ -84,15 +89,64 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { creatorMomentos } = useMomentos()
   const [directoryProfiles, setDirectoryProfiles] = useState<PublicProfile[]>([])
   const [followedIds, setFollowedIds] = useState<string[]>([])
+  const [followerCounts, setFollowerCounts] = useState<Record<string, number>>({})
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [sharesByPost, setSharesByPost] = useState<Record<string, number>>({})
 
   useEffect(() => {
-    setFollowedIds(readStorage<string[]>(FOLLOWING_STORAGE_KEY, []))
     setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, {}))
     setSharesByPost(readStorage<Record<string, number>>(SHARES_STORAGE_KEY, {}))
   }, [])
+
+  const loadFollowGraph = useCallback(async () => {
+    if (!user?.id) {
+      setFollowedIds([])
+      setFollowerCounts({})
+      return
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data, error } = await supabase
+        .from('follows')
+        .select('follower_id, following_id')
+
+      if (error) throw new Error(error.message)
+
+      const rows = ((data as FollowRow[]) ?? []).filter(
+        (row) => row.follower_id && row.following_id && row.follower_id !== row.following_id
+      )
+      const nextFollowedIds = rows
+        .filter((row) => row.follower_id === user.id)
+        .map((row) => row.following_id)
+      const nextFollowerCounts = rows.reduce<Record<string, number>>((counts, row) => {
+        counts[row.following_id] = (counts[row.following_id] ?? 0) + 1
+        return counts
+      }, {})
+
+      setFollowedIds(Array.from(new Set(nextFollowedIds)))
+      setFollowerCounts(nextFollowerCounts)
+    } catch (error) {
+      console.error('[social] failed to load real follow graph', error)
+      setFollowedIds([])
+      setFollowerCounts({})
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    void loadFollowGraph()
+
+    const refreshInterval = window.setInterval(() => {
+      void loadFollowGraph()
+    }, 15000)
+    window.addEventListener('focus', loadFollowGraph)
+
+    return () => {
+      window.clearInterval(refreshInterval)
+      window.removeEventListener('focus', loadFollowGraph)
+    }
+  }, [loadFollowGraph])
 
   const loadNotifications = useCallback(async () => {
     if (!user?.id) {
@@ -415,14 +469,17 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
 
   const toggleFollow = useCallback(
     (profile: PublicProfile) => {
-      if (!user?.id) return
+      if (!user?.id || profile.id === user.id) return
       const alreadyFollowing = followedIds.includes(profile.id)
       const next = alreadyFollowing
         ? followedIds.filter((id) => id !== profile.id)
         : [...followedIds, profile.id]
 
       setFollowedIds(next)
-      writeStorage(FOLLOWING_STORAGE_KEY, next)
+      setFollowerCounts((current) => ({
+        ...current,
+        [profile.id]: Math.max(0, (current[profile.id] ?? 0) + (alreadyFollowing ? -1 : 1)),
+      }))
       void trackOdEvent({
         actorProfileId: user.id,
         targetProfileId: profile.id,
@@ -431,6 +488,34 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         metadata: { following: !alreadyFollowing },
       })
       queueOdRefresh(user.id)
+
+      const supabase = getSupabaseBrowserClient()
+      const persistFollow = alreadyFollowing
+        ? supabase
+            .from('follows')
+            .delete()
+            .eq('follower_id', user.id)
+            .eq('following_id', profile.id)
+        : supabase
+            .from('follows')
+            .upsert(
+              { follower_id: user.id, following_id: profile.id },
+              { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
+            )
+
+      void persistFollow.then(({ error }) => {
+        if (!error) {
+          void loadFollowGraph()
+          return
+        }
+
+        console.error('[social] failed to persist follow state', error)
+        setFollowedIds(followedIds)
+        setFollowerCounts((current) => ({
+          ...current,
+          [profile.id]: Math.max(0, (current[profile.id] ?? 0) + (alreadyFollowing ? 1 : -1)),
+        }))
+      })
 
       if (!alreadyFollowing) {
         void pushNotification({
@@ -450,16 +535,16 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
           : `Você está acompanhando as novidades de ${normalizeDisplayName(profile.name)}.`,
       })
     },
-    [followedIds, pushNotification, user?.id]
+    [followedIds, loadFollowGraph, pushNotification, user?.id]
   )
 
   const getFollowerCount = useCallback(
-    (profileId: string, baseCount = 0) => baseCount + (followedIds.includes(profileId) ? 1 : 0),
-    [followedIds]
+    (profileId: string) => followerCounts[profileId] ?? 0,
+    [followerCounts]
   )
 
   const getFollowingCount = useCallback(
-    (baseCount = 0) => baseCount + followedIds.length,
+    () => followedIds.length,
     [followedIds.length]
   )
 

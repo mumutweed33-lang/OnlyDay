@@ -48,27 +48,11 @@ function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCrea
     username: profile.username,
     avatar: profile.avatar,
     coverImage: profile.coverImage,
-    followers: new Intl.NumberFormat('pt-BR', {
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    })
-      .format(Math.max(250, 1800 - index * 55))
-      .toUpperCase(),
-    growth: `+${Math.max(120, 780 - index * 18)}`,
+    followers: '0',
+    growth: 'real',
     verified: profile.isVerified,
     category: inferCreatorCategory(profile),
   }
-}
-
-function parseCompactFollowers(value: string) {
-  const normalized = value.trim().toUpperCase()
-  if (normalized.endsWith('K')) {
-    return Math.round(parseFloat(normalized.replace('K', '')) * 1000)
-  }
-  if (normalized.endsWith('M')) {
-    return Math.round(parseFloat(normalized.replace('M', '')) * 1000000)
-  }
-  return Number(normalized.replace(/\D/g, '')) || 0
 }
 
 interface ExplorePageProps {
@@ -138,18 +122,14 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
 
             const category = inferCreatorCategory(knownProfile)
 
-            const baseFollowers = Math.max(0, 1800 - index * 55)
-
             return {
               id,
               name: knownProfile.name,
               username: knownProfile.username,
               avatar: knownProfile.avatar,
               coverImage: knownProfile.coverImage,
-              followers: new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })
-                .format(baseFollowers)
-                .toUpperCase(),
-              growth: `+${Math.max(0, 780 - index * 18)}`,
+              followers: '0',
+              growth: 'real',
               verified: knownProfile.isVerified,
               category,
             } satisfies ExploreCreatorCard
@@ -471,7 +451,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     </button>
                     <div className="text-right">
                       <div className="text-sm font-bold text-white">
-                        {getFollowerCount(creator.id, parseCompactFollowers(creator.followers)).toLocaleString('pt-BR')}
+                        {getFollowerCount(creator.id).toLocaleString('pt-BR')}
                       </div>
                       <div className="text-xs font-semibold text-emerald-400">{creator.growth}</div>
                     </div>
@@ -513,7 +493,9 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                         <div className="truncate text-sm font-semibold text-white">{creator.name}</div>
                         {creator.verified && <BadgeCheck className="h-4 w-4 flex-shrink-0 text-violet-400" />}
                       </div>
-                      <div className="truncate text-xs text-white/40">{creator.username} · {creator.followers} seguidores</div>
+                      <div className="truncate text-xs text-white/40">
+                        {creator.username} · {getFollowerCount(creator.id).toLocaleString('pt-BR')} seguidores
+                      </div>
                     </div>
                   </button>
                   <button
