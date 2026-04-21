@@ -60,6 +60,13 @@ export function PublicProfilePage({
 
       <div className="relative">
         <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,#120522_0%,#321151_42%,#050508_100%)]">
+          {profile.coverImage && (
+            <img
+              src={profile.coverImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
           <div className="absolute -right-8 top-8 h-32 w-32 rounded-full bg-fuchsia-400/15 blur-3xl" />
           <div className="absolute left-8 top-10 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl" />

@@ -17,6 +17,7 @@ type ExploreCreatorCard = {
   name: string
   username: string
   avatar: string
+  coverImage?: string
   followers: string
   growth: string
   verified: boolean
@@ -46,6 +47,7 @@ function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCrea
     name: profile.name,
     username: profile.username,
     avatar: profile.avatar,
+    coverImage: profile.coverImage,
     followers: new Intl.NumberFormat('pt-BR', {
       notation: 'compact',
       maximumFractionDigits: 1,
@@ -143,6 +145,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
               name: knownProfile.name,
               username: knownProfile.username,
               avatar: knownProfile.avatar,
+              coverImage: knownProfile.coverImage,
               followers: new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })
                 .format(baseFollowers)
                 .toUpperCase(),
@@ -151,7 +154,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
               category,
             } satisfies ExploreCreatorCard
           })
-          .filter((creator): creator is ExploreCreatorCard => Boolean(creator))
+          .filter(Boolean) as ExploreCreatorCard[]
 
         if (!cancelled) {
           setRankedCreators(nextCreators)
@@ -203,6 +206,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     name: profile.name,
                     username: profile.username,
                     avatar: profile.avatar,
+                    coverImage: profile.coverImage,
                     bio: profile.bio,
                     isVerified: profile.isVerified,
                     isCreator: profile.isCreator,
@@ -235,6 +239,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       name: creator.name,
       username: creator.username,
       avatar: creator.avatar,
+      coverImage: creator.coverImage,
       bio:
         creator.category === 'Comunidade'
           ? 'Perfil da comunidade OnlyDay.'
@@ -259,6 +264,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       name: creator.name,
       username: creator.username,
       avatar: creator.avatar,
+      coverImage: creator.coverImage,
       bio:
         creator.category === 'Comunidade'
           ? 'Perfil da comunidade OnlyDay.'

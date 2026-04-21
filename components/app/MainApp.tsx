@@ -12,6 +12,7 @@ import { PublicProfilePage } from '@/components/profile/PublicProfilePage'
 import { CreatePostModal } from '@/components/feed/CreatePostModal'
 import { useMessages } from '@/components/providers/MessageContext'
 import { usePosts } from '@/components/providers/PostContext'
+import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
 import type { PublicProfile } from '@/types/domain'
 
@@ -19,6 +20,7 @@ export function MainApp() {
   const { user } = useUser()
   const { posts } = usePosts()
   const { openConversationForProfile } = useMessages()
+  const { getKnownProfiles } = useSocial()
   const [activeTab, setActiveTab] = useState('feed')
   const [returnTab, setReturnTab] = useState('feed')
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -49,10 +51,19 @@ export function MainApp() {
       return
     }
 
-    setSelectedProfile(profile)
+    const knownProfile = getKnownProfiles().find(
+      (item) => item.id === profile.id || item.username === profile.username
+    )
+
+    setSelectedProfile({
+      ...profile,
+      ...knownProfile,
+      coverImage: profile.coverImage || knownProfile?.coverImage,
+      bio: profile.bio || knownProfile?.bio,
+    })
     setReturnTab(activeTab === 'public-profile' ? returnTab : activeTab)
     setActiveTab('public-profile')
-  }, [activeTab, returnTab, user?.id, user?.username])
+  }, [activeTab, getKnownProfiles, returnTab, user?.id, user?.username])
 
   const handleOpenTag = useCallback((tag: string) => {
     setSelectedProfile(null)
