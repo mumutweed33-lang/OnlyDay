@@ -110,6 +110,7 @@ function toAppUser(user: SupabaseUser, fallback?: Partial<AppUser>): AppUser {
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${getAvatarSeed(
       user.email || user.id
     )}&backgroundColor=7C3AED`
+  const isCreator = Boolean(merged.isCreator)
 
   const profile: AppUser = {
     id: user.id,
@@ -118,8 +119,8 @@ function toAppUser(user: SupabaseUser, fallback?: Partial<AppUser>): AppUser {
     username: derivedUsername,
     avatar: derivedAvatar,
     bio: merged.bio || defaultProfile.bio,
-    isCreator: Boolean(merged.isCreator),
-    isVerified: Boolean(user.email_confirmed_at || merged.isVerified),
+    isCreator,
+    isVerified: isCreator && Boolean(merged.isVerified),
     isPremium: Boolean(merged.isPremium),
     followers: Number(merged.followers ?? 0),
     following: Number(merged.following ?? 0),

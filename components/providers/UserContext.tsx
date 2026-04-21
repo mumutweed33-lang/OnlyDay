@@ -53,10 +53,12 @@ function normalizeCreatorState(
 ): Partial<User> {
   const nextPlan = updates.plan ?? baseUser?.plan ?? 'free'
   const explicitCreatorFlag = updates.isCreator ?? baseUser?.isCreator ?? false
+  const isCreator = nextPlan !== 'free' ? true : explicitCreatorFlag
 
   return {
     ...updates,
-    isCreator: nextPlan !== 'free' ? true : explicitCreatorFlag,
+    isCreator,
+    isVerified: isCreator ? updates.isVerified ?? baseUser?.isVerified ?? false : false,
   }
 }
 

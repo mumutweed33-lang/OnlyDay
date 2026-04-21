@@ -80,7 +80,7 @@ export function PublicProfilePage({
                 alt={profile.name}
                 className="h-24 w-24 rounded-[28px] border-4 border-dark object-cover shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
               />
-              {profile.isVerified && (
+              {profile.isCreator && profile.isVerified && (
                 <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-dark bg-violet-600 shadow-[0_0_20px_rgba(124,58,237,0.45)]">
                   <BadgeCheck className="h-4 w-4 text-white" />
                 </div>

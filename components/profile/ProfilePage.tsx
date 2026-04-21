@@ -42,6 +42,8 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const [draftCoverImage, setDraftCoverImage] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [saveProfileError, setSaveProfileError] = useState<string | null>(null)
+  const [upgradingCreator, setUpgradingCreator] = useState(false)
+  const [creatorUpgradeError, setCreatorUpgradeError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
@@ -126,6 +128,33 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
     await logout()
   }
 
+  const handleBecomeCreator = async () => {
+    setUpgradingCreator(true)
+    setCreatorUpgradeError(null)
+
+    try {
+      await updateUser({
+        isCreator: true,
+        isVerified: true,
+        isPremium: true,
+        plan: 'bronze',
+        bio:
+          user.bio && user.bio !== 'Criador de conteudo premium no OnlyDay'
+            ? user.bio
+            : 'Criador OnlyDay em construcao.',
+      })
+      onOpenDashboard?.()
+    } catch (error) {
+      setCreatorUpgradeError(
+        error instanceof Error
+          ? error.message
+          : 'Nao foi possivel ativar o modo criador agora.'
+      )
+    } finally {
+      setUpgradingCreator(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#050508] pb-28">
       <PostDetailModal
@@ -164,7 +193,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 alt={user.name}
                 className="h-24 w-24 rounded-[28px] border-4 border-dark object-cover shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
               />
-              {user.isVerified && (
+              {user.isCreator && user.isVerified && (
                 <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-dark bg-violet-600 shadow-[0_0_20px_rgba(124,58,237,0.45)]">
                   <BadgeCheck className="h-4 w-4 text-white" />
                 </div>
@@ -216,6 +245,32 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 Abrir meu dashboard
               </motion.button>
             )}
+
+            {!user.isCreator && (
+              <div className="mt-4 rounded-3xl border border-violet-500/20 bg-[linear-gradient(135deg,rgba(124,58,237,0.18),rgba(255,255,255,0.04))] p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
+                  <Crown className="h-4 w-4 text-violet-300" />
+                  Transformar em perfil criador
+                </div>
+                <p className="mb-3 text-xs leading-relaxed text-white/55">
+                  Ative ferramentas de criador, dashboard e vitrine premium. O selo de verificado aparece apenas para contas criadoras.
+                </p>
+                {creatorUpgradeError && (
+                  <div className="mb-3 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-100">
+                    {creatorUpgradeError}
+                  </div>
+                )}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleBecomeCreator}
+                  disabled={upgradingCreator}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_30px_rgba(124,58,237,0.28)] disabled:opacity-60"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {upgradingCreator ? 'Ativando modo criador...' : 'Virar criador agora'}
+                </motion.button>
+              </div>
+            )}
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-3">
@@ -251,7 +306,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               {user.plan === 'diamond' ? <Crown className="h-3 w-3" /> : <Star className="h-3 w-3" />}
               {user.plan === 'free' ? 'Plano Free' : user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
             </motion.button>
-            {user.isVerified && (
+            {user.isCreator && user.isVerified && (
               <div className="flex items-center gap-1.5 rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400">
                 <BadgeCheck className="h-3 w-3" />
                 Verificado

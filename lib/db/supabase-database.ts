@@ -154,6 +154,7 @@ function ensureArray<T>(value?: T[] | null) {
 
 function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | null {
   if (!profile) return null
+  const isCreator = Boolean(profile.is_creator ?? profile.isCreator)
   return {
     id: profile.id,
     name: profile.name || 'Usuario OnlyDay',
@@ -164,8 +165,8 @@ function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | nul
       profile.avatar_url ||
       'https://api.dicebear.com/7.x/avataaars/svg?seed=onlyday&backgroundColor=7C3AED',
     bio: profile.bio || 'Criador de conteudo premium no OnlyDay',
-    isCreator: Boolean(profile.is_creator ?? profile.isCreator),
-    isVerified: Boolean(profile.is_verified ?? profile.isVerified),
+    isCreator,
+    isVerified: isCreator && Boolean(profile.is_verified ?? profile.isVerified),
     isPremium: Boolean(profile.is_premium ?? profile.isPremium),
     followers: Number(profile.followers ?? 0),
     following: Number(profile.following ?? 0),

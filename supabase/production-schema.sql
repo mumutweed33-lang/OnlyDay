@@ -347,7 +347,7 @@ begin
     coalesce(nullif(metadata ->> 'avatar', ''), ''),
     coalesce(nullif(metadata ->> 'bio', ''), 'Novo no OnlyDay'),
     coalesce((metadata ->> 'isCreator')::boolean, false),
-    true,
+    coalesce((metadata ->> 'isCreator')::boolean, false),
     false,
     0,
     0,
@@ -367,7 +367,7 @@ begin
   )
   on conflict (id) do update set
     email = excluded.email,
-    is_verified = true,
+    is_verified = excluded.is_creator,
     updated_at = now();
 
   return new;
