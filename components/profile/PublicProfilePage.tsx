@@ -115,6 +115,14 @@ export function PublicProfilePage({
             <p className="text-sm leading-relaxed text-white/60">
               {profile.bio || 'Criador premium com conteúdo exclusivo, momentos e experiências desbloqueáveis.'}
             </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">
+                {profile.niche || 'Lifestyle'}
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                Comunidade real
+              </span>
+            </div>
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-3">

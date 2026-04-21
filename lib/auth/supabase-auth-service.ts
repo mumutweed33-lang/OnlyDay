@@ -119,6 +119,7 @@ function toAppUser(user: SupabaseUser, fallback?: Partial<AppUser>): AppUser {
     username: derivedUsername,
     avatar: derivedAvatar,
     bio: merged.bio || defaultProfile.bio,
+    niche: merged.niche,
     isCreator,
     isVerified: isCreator && Boolean(merged.isVerified),
     isPremium: Boolean(merged.isPremium),
@@ -156,6 +157,7 @@ function toUserMetadata(user: Partial<AppUser>) {
     username: normalizeUsername(user.username),
     avatar: isInlineImage(user.avatar) ? undefined : user.avatar,
     bio: user.bio,
+    niche: user.niche,
     isCreator: user.isCreator,
     isPremium: user.isPremium,
     followers: user.followers,
@@ -243,6 +245,7 @@ export class SupabaseAuthService implements AuthService {
               input.email
             )}&backgroundColor=7C3AED`,
           bio: input.bio || defaultProfile.bio,
+          niche: input.niche,
           isCreator: input.isCreator,
           isVerified: false,
           isPremium: false,

@@ -18,6 +18,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   const { creatorMomentos, openCreatorMomentos, addMomento } = useMomentos()
   const { user } = useUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [creating, setCreating] = useState(false)
   const [mediaPreview, setMediaPreview] = useState('')
@@ -253,7 +254,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="mb-4 flex aspect-[9/12] w-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045]"
+                  className="mb-3 flex aspect-[9/12] w-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045]"
                 >
                   {mediaPreview ? (
                     mediaType === 'video' ? (
@@ -273,10 +274,38 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                     </div>
                   )}
                 </button>
+                <div className="mb-4 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100"
+                  >
+                    Abrir camera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-semibold text-white/70"
+                  >
+                    Galeria
+                  </button>
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*,video/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    if (file) readMomentFile(file)
+                    event.target.value = ''
+                  }}
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  capture="environment"
                   className="hidden"
                   onChange={(event) => {
                     const file = event.target.files?.[0]

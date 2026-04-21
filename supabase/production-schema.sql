@@ -25,6 +25,7 @@ create table if not exists public.profiles (
   cover_image text,
   website text,
   location text,
+  niche text,
   updated_at timestamptz not null default now()
 );
 
@@ -122,6 +123,10 @@ alter table public.profiles add column if not exists followers_count integer not
 alter table public.profiles add column if not exists following_count integer not null default 0;
 alter table public.profiles add column if not exists posts_count integer not null default 0;
 alter table public.profiles add column if not exists mode text not null default 'member';
+alter table public.profiles add column if not exists cover_image text;
+alter table public.profiles add column if not exists website text;
+alter table public.profiles add column if not exists location text;
+alter table public.profiles add column if not exists niche text;
 alter table public.posts add column if not exists media_url text;
 
 alter table public.profiles enable row level security;
@@ -336,7 +341,7 @@ begin
     id, username, name, email, avatar, avatar_url, bio, is_creator, is_verified,
     is_premium, followers, followers_count, following, following_count, posts,
     posts_count, balance, plan, intimacy_score, mode, joined_at, cover_image,
-    website, location, updated_at
+    website, location, niche, updated_at
   )
   values (
     new.id,
@@ -363,6 +368,7 @@ begin
     nullif(metadata ->> 'coverImage', ''),
     nullif(metadata ->> 'website', ''),
     nullif(metadata ->> 'location', ''),
+    nullif(metadata ->> 'niche', ''),
     now()
   )
   on conflict (id) do update set

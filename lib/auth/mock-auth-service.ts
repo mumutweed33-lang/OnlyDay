@@ -65,6 +65,7 @@ export class MockAuthService implements AuthService {
       name: input.name || defaultUser.name,
       username: normalizeUsername(input.username),
       bio: input.bio || defaultUser.bio,
+      niche: input.niche,
       avatar:
         input.avatar ||
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}&backgroundColor=7C3AED`,

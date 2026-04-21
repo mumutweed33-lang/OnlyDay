@@ -24,6 +24,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const mediaInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const normalizedPrice = price.replace(',', '.').trim()
   const parsedPrice = normalizedPrice ? Number(normalizedPrice) : NaN
@@ -71,6 +72,10 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
 
   const handleImageUpload = () => {
     mediaInputRef.current?.click()
+  }
+
+  const handleCameraCapture = () => {
+    cameraInputRef.current?.click()
   }
 
   const handleSelectedImage = (file?: File) => {
@@ -136,6 +141,17 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
             event.target.value = ''
           }}
         />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(event) => {
+            handleSelectedImage(event.target.files?.[0])
+            event.target.value = ''
+          }}
+        />
         <div className="flex gap-3">
           <img
             src={user?.avatar}
@@ -157,8 +173,8 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
             />
 
             {mediaPreview && (
-              <div className="relative mt-3 overflow-hidden rounded-2xl">
-                <img src={mediaPreview} alt="" className="max-h-64 w-full object-cover" />
+              <div className="relative mt-3 aspect-square overflow-hidden rounded-[28px] border border-white/10 bg-black">
+                <img src={mediaPreview} alt="" className="h-full w-full object-cover" />
                 <button
                   onClick={() => setMediaPreview(null)}
                   className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-dark/80"
@@ -170,7 +186,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
 
             {mediaPreview && (
               <p className="mt-2 text-[11px] text-white/35">
-                Imagem original anexada sem reduzir qualidade no preview atual.
+                Preview em 1:1 para o feed. A imagem original fica preservada no envio atual.
               </p>
             )}
 
@@ -257,14 +273,16 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={handleImageUpload}
-            className="p-2 text-violet-400 transition-colors hover:text-violet-300"
+            className="rounded-xl p-2 text-violet-400 transition-colors hover:bg-violet-500/10 hover:text-violet-300"
+            aria-label="Escolher foto da galeria"
           >
             <Image className="h-6 w-6" />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={handleImageUpload}
-            className="p-2 text-violet-400 transition-colors hover:text-violet-300"
+            onClick={handleCameraCapture}
+            className="rounded-xl p-2 text-violet-400 transition-colors hover:bg-violet-500/10 hover:text-violet-300"
+            aria-label="Abrir camera para foto"
           >
             <Camera className="h-6 w-6" />
           </motion.button>

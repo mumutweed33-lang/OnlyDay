@@ -181,17 +181,11 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
             </button>
             <button
               className="min-w-0 flex-1 text-left"
-              aria-label={`Abrir contexto premium de ${conv.userName}`}
+              aria-label={`Abrir conversa com ${conv.userName}`}
               onClick={(event) => {
                 event.stopPropagation()
-                setPreviewProfile({
-                  id: conv.userId,
-                  name: conv.userName,
-                  username: conv.userUsername,
-                  avatar: conv.userAvatar,
-                  isVerified: conv.isVerified,
-                  isCreator: true,
-                })
+                setActiveConversation(conv)
+                void markAsRead(conv.id)
               }}
             >
               <div className="mb-0.5 flex items-center justify-between">
@@ -478,7 +472,7 @@ function ConversationView({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#050508] pb-24">
+    <div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col overflow-hidden bg-[#050508]">
       <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-3 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
           <button onClick={() => setActiveConversation(null)} aria-label="Voltar para a lista de conversas" className="rounded-xl border border-white/10 bg-white/6 p-2">
@@ -502,7 +496,7 @@ function ConversationView({
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
         <AnimatePresence>
           {actionFeedback && (
             <motion.div
@@ -715,7 +709,7 @@ function ConversationView({
         )}
       </AnimatePresence>
 
-      <div className="sticky bottom-0 border-t border-white/5 bg-[rgba(10,8,18,0.92)] px-4 py-3 backdrop-blur-2xl">
+      <div className="shrink-0 border-t border-white/5 bg-[rgba(10,8,18,0.92)] px-3 py-3 backdrop-blur-2xl">
         {showEmojis && (
           <div className="mb-3 flex flex-wrap gap-2">
             {EMOJIS.map((emoji) => (
@@ -732,7 +726,7 @@ function ConversationView({
             ))}
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => {
@@ -740,7 +734,7 @@ function ConversationView({
               setShowAttachment(false)
             }}
             aria-label={showAuction ? 'Fechar painel de leilão' : 'Abrir painel de leilão'}
-            className={'rounded-xl p-2.5 ' + (showAuction ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
+            className={'rounded-xl p-2 ' + (showAuction ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
           >
             <Gavel className="h-5 w-5" />
           </motion.button>
@@ -751,11 +745,11 @@ function ConversationView({
               setShowAuction(false)
             }}
             aria-label={showAttachment ? 'Fechar painel de conteúdo do chat' : 'Abrir painel de conteúdo do chat'}
-            className={'rounded-xl p-2.5 ' + (showAttachment ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
+            className={'rounded-xl p-2 ' + (showAttachment ? 'bg-violet-500/20 text-violet-300' : 'text-white/40')}
           >
             <ImagePlus className="h-5 w-5" />
           </motion.button>
-          <div className="flex flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-2.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-3 py-2.5">
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}

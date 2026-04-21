@@ -34,6 +34,7 @@ type ProfileRow = Partial<AppUser> & {
   is_premium?: boolean | null
   joined_at?: string | null
   cover_image?: string | null
+  niche?: string | null
   intimacy_score?: number | null
 }
 
@@ -177,6 +178,7 @@ function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | nul
     coverImage: profile.cover_image || profile.coverImage,
     website: profile.website,
     location: profile.location,
+    niche: profile.niche,
     intimacyScore: Number(profile.intimacy_score ?? profile.intimacyScore ?? 0),
     updatedAt: profile.updated_at ?? undefined,
   }
@@ -203,6 +205,7 @@ function toProfilePayload(user: Partial<DatabaseUserRecord>) {
     cover_image: user.coverImage,
     website: user.website,
     location: user.location,
+    niche: user.niche,
     intimacy_score: user.intimacyScore,
     updated_at: new Date().toISOString(),
   }

@@ -31,6 +31,7 @@ type OdExploreRankRow = {
 
 function inferCreatorCategory(profile?: PublicProfile) {
   if (profile && !profile.isCreator) return 'Comunidade'
+  if (profile?.niche) return profile.niche
 
   const bio = profile?.bio?.toLowerCase() ?? ''
 
@@ -188,6 +189,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     avatar: profile.avatar,
                     coverImage: profile.coverImage,
                     bio: profile.bio,
+                    niche: profile.niche,
                     isVerified: profile.isVerified,
                     isCreator: profile.isCreator,
                   },
@@ -224,6 +226,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         creator.category === 'Comunidade'
           ? 'Perfil da comunidade OnlyDay.'
           : `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
+      niche: creator.category,
       isVerified: creator.verified,
       isCreator: creator.category !== 'Comunidade',
     })
@@ -249,6 +252,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         creator.category === 'Comunidade'
           ? 'Perfil da comunidade OnlyDay.'
           : `Criador de ${creator.category.toLowerCase()} com conteúdos premium, momentos exclusivos e relacionamento de alta conversão.`,
+      niche: creator.category,
       isVerified: creator.verified,
       isCreator: creator.category !== 'Comunidade',
     })

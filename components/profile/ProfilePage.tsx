@@ -27,6 +27,8 @@ interface ProfilePageProps {
   onOpenTag?: (tag: string) => void
 }
 
+const NICHE_OPTIONS = ['Lifestyle', 'Arte', 'Musica', 'Fitness', 'Business', 'Comunidade']
+
 export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const { user, logout, updateUser } = useUser()
   const { posts } = usePosts()
@@ -38,6 +40,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   const [draftUsername, setDraftUsername] = useState('')
   const [draftBio, setDraftBio] = useState('')
   const [draftLocation, setDraftLocation] = useState('')
+  const [draftNiche, setDraftNiche] = useState('')
   const [draftAvatar, setDraftAvatar] = useState('')
   const [draftCoverImage, setDraftCoverImage] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
@@ -70,6 +73,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
     setDraftUsername(user.username ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
+    setDraftNiche(user.niche || 'Lifestyle')
     setDraftAvatar(user.avatar || '')
     setDraftCoverImage(user.coverImage || '')
     setSaveProfileError(null)
@@ -82,10 +86,11 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
     setDraftUsername(user.username ?? '')
     setDraftBio(user.bio ?? '')
     setDraftLocation(user.location || '')
+    setDraftNiche(user.niche || 'Lifestyle')
     setDraftAvatar(user.avatar || '')
     setDraftCoverImage(user.coverImage || '')
     setSaveProfileError(null)
-  }, [showEditModal, user.avatar, user.bio, user.coverImage, user.location, user.name, user.username])
+  }, [showEditModal, user.avatar, user.bio, user.coverImage, user.location, user.name, user.niche, user.username])
 
   const readImageFile = (file: File, onLoad: (value: string) => void) => {
     if (!file.type.startsWith('image/')) return
@@ -108,6 +113,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
         username: draftUsername,
         bio: draftBio.trim() || user.bio,
         location: draftLocation.trim() || undefined,
+        niche: draftNiche || user.niche,
         avatar: draftAvatar || user.avatar,
         coverImage: draftCoverImage || undefined,
       })
@@ -232,6 +238,9 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               </span>
               <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 Visitantes veem sua vitrine publica
+              </span>
+              <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">
+                {user.niche || 'Lifestyle'}
               </span>
             </div>
 
@@ -537,6 +546,26 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                     placeholder="Cidade ou região"
                       className="w-full appearance-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
                     />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs text-white/45">Nicho principal</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {NICHE_OPTIONS.map((niche) => (
+                      <button
+                        key={niche}
+                        type="button"
+                        onClick={() => setDraftNiche(niche)}
+                        className={
+                          'rounded-2xl border px-3 py-2.5 text-left text-xs font-semibold transition-all ' +
+                          (draftNiche === niche
+                            ? 'border-violet-400/50 bg-violet-500/18 text-white'
+                            : 'border-white/10 bg-white/[0.045] text-white/50')
+                        }
+                      >
+                        {niche}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">

@@ -63,10 +63,16 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!post.isLiked) {
-      notifyPostLiked(post)
-    }
+    const wasLiked = post.isLiked
     void likePost(post.id)
+      .then((updated) => {
+        if (!wasLiked && updated?.isLiked) {
+          notifyPostLiked(post)
+        }
+      })
+      .catch(() => {
+        pushFeedback('Nao foi possivel registrar a curtida agora. Tente de novo.')
+      })
   }
 
   const handleSave = (e: React.MouseEvent) => {

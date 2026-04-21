@@ -27,6 +27,7 @@ interface OnboardingFlowProps {
 type AuthMode = 'signUp' | 'signIn'
 
 const TOTAL_SIGNUP_STEPS = 4
+const NICHE_OPTIONS = ['Lifestyle', 'Arte', 'Musica', 'Fitness', 'Business', 'Comunidade']
 
 export function OnboardingFlow({
   onBack,
@@ -53,6 +54,7 @@ export function OnboardingFlow({
     isCreator: false,
     acceptedLegal: false,
     bio: '',
+    niche: 'Lifestyle',
     selfie: null as string | null,
     docFront: null as string | null,
     docBack: null as string | null,
@@ -172,6 +174,7 @@ export function OnboardingFlow({
           password: formData.password,
           avatar: formData.selfie || undefined,
           bio: formData.bio || 'Novo no OnlyDay',
+          niche: formData.niche,
           isCreator: formData.isCreator,
           isVerified: Boolean(formData.selfie),
           isPremium: false,
@@ -772,6 +775,30 @@ export function OnboardingFlow({
                   />
                 </div>
 
+                <div>
+                  <label className="mb-2 block text-sm text-white/60">Nicho principal</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {NICHE_OPTIONS.map((niche) => (
+                      <button
+                        key={niche}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, niche }))}
+                        className={
+                          'rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition-all ' +
+                          (formData.niche === niche
+                            ? 'border-violet-400/50 bg-violet-500/18 text-white shadow-[0_14px_30px_rgba(124,58,237,0.18)]'
+                            : 'border-white/10 bg-white/[0.045] text-white/55')
+                        }
+                      >
+                        {niche}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+                    Esse nicho ajuda o Explorar a posicionar criadores e interesses no lugar certo.
+                  </p>
+                </div>
+
                 <div className="rounded-2xl border border-violet-500/20 glass p-5">
                   <h4 className="mb-3 font-semibold text-white">Resumo da conta</h4>
                   <div className="space-y-2 text-sm">
@@ -798,6 +825,10 @@ export function OnboardingFlow({
                       <span className="text-white">
                         {formData.isCreator ? 'Criador' : 'Comunidade'}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/45">Nicho</span>
+                      <span className="text-white">{formData.niche}</span>
                     </div>
                   </div>
                 </div>

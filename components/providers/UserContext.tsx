@@ -142,6 +142,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             password,
             isCreator: nextUser.isCreator,
             bio: nextUser.bio,
+            niche: nextUser.niche,
             avatar: nextUser.avatar,
           })
 

@@ -22,6 +22,7 @@ export interface AppUser {
   coverImage?: string
   website?: string
   location?: string
+  niche?: string
   intimacyScore?: number
 }
 
@@ -39,6 +40,7 @@ export interface CreateAccountInput {
   password: string
   isCreator: boolean
   bio?: string
+  niche?: string
   avatar?: string | null
 }
 
@@ -171,6 +173,7 @@ export interface PublicProfile {
   avatar: string
   coverImage?: string
   bio?: string
+  niche?: string
   isVerified: boolean
   isCreator: boolean
 }

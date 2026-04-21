@@ -41,7 +41,7 @@ interface SocialContextType {
   notifyPostLiked: (post: FeedPost) => void
   markNotificationsRead: () => void
   isFollowing: (profileId: string) => boolean
-  toggleFollow: (profile: PublicProfile) => void
+  toggleFollow: (profile: PublicProfile) => Promise<void>
   getFollowerCount: (profileId: string, baseCount?: number) => number
   getFollowingCount: (baseCount?: number) => number
   getKnownProfiles: () => PublicProfile[]
@@ -198,6 +198,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
             avatar: profile.avatar,
             coverImage: profile.coverImage,
             bio: profile.bio,
+            niche: profile.niche,
             isVerified: profile.isVerified,
             isCreator: profile.isCreator,
           }))
@@ -256,6 +257,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         avatar: user.avatar,
         coverImage: user.coverImage,
         bio: user.bio,
+        niche: user.niche,
         isVerified: user.isVerified,
         isCreator: user.isCreator,
       })
@@ -290,6 +292,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         username: creator.userUsername,
         avatar: creator.userAvatar,
         bio: creator.userBio,
+        niche: undefined,
         isVerified: creator.isVerified,
         isCreator: creator.isCreator,
       })
@@ -468,7 +471,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   )
 
   const toggleFollow = useCallback(
-    (profile: PublicProfile) => {
+    async (profile: PublicProfile) => {
       if (!user?.id || profile.id === user.id) return
       const alreadyFollowing = followedIds.includes(profile.id)
       const next = alreadyFollowing
@@ -503,19 +506,18 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
               { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
             )
 
-      void persistFollow.then(({ error }) => {
-        if (!error) {
-          void loadFollowGraph()
-          return
-        }
-
+      const { error } = await persistFollow
+      if (error) {
         console.error('[social] failed to persist follow state', error)
         setFollowedIds(followedIds)
         setFollowerCounts((current) => ({
           ...current,
           [profile.id]: Math.max(0, (current[profile.id] ?? 0) + (alreadyFollowing ? 1 : -1)),
         }))
-      })
+        return
+      }
+
+      await loadFollowGraph()
 
       if (!alreadyFollowing) {
         void pushNotification({
@@ -535,7 +537,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
           : `Você está acompanhando as novidades de ${normalizeDisplayName(profile.name)}.`,
       })
     },
-    [followedIds, loadFollowGraph, pushNotification, user?.id]
+    [followedIds, loadFollowGraph, pushNotification, user?.id, user?.name, user?.username]
   )
 
   const getFollowerCount = useCallback(

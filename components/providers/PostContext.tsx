@@ -10,7 +10,7 @@ export type Post = FeedPost
 interface PostContextType {
   posts: Post[]
   addPost: (post: NewFeedPost) => Promise<void>
-  likePost: (postId: string) => Promise<void>
+  likePost: (postId: string) => Promise<Post | null>
   savePost: (postId: string) => Promise<void>
   deletePost: (postId: string) => Promise<void>
 }
@@ -66,13 +66,33 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
 
   const likePost = useCallback(
     async (postId: string) => {
-      if (!user?.id) return
+      if (!user?.id) return null
+
+      let previousPost: Post | null = null
+      let optimisticPost: Post | null = null
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id !== postId) return post
+          previousPost = post
+          const isLiked = !post.isLiked
+          optimisticPost = {
+            ...post,
+            isLiked,
+            likes: Math.max(0, post.likes + (isLiked ? 1 : -1)),
+          }
+          return optimisticPost
+        })
+      )
 
       try {
         const updated = await getDatabaseProvider().posts.toggleLike(postId, user.id)
-        if (!updated) return
+        if (!updated) return optimisticPost
         setPosts((prev) => prev.map((post) => (post.id === postId ? updated : post)))
+        return updated
       } catch (error) {
+        if (previousPost) {
+          setPosts((prev) => prev.map((post) => (post.id === postId ? previousPost! : post)))
+        }
         console.error('[posts] failed to toggle like', error)
         throw error
       }
