@@ -165,8 +165,8 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
   return (
     <motion.div
-      className="border-b border-white/5 px-4 py-4"
-      whileHover={{ backgroundColor: 'rgba(124, 58, 237, 0.02)' }}
+      className="mx-3 mb-4 rounded-[28px] border border-white/8 bg-white/[0.035] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.18)]"
+      whileHover={{ borderColor: 'rgba(168, 85, 247, 0.18)' }}
     >
       <AnimatePresence>
         {actionFeedback && (
@@ -182,17 +182,17 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <button className="relative" onClick={openProfile} aria-label={`Abrir perfil de ${post.userName}`}>
             <img
               src={post.userAvatar}
               alt={post.userName}
-              className="w-10 h-10 rounded-full border-2 border-violet-500/40"
+              className="h-10 w-10 rounded-2xl border border-violet-500/35 object-cover"
             />
             {post.isVerified && (
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-violet-600 rounded-full flex items-center justify-center">
-                <BadgeCheck className="w-3 h-3 text-white" />
+                <BadgeCheck className="h-3 w-3 text-white" />
               </div>
             )}
           </button>
@@ -297,7 +297,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
           }
         }}
       >
-        <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/88">
           {post.content.split(/#(\w+)/g).map((part, i) =>
             i % 2 === 1 ? (
               <button
@@ -319,7 +319,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
       {/* Media */}
       {post.media && post.media.length > 0 && (
         <div
-          className="mb-3 block w-full cursor-pointer overflow-hidden rounded-2xl relative text-left"
+          className="relative mb-3 block w-full cursor-pointer overflow-hidden rounded-[24px] text-left ring-1 ring-white/8"
           onClick={() => onOpenPost?.(post)}
           role="button"
           tabIndex={0}
@@ -335,7 +335,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
               <img
                 src={post.media[0].url}
                 alt=""
-                className="w-full max-h-64 object-cover filter blur-xl scale-105"
+                className="max-h-64 w-full scale-105 object-cover blur-xl filter"
               />
               <div className="absolute inset-0 bg-dark/60 flex flex-col items-center justify-center gap-3">
                 <div className="w-14 h-14 rounded-full glass border border-violet-500/30 flex items-center justify-center">
@@ -376,7 +376,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
               <img
                 src={post.media[0].url}
                 alt=""
-                className="w-full max-h-80 object-cover"
+                className="max-h-80 w-full object-cover"
               />
             </motion.div>
           )}

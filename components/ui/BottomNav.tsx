@@ -24,32 +24,32 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 safe-bottom px-3 pb-3">
-      <div className="mx-auto max-w-lg rounded-[28px] border border-white/10 bg-[rgba(12,8,24,0.82)] px-2 py-2 shadow-[0_20px_80px_rgba(0,0,0,0.4)] backdrop-blur-3xl">
+    <div className="fixed bottom-0 left-0 right-0 z-40 px-3 pb-3">
+      <div className="mx-auto max-w-[430px] rounded-[26px] border border-white/10 bg-[rgba(3,3,6,0.92)] px-2 py-2 shadow-[0_-18px_70px_rgba(0,0,0,0.46)] backdrop-blur-3xl">
         <div className="flex items-center justify-around">
           {tabs.map((tab) => (
             <motion.button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               whileTap={{ scale: 0.86 }}
-              className="relative flex min-w-[60px] flex-col items-center gap-1 px-3 py-2"
+              className="relative flex min-w-[58px] flex-col items-center gap-1 px-2 py-1.5"
             >
               {tab.special ? (
                 <motion.div
                   whileHover={{ scale: 1.08, y: -2 }}
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] shadow-[0_18px_40px_rgba(124,58,237,0.35)]"
+                  className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-violet-600 shadow-[0_16px_36px_rgba(124,58,237,0.35)]"
                 >
-                  <tab.icon className="h-6 w-6 text-white" />
+                  <tab.icon className="h-5 w-5 text-white" />
                 </motion.div>
               ) : (
                 <>
                   <div
-                    className={`relative flex h-10 w-10 items-center justify-center rounded-2xl transition-all ${
-                      activeTab === tab.id ? 'bg-white/10 ring-1 ring-violet-300/20' : 'bg-transparent'
+                    className={`relative flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
+                      activeTab === tab.id ? 'bg-violet-500/12 ring-1 ring-violet-300/18' : 'bg-transparent'
                     }`}
                   >
                     <tab.icon
-                      className={`h-6 w-6 transition-all ${
+                      className={`h-5 w-5 transition-all ${
                         activeTab === tab.id ? 'text-violet-300' : 'text-white/40'
                       }`}
                       strokeWidth={activeTab === tab.id ? 2.5 : 1.6}

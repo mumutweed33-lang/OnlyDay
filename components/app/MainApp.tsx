@@ -93,9 +93,10 @@ export function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-dark max-w-lg mx-auto relative">
-      {/* Main content */}
-      <div className="pb-20">
+    <div className="min-h-screen bg-[#020204] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_100%_20%,rgba(168,85,247,0.08),transparent_26%)]" />
+      <div className="relative mx-auto min-h-screen max-w-[430px] overflow-hidden border-x border-white/6 bg-[#050508] shadow-[0_0_80px_rgba(0,0,0,0.5)]">
+      <div className="pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -109,15 +110,14 @@ export function MainApp() {
         </AnimatePresence>
       </div>
 
-      {/* Bottom navigation */}
       <BottomNav activeTab={activeTab} setActiveTab={handleSetTab} />
 
-      {/* Create Post Modal */}
       <AnimatePresence>
         {showCreateModal && (
           <CreatePostModal onClose={() => setShowCreateModal(false)} />
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

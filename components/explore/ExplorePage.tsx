@@ -322,12 +322,12 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
   })
 
   return (
-    <div className="min-h-screen bg-dark pb-28">
-      <div className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(6,4,12,0.84)] px-4 py-4 backdrop-blur-2xl">
+    <div className="min-h-screen bg-[#050508] pb-28">
+      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-4 backdrop-blur-2xl">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-black text-white">Explorar</h1>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">descoberta premium</p>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">encontre pessoas reais</p>
           </div>
           <button
             type="button"
@@ -348,7 +348,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Buscar criadores, tópicos e movimentos..."
-            className="w-full rounded-2xl border border-white/10 bg-white/6 py-3 pl-11 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-violet-500/40"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.045] py-3 pl-11 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-violet-500/40"
           />
           {searching && (
             <div className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-500" />
@@ -491,7 +491,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         {searchQuery && (
           <div className="space-y-5">
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-white/60">Usuários</h3>
+              <h3 className="mb-3 text-sm font-semibold text-white/60">Usuarios</h3>
               {matchingCreators.map((creator) => (
                 <div
                   key={creator.id}

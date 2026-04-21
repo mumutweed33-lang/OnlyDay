@@ -127,7 +127,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-dark pb-28">
+    <div className="min-h-screen bg-[#050508] pb-28">
       <PostDetailModal
         post={selectedPost}
         viewerId={user.id}
@@ -135,7 +135,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
         onOpenTag={onOpenTag}
       />
       <div className="relative">
-        <div className="relative h-40 overflow-hidden bg-[linear-gradient(135deg,#1a0938_0%,#34125f_38%,#18122f_100%)]">
+        <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,#120522_0%,#34125f_42%,#050508_100%)]">
           {user.coverImage && (
             <img
               src={user.coverImage}
@@ -199,10 +199,10 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
             <p className="text-sm leading-relaxed text-white/60">{user.bio}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
-                Perfil privado do dono da conta
+                Perfil da sua conta
               </span>
               <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
-                Outros usuários veem somente seu perfil público
+                Visitantes veem sua vitrine publica
               </span>
             </div>
 

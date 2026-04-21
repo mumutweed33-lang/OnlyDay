@@ -35,14 +35,14 @@ export function PublicProfilePage({
   )
 
   return (
-    <div className="min-h-screen bg-dark pb-28">
+    <div className="min-h-screen bg-[#050508] pb-28">
       <PostDetailModal
         post={selectedPost}
         viewerId={viewerId}
         onClose={() => setSelectedPost(null)}
         onOpenTag={onOpenTag}
       />
-      <div className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(6,4,12,0.84)] px-4 py-3 backdrop-blur-2xl">
+      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-3 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -59,7 +59,7 @@ export function PublicProfilePage({
       </div>
 
       <div className="relative">
-        <div className="relative h-40 overflow-hidden bg-[linear-gradient(135deg,#14072d_0%,#321151_35%,#1a1233_100%)]">
+        <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,#120522_0%,#321151_42%,#050508_100%)]">
           <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
           <div className="absolute -right-8 top-8 h-32 w-32 rounded-full bg-fuchsia-400/15 blur-3xl" />
           <div className="absolute left-8 top-10 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl" />
@@ -99,7 +99,7 @@ export function PublicProfilePage({
             </div>
           </div>
 
-          <div className="mb-4 rounded-[28px] border border-white/8 bg-white/[0.04] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.2)]">
+          <div className="mb-4 rounded-[28px] border border-white/8 bg-white/[0.035] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
             <div className="mb-1 flex items-center gap-2">
               <h2 className="text-xl font-black text-white">{profile.name}</h2>
               {profile.isCreator && <Crown className="h-5 w-5 text-violet-400" />}

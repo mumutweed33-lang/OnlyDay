@@ -54,12 +54,12 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-dark pb-28">
-      <div className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(6,4,12,0.84)] px-4 py-4 backdrop-blur-2xl">
+    <div className="min-h-screen bg-[#050508] pb-28">
+      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-4 backdrop-blur-2xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-black text-white">Chat VIP</h1>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">relacionamento premium</p>
+            <h1 className="text-xl font-black text-white">Mensagens</h1>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">conversas e conexoes</p>
           </div>
           <button
             type="button"
@@ -159,7 +159,7 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
               setActiveConversation(conv)
               void markAsRead(conv.id)
             }}
-            className="flex cursor-pointer items-center gap-3 rounded-[24px] border border-white/8 bg-white/[0.045] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+            className="flex cursor-pointer items-center gap-3 rounded-[24px] border border-white/8 bg-white/[0.035] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.16)]"
           >
             <button
               className="relative flex-shrink-0"
@@ -478,8 +478,8 @@ function ConversationView({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-dark pb-24">
-      <div className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(6,4,12,0.84)] px-4 py-3 backdrop-blur-2xl">
+    <div className="flex min-h-screen flex-col bg-[#050508] pb-24">
+      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-3 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
           <button onClick={() => setActiveConversation(null)} aria-label="Voltar para a lista de conversas" className="rounded-xl border border-white/10 bg-white/6 p-2">
             <ArrowLeft className="h-5 w-5 text-white" />

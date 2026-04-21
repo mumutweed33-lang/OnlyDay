@@ -53,7 +53,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowCreateModal(true)}
             aria-label="Criar seu momento"
-            className="w-16 h-16 rounded-2xl glass border-2 border-dashed border-violet-500/40 flex items-center justify-center hover:border-violet-500/70 transition-colors"
+            className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-dashed border-violet-500/35 bg-white/[0.035] transition-colors hover:border-violet-500/70"
           >
             <Plus className="w-6 h-6 text-violet-400" />
           </motion.button>
@@ -77,12 +77,12 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
               className="relative"
             >
               {/* Ring gradient */}
-              <div className={`w-16 h-16 rounded-2xl p-[2px] ${
+              <div className={`h-16 w-16 rounded-[22px] p-[2px] ${
                 creator.hasViewed 
                   ? 'bg-white/10' 
                   : 'bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500'
               }`}>
-                <div className="w-full h-full rounded-[14px] overflow-hidden bg-dark-200">
+                <div className="h-full w-full overflow-hidden rounded-[19px] bg-dark-200">
                   <img
                     src={creator.userAvatar}
                     alt={creator.userName}
