@@ -788,6 +788,14 @@ export class SupabaseNotificationRepository implements NotificationRepository {
       conversation_id: notification.conversationId ?? null,
       read: false,
     }
+
+    const canReadInsertedNotification = !notification.actorId || notification.actorId === notification.recipientId
+    if (!canReadInsertedNotification) {
+      const { error } = await supabase.from('notifications').insert(payload)
+      if (error) throw new Error(error.message)
+      return null
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .insert(payload)
