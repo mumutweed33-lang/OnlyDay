@@ -132,6 +132,9 @@ const conversationSelect = [
   'user_b_profile:profiles!conversations_user_b_fkey(*)',
 ].join(', ')
 
+const postSelect = '*, profiles:profiles!posts_user_id_fkey(*)'
+const momentoSelect = '*, profiles:profiles!momentos_user_id_fkey(*)'
+
 function ensureArray<T>(value?: T[] | null) {
   return value ?? []
 }
@@ -350,7 +353,7 @@ export class SupabasePostRepository implements PostRepository {
 
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles:profiles(*)')
+      .select(postSelect)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
 
@@ -391,7 +394,7 @@ export class SupabasePostRepository implements PostRepository {
     const { data, error } = await supabase
       .from('posts')
       .insert(payload)
-      .select('*, profiles:profiles(*)')
+      .select(postSelect)
       .single()
     if (error) throw new Error(error.message)
     return mapPost(data as PostRow, post.userId)
@@ -410,7 +413,7 @@ export class SupabasePostRepository implements PostRepository {
       .from('posts')
       .update({ liked_by: nextLikedBy, likes_count: nextLikedBy.length })
       .eq('id', postId)
-      .select('*, profiles:profiles(*)')
+      .select(postSelect)
       .single()
     if (updateError) throw new Error(updateError.message)
     return mapPost(updated as PostRow, userId)
@@ -429,7 +432,7 @@ export class SupabasePostRepository implements PostRepository {
       .from('posts')
       .update({ saved_by: nextSavedBy })
       .eq('id', postId)
-      .select('*, profiles:profiles(*)')
+      .select(postSelect)
       .single()
     if (updateError) throw new Error(updateError.message)
     return mapPost(updated as PostRow, userId)
@@ -692,7 +695,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
     const supabase = getSupabaseBrowserClient()
     const { data, error } = await supabase
       .from('momentos')
-      .select('*, profiles:profiles(*)')
+      .select(momentoSelect)
       .gte('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
@@ -715,7 +718,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
     const { data, error } = await supabase
       .from('momentos')
       .insert(payload)
-      .select('*, profiles:profiles(*)')
+      .select(momentoSelect)
       .single()
     if (error) throw new Error(error.message)
     return mapMomento(data as MomentoRow)
@@ -725,7 +728,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
     const supabase = getSupabaseBrowserClient()
     const { data, error } = await supabase
       .from('momentos')
-      .select('view_count, *, profiles:profiles(*)')
+      .select(`view_count, ${momentoSelect}`)
       .eq('id', momentoId)
       .single()
     if (error) throw new Error(error.message)
@@ -734,7 +737,7 @@ export class SupabaseMomentoRepository implements MomentoRepository {
       .from('momentos')
       .update({ view_count: (row.view_count ?? 0) + 1 })
       .eq('id', momentoId)
-      .select('*, profiles:profiles(*)')
+      .select(momentoSelect)
       .single()
     if (updateError) throw new Error(updateError.message)
     return mapMomento(updated as MomentoRow, { hasViewed: true })
