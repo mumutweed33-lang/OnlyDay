@@ -224,23 +224,26 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       ...(normalizedUsername ? { username: normalizedUsername } : {}),
     })
     const updated = await getAuthService().updateProfile(normalizedUpdates)
-    if (updated) {
-      setUser(updated)
-      try {
-        await getDatabaseProvider().users.create(updated)
-      } catch (error) {
-        console.error('Error syncing updated profile:', error)
+    const nextUser = {
+      ...user,
+      ...normalizedUpdates,
+      ...(updated ?? {}),
+    }
+
+    try {
+      const persisted = await getDatabaseProvider().users.update(user.id, nextUser)
+      if (persisted) {
+        setUser(persisted)
+        return
       }
-    } else {
-      setUser((prev) => {
-        const next = prev ? { ...prev, ...normalizeCreatorState(prev, updates) } : prev
-        if (next) {
-          void getDatabaseProvider()
-            .users.create(next)
-            .catch((error) => console.error('Error syncing optimistic profile update:', error))
-        }
-        return next
-      })
+
+      const created = await getDatabaseProvider().users.create(nextUser)
+      setUser(created)
+    } catch (error) {
+      console.error('Error persisting updated profile:', error)
+      throw error instanceof Error
+        ? error
+        : new Error('Nao foi possivel salvar seu perfil agora.')
     }
   }, [user])
 

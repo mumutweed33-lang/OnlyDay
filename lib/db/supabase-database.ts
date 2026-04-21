@@ -27,6 +27,7 @@ import type {
 type ProfileRow = Partial<AppUser> & {
   id: string
   email?: string | null
+  avatar_url?: string | null
   updated_at?: string | null
   is_creator?: boolean | null
   is_verified?: boolean | null
@@ -148,6 +149,7 @@ function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | nul
     email: profile.email ?? undefined,
     avatar:
       profile.avatar ||
+      profile.avatar_url ||
       'https://api.dicebear.com/7.x/avataaars/svg?seed=onlyday&backgroundColor=7C3AED',
     bio: profile.bio || 'Criador de conteudo premium no OnlyDay',
     isCreator: Boolean(profile.is_creator ?? profile.isCreator),
@@ -168,12 +170,13 @@ function normalizeProfile(profile?: ProfileRow | null): DatabaseUserRecord | nul
 }
 
 function toProfilePayload(user: Partial<DatabaseUserRecord>) {
-  return {
+  const payload = {
     id: user.id,
     name: user.name,
     username: user.username,
     email: user.email,
     avatar: user.avatar,
+    avatar_url: user.avatar,
     bio: user.bio,
     is_creator: user.isCreator,
     is_verified: user.isVerified,
@@ -190,6 +193,10 @@ function toProfilePayload(user: Partial<DatabaseUserRecord>) {
     intimacy_score: user.intimacyScore,
     updated_at: new Date().toISOString(),
   }
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  )
 }
 
 function mapPost(row: PostRow, viewerId?: string): FeedPost {
@@ -311,20 +318,38 @@ export class SupabaseUserRepository implements UserRepository {
   async create(user: DatabaseUserRecord) {
     const supabase = getSupabaseBrowserClient()
     const payload = toProfilePayload(user)
-    const { data, error } = await supabase.from('profiles').upsert(payload).select('*').single()
-    if (error) throw new Error(error.message)
+
+    const { data: updated, error: updateError } = await supabase
+      .from('profiles')
+      .update(payload)
+      .eq('id', user.id)
+      .select('*')
+      .maybeSingle()
+
+    if (!updateError && updated) {
+      return normalizeProfile(updated as ProfileRow)!
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single()
+    if (error) throw new Error(updateError?.message || error.message)
     return normalizeProfile(data as ProfileRow)!
   }
 
   async update(id: string, updates: Partial<DatabaseUserRecord>) {
     const supabase = getSupabaseBrowserClient()
+    const payload = toProfilePayload({ ...updates, id })
     const { data, error } = await supabase
       .from('profiles')
-      .update(toProfilePayload(updates))
+      .update(payload)
       .eq('id', id)
       .select('*')
-      .single()
+      .maybeSingle()
     if (error) throw new Error(error.message)
+    if (!data) return null
     return normalizeProfile(data as ProfileRow)
   }
 }

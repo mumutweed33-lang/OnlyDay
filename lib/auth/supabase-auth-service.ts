@@ -48,6 +48,10 @@ function getAvatarSeed(value: string) {
   return value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24) || 'onlyday'
 }
 
+function isInlineImage(value?: string) {
+  return Boolean(value?.startsWith('data:image/'))
+}
+
 function readProfileCache(): StoredProfiles {
   if (!canUseStorage()) return {}
 
@@ -149,7 +153,7 @@ function toUserMetadata(user: Partial<AppUser>) {
   return {
     name: user.name,
     username: normalizeUsername(user.username),
-    avatar: user.avatar,
+    avatar: isInlineImage(user.avatar) ? undefined : user.avatar,
     bio: user.bio,
     isCreator: user.isCreator,
     isPremium: user.isPremium,
@@ -158,7 +162,7 @@ function toUserMetadata(user: Partial<AppUser>) {
     posts: user.posts,
     balance: user.balance,
     plan: user.plan,
-    coverImage: user.coverImage,
+    coverImage: isInlineImage(user.coverImage) ? undefined : user.coverImage,
     website: user.website,
     location: user.location,
     intimacyScore: user.intimacyScore,
