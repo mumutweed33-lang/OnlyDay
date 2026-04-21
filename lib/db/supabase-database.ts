@@ -126,6 +126,18 @@ type ConversationParticipantRow = {
   user_b: string
 }
 
+async function fetchPostById(postId: string, viewerId?: string) {
+  const supabase = getSupabaseBrowserClient()
+  const { data, error } = await supabase
+    .from('posts')
+    .select(postSelect)
+    .eq('id', postId)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return mapPost(data as PostRow, viewerId)
+}
+
 const conversationSelect = [
   '*',
   'creator_profile:profiles!conversations_creator_profile_id_fkey(*)',
@@ -427,40 +439,16 @@ export class SupabasePostRepository implements PostRepository {
 
   async toggleLike(postId: string, userId: string) {
     const supabase = getSupabaseBrowserClient()
-    const { data, error } = await supabase.from('posts').select('*').eq('id', postId).single()
+    const { error } = await supabase.rpc('toggle_post_like', { target_post_id: postId })
     if (error) throw new Error(error.message)
-    const row = data as PostRow
-    const likedBy = ensureArray(row.liked_by)
-    const nextLikedBy = likedBy.includes(userId)
-      ? likedBy.filter((id) => id !== userId)
-      : [...likedBy, userId]
-    const { data: updated, error: updateError } = await supabase
-      .from('posts')
-      .update({ liked_by: nextLikedBy, likes_count: nextLikedBy.length })
-      .eq('id', postId)
-      .select(postSelect)
-      .single()
-    if (updateError) throw new Error(updateError.message)
-    return mapPost(updated as PostRow, userId)
+    return fetchPostById(postId, userId)
   }
 
   async toggleSave(postId: string, userId: string) {
     const supabase = getSupabaseBrowserClient()
-    const { data, error } = await supabase.from('posts').select('*').eq('id', postId).single()
+    const { error } = await supabase.rpc('toggle_post_save', { target_post_id: postId })
     if (error) throw new Error(error.message)
-    const row = data as PostRow
-    const savedBy = ensureArray(row.saved_by)
-    const nextSavedBy = savedBy.includes(userId)
-      ? savedBy.filter((id) => id !== userId)
-      : [...savedBy, userId]
-    const { data: updated, error: updateError } = await supabase
-      .from('posts')
-      .update({ saved_by: nextSavedBy })
-      .eq('id', postId)
-      .select(postSelect)
-      .single()
-    if (updateError) throw new Error(updateError.message)
-    return mapPost(updated as PostRow, userId)
+    return fetchPostById(postId, userId)
   }
 
   async delete(postId: string) {
