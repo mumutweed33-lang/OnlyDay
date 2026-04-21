@@ -98,19 +98,29 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
     setCreatorAccess(readAccessState())
   }, [])
 
-  useEffect(() => {
-    async function loadMomentos() {
-      try {
-        const nextMomentos = await getDatabaseProvider().momentos.listActive()
-        setMomentos(nextMomentos)
-      } catch (error) {
-        console.error('[momentos] failed to load momentos', error)
-        setMomentos([])
-      }
+  const loadMomentos = useCallback(async () => {
+    try {
+      const nextMomentos = await getDatabaseProvider().momentos.listActive()
+      setMomentos(nextMomentos)
+    } catch (error) {
+      console.error('[momentos] failed to load momentos', error)
+      setMomentos([])
     }
-
-    void loadMomentos()
   }, [])
+
+  useEffect(() => {
+    void loadMomentos()
+
+    const refreshInterval = window.setInterval(() => {
+      void loadMomentos()
+    }, 20000)
+    window.addEventListener('focus', loadMomentos)
+
+    return () => {
+      window.clearInterval(refreshInterval)
+      window.removeEventListener('focus', loadMomentos)
+    }
+  }, [loadMomentos])
 
   useEffect(() => {
     let cancelled = false
@@ -252,22 +262,29 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
   )
 
   const getRemainingFreeViews = useCallback(
-    (creatorId: string) =>
-      Math.max(
+    (creatorId: string) => {
+      const creatorFreeLimit =
+        momentos.find((momento) => momento.userId === creatorId)?.dailyFreeCount ??
+        DEFAULT_FREE_VIEWS
+
+      return Math.max(
         0,
-        DEFAULT_FREE_VIEWS - (creatorAccess[creatorId]?.freeViewsUsed ?? 0)
-      ),
-    [creatorAccess]
+        creatorFreeLimit - (creatorAccess[creatorId]?.freeViewsUsed ?? 0)
+      )
+    },
+    [creatorAccess, momentos]
   )
 
   const canViewMomento = useCallback(
     (momento: Momento, indexWithinCreator = 0) => {
+      if (user?.id === momento.userId) return true
       if (!momento.isLocked) return true
       if (isCreatorUnlocked(momento.userId)) return true
+      const freeLimit = momento.dailyFreeCount ?? DEFAULT_FREE_VIEWS
       const freeViewsUsed = creatorAccess[momento.userId]?.freeViewsUsed ?? 0
-      return indexWithinCreator < DEFAULT_FREE_VIEWS && freeViewsUsed < DEFAULT_FREE_VIEWS
+      return indexWithinCreator < freeLimit && freeViewsUsed < freeLimit
     },
-    [creatorAccess, isCreatorUnlocked]
+    [creatorAccess, isCreatorUnlocked, user?.id]
   )
 
   const updateCreatorAccess = useCallback(
@@ -355,19 +372,21 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
 
       const creatorSequence = creatorMomentos.find((item) => item.userId === momento.userId)?.momentos ?? []
       const indexWithinCreator = creatorSequence.findIndex((item) => item.id === momentoId)
-      const isFreeMoment = indexWithinCreator > -1 && indexWithinCreator < DEFAULT_FREE_VIEWS
+      const freeLimit = momento.dailyFreeCount ?? DEFAULT_FREE_VIEWS
+      const isOwnMoment = user?.id === momento.userId
+      const isFreeMoment = indexWithinCreator > -1 && indexWithinCreator < freeLimit
       const access = creatorAccess[momento.userId] ?? { freeViewsUsed: 0 }
 
-      if (momento.isLocked && !isCreatorUnlocked(momento.userId) && indexWithinCreator >= DEFAULT_FREE_VIEWS) {
+      if (!isOwnMoment && momento.isLocked && !isCreatorUnlocked(momento.userId) && indexWithinCreator >= freeLimit) {
         return
       }
 
       markingAsViewedRef.current.add(momentoId)
 
-      if (isFreeMoment && !momento.hasViewed && access.freeViewsUsed < DEFAULT_FREE_VIEWS) {
+      if (!isOwnMoment && isFreeMoment && !momento.hasViewed && access.freeViewsUsed < freeLimit) {
         updateCreatorAccess(momento.userId, (current) => ({
           ...current,
-          freeViewsUsed: Math.min(DEFAULT_FREE_VIEWS, current.freeViewsUsed + 1),
+          freeViewsUsed: Math.min(freeLimit, current.freeViewsUsed + 1),
         }))
       }
 
@@ -390,7 +409,7 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
         markingAsViewedRef.current.delete(momentoId)
       }
     },
-    [creatorAccess, creatorMomentos, isCreatorUnlocked, momentos, updateCreatorAccess]
+    [creatorAccess, creatorMomentos, isCreatorUnlocked, momentos, updateCreatorAccess, user?.id]
   )
 
   const unlockCreatorMomentos = useCallback(
@@ -407,12 +426,13 @@ export function MomentoProvider({ children }: { children: React.ReactNode }) {
     try {
       const created = await getDatabaseProvider().momentos.create(momentoData)
       setMomentos((prev) => [created, ...prev])
+      void loadMomentos()
       return
     } catch (error) {
       console.error('[momentos] failed to create momento', error)
       throw error
     }
-  }, [])
+  }, [loadMomentos])
 
   return (
     <MomentoContext.Provider

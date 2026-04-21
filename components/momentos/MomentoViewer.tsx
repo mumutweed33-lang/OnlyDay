@@ -263,12 +263,24 @@ export function MomentoViewer({ onOpenProfile }: MomentoViewerProps) {
       <button aria-label="Ver próximo momento" className="absolute bottom-0 right-0 top-0 z-10 w-1/3" onClick={(event) => { event.stopPropagation(); nextMomento() }} />
 
       <div className="absolute inset-0">
-        <img
-          src={activeMomento.media}
-          alt=""
-          className="h-full w-full object-cover"
-          style={{ filter: !canViewActiveMomento ? 'blur(28px)' : 'none' }}
-        />
+        {activeMomento.mediaType === 'video' ? (
+          <video
+            src={activeMomento.media}
+            className="h-full w-full object-cover"
+            style={{ filter: !canViewActiveMomento ? 'blur(28px)' : 'none' }}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <img
+            src={activeMomento.media}
+            alt=""
+            className="h-full w-full object-cover"
+            style={{ filter: !canViewActiveMomento ? 'blur(28px)' : 'none' }}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
       </div>
 
@@ -278,7 +290,7 @@ export function MomentoViewer({ onOpenProfile }: MomentoViewerProps) {
         <div className="flex items-center gap-3">
           <button className="relative text-left" aria-label={`Abrir perfil de ${activeMomento.userName}`} onClick={openProfile}>
             <img src={activeMomento.userAvatar} alt={activeMomento.userName} className="h-10 w-10 rounded-full border-2 border-white/60" />
-            {activeMomento.isVerified && (
+            {activeMomento.isCreator !== false && activeMomento.isVerified && (
               <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600">
                 <BadgeCheck className="h-2.5 w-2.5 text-white" />
               </div>
