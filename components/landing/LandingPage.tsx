@@ -1,97 +1,162 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
-  Crown,
+  BadgeCheck,
+  Bell,
+  ChevronDown,
   ChevronRight,
-  Eye,
-  Heart,
+  Crown,
+  Gem,
   Lock,
-  Play,
+  Menu,
+  MessageCircle,
+  Search,
   Shield,
   Sparkles,
   Star,
-  TrendingUp,
-  Users,
+  Wallet,
   Zap,
 } from 'lucide-react'
 import { MainApp } from '@/components/app/MainApp'
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
 import { useUser } from '@/components/providers/AppProviders'
-import { BrandLockup, BrandLogo } from '@/components/ui/BrandLogo'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import type { LoginMode } from '@/components/providers/UserContext'
 
-type Particle = {
-  id: number
-  x: number
-  y: number
-  size: number
-  delay: number
-}
-
-const STATS = [
-  {
-    label: 'Beta fechado',
-    value: 'Real',
-    detail: 'testes com contas reais cadastradas',
-    icon: Users,
-  },
-  {
-    label: 'Dados',
-    value: 'Sem demo',
-    detail: 'feed e busca sem perfis falsos',
-    icon: TrendingUp,
-  },
-  {
-    label: 'Conexao',
-    value: '@user',
-    detail: 'encontre pessoas por nome e username',
-    icon: Star,
-  },
-]
-
-const FEATURES = [
-  {
-    icon: Crown,
-    title: 'Empire Hub',
-    desc: 'Dashboard com receita, planos, carteira e leitura clara do que esta puxando crescimento.',
-    color: 'from-amber-500/20 via-orange-500/10 to-transparent',
-  },
+const creatorTools = [
   {
     icon: Lock,
-    title: 'The Vault',
-    desc: 'Momentos e conteudos premium destravados sob demanda, com escassez e valor percebido maiores.',
-    color: 'from-fuchsia-500/20 via-violet-500/10 to-transparent',
+    title: 'Conteudo exclusivo',
+    text: 'Publique posts, fotos e momentos para quem realmente acompanha seu trabalho.',
   },
   {
-    icon: Zap,
-    title: 'OnlyAuction',
-    desc: 'Leiloes de atencao para transformar urgencia e proximidade em uma mecanica de monetizacao.',
-    color: 'from-sky-500/20 via-indigo-500/10 to-transparent',
+    icon: MessageCircle,
+    title: 'Chat com contexto',
+    text: 'Converse com seguidores, responda interesses reais e receba notificacoes das interacoes.',
+  },
+  {
+    icon: Wallet,
+    title: 'Operacao premium',
+    text: 'Centralize crescimento, planos, saldo e movimentos importantes em uma experiencia simples.',
   },
 ]
+
+const reasons = [
+  'Perfil com identidade premium',
+  'Busca real por @username',
+  'Feed, mensagens e notificacoes',
+  'Ambiente pronto para monetizacao',
+]
+
+const plans = [
+  {
+    name: 'Gratis',
+    price: 'R$0',
+    note: 'Para testar a plataforma e montar presenca.',
+    features: ['Criar perfil', 'Buscar usuarios reais', 'Publicar conteudo publico'],
+    cta: 'Comecar Gratis',
+    featured: false,
+  },
+  {
+    name: 'Creator Pro',
+    price: 'R$29',
+    note: 'Para criadores que querem monetizar melhor.',
+    features: ['Tudo do Gratis', 'Conteudo exclusivo', 'Dashboard financeiro', 'Momentos premium'],
+    cta: 'Comecar como Creator',
+    featured: true,
+  },
+]
+
+const faqs = [
+  {
+    question: 'O que e o OnlyDay?',
+    answer: 'Uma rede social premium para criadores, influenciadores e comunidades que querem publicar, conversar e monetizar com mais clareza.',
+  },
+  {
+    question: 'Ja funciona entre dispositivos?',
+    answer: 'Sim. As contas, buscas, mensagens e notificacoes usam Supabase, entao usuarios reais conseguem se encontrar em celulares diferentes.',
+  },
+  {
+    question: 'Precisa confirmar e-mail?',
+    answer: 'Sim. Cada conta passa por verificacao de e-mail antes de entrar, para manter a comunidade mais confiavel.',
+  },
+]
+
+function PhonePreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28, rotate: -2 }}
+      animate={{ opacity: 1, y: 0, rotate: 0 }}
+      transition={{ delay: 0.2, duration: 0.7 }}
+      className="relative mx-auto w-full max-w-[310px]"
+    >
+      <div className="absolute -inset-8 rounded-[56px] bg-violet-600/20 blur-3xl" />
+      <div className="relative overflow-hidden rounded-[42px] border border-white/12 bg-[#07070b] p-3 shadow-[0_34px_110px_rgba(0,0,0,0.55)]">
+        <div className="rounded-[32px] border border-white/8 bg-black">
+          <div className="flex items-center justify-between border-b border-white/8 px-4 py-4">
+            <div className="flex items-center gap-2">
+              <BrandLogo size={28} />
+              <span className="text-sm font-black">OnlyDay</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/55">
+              <Search className="h-4 w-4" />
+              <Bell className="h-4 w-4 text-violet-300" />
+            </div>
+          </div>
+
+          <div className="space-y-4 p-4">
+            <div className="flex gap-3 overflow-hidden">
+              {['Ana', 'Bia', 'Leo', 'Nina'].map((name, index) => (
+                <div key={name} className="flex-shrink-0 text-center">
+                  <div className="mb-1 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-300 p-[2px]">
+                    <div className="h-12 w-12 rounded-full bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.7),rgba(124,58,237,0.3)_38%,rgba(8,8,12,1)_75%)]" />
+                  </div>
+                  <span className="text-[10px] text-white/45">{name}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-[linear-gradient(135deg,#e9d5ff,#7c3aed_52%,#111)]" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1 text-sm font-bold">
+                    Camila Vox <BadgeCheck className="h-3.5 w-3.5 text-violet-300" />
+                  </div>
+                  <div className="text-xs text-white/35">@camilavox</div>
+                </div>
+              </div>
+              <div className="mb-3 h-44 rounded-[24px] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.55),transparent_18%),linear-gradient(135deg,#29124b,#08080d_48%,#6d28d9)]" />
+              <div className="flex items-center justify-between text-xs text-white/50">
+                <span>128 curtidas</span>
+                <span>24 mensagens</span>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-violet-400/20 bg-violet-500/10 p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-bold">
+                <Gem className="h-4 w-4 text-violet-200" />
+                Notificacao nova
+              </div>
+              <p className="text-xs leading-5 text-white/55">
+                Lucas Silva comecou a seguir voce e enviou uma mensagem.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 export function LandingPage() {
   const { isLoggedIn } = useUser()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingMode, setOnboardingMode] = useState<LoginMode>('signUp')
-  const [particles, setParticles] = useState<Particle[]>([])
-  const featuresRef = useRef<HTMLElement | null>(null)
-  const creatorsRef = useRef<HTMLElement | null>(null)
-  const ctaRef = useRef<HTMLElement | null>(null)
-
-  useEffect(() => {
-    const nextParticles = Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 1,
-      delay: Math.random() * 5,
-    }))
-    setParticles(nextParticles)
-  }, [])
+  const [openFaq, setOpenFaq] = useState(0)
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -123,309 +188,311 @@ export function LandingPage() {
     setShowOnboarding(true)
   }
 
-  const scrollToBlock = (target: 'features' | 'creators' | 'cta') => {
-    const refMap = {
-      features: featuresRef,
-      creators: creatorsRef,
-      cta: ctaRef,
-    }
-
-    refMap[target].current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050508] font-poppins text-white">
-      <div className="absolute inset-0 aurora-bg" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(192,132,252,0.16),_transparent_32%),radial-gradient(circle_at_20%_80%,_rgba(59,130,246,0.12),_transparent_28%),radial-gradient(circle_at_85%_18%,_rgba(236,72,153,0.12),_transparent_22%)]" />
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '72px 72px',
-        }}
-      />
+    <main className="min-h-screen overflow-hidden bg-[#030306] font-poppins text-white">
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(124,58,237,0.2),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(168,85,247,0.13),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.025),transparent_28%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/50 to-transparent" />
+      </div>
 
-      <motion.div
-        aria-hidden
-        className="absolute -top-16 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-fuchsia-500/20 blur-3xl"
-        animate={{ scale: [1, 1.1, 1], opacity: [0.22, 0.4, 0.22] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/6 bg-black/55 px-4 py-3 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2">
+            <BrandLogo size={30} />
+            <span className="text-lg font-black tracking-tight">OnlyDay</span>
+          </button>
 
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full bg-purple-400/30"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: particle.size,
-            height: particle.size,
-          }}
-          animate={{ y: [-18, 18, -18], opacity: [0.12, 0.4, 0.12] }}
-          transition={{ duration: 5 + particle.delay, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      ))}
+          <nav className="hidden items-center gap-8 text-sm text-white/50 md:flex">
+            <a href="#recursos" className="transition hover:text-white">Recursos</a>
+            <a href="#planos" className="transition hover:text-white">Planos</a>
+            <a href="#faq" className="transition hover:text-white">FAQ</a>
+          </nav>
 
-      <motion.header
-        initial={{ opacity: 0, y: -24 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-6"
-      >
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-[24px] border border-white/8 bg-black/20 px-3 py-2.5 backdrop-blur-2xl">
-          <motion.div whileHover={{ scale: 1.02 }}>
-            <BrandLockup subtitle="premium social commerce" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openSignIn}
+              className="hidden rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-violet-300/30 hover:text-white sm:block"
+            >
+              Entrar
+            </button>
+            <button
+              type="button"
+              onClick={openSignUp}
+              className="rounded-2xl bg-violet-600 px-4 py-2 text-sm font-bold text-white shadow-[0_16px_40px_rgba(124,58,237,0.32)] transition hover:bg-violet-500"
+            >
+              Criar conta
+            </button>
+            <Menu className="h-5 w-5 text-white/35 md:hidden" />
+          </div>
+        </div>
+      </header>
+
+      <section className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-5 pb-20 pt-28 lg:grid-cols-[1.02fr_0.98fr]">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet-300/18 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-violet-100/80"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            feito para criadores influentes
           </motion.div>
 
-          <motion.button
-            onClick={openSignIn}
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            className="rounded-2xl border border-violet-300/25 bg-white/7 px-5 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 }}
+            className="max-w-3xl text-5xl font-black leading-[0.94] tracking-[-0.06em] sm:text-6xl lg:text-7xl"
           >
-            Entrar
-          </motion.button>
-        </div>
-      </motion.header>
-
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pb-16 pt-32">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6 flex flex-wrap items-center justify-center gap-3 text-xs font-medium text-white/55"
-        >
-          <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-emerald-300">
-            onboarding guiado para criadores
-          </div>
-          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-            feed, chat VIP e monetizacao no mesmo fluxo
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8 flex items-center gap-2 rounded-full border border-violet-300/20 bg-white/6 px-5 py-2.5 text-sm text-violet-200 shadow-[0_0_30px_rgba(124,58,237,0.12)] backdrop-blur-xl"
-        >
-          <Sparkles className="h-4 w-4 text-violet-300" />
-          <span className="font-medium">A 1a plataforma premium do Brasil</span>
-          <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 36 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.28 }}
-          className="mb-8 max-w-5xl text-center"
-        >
-          <h1 className="mb-5 text-5xl font-black leading-[0.95] tracking-[-0.05em] md:text-7xl lg:text-8xl">
-            <span className="text-white">Seu conteudo,</span>
+            Compartilhe.
             <br />
-            <span className="text-gradient neon-text">sua economia.</span>
-          </h1>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/72 md:text-xl">
-            Uma rede social desenhada para transformar proximidade em recorrencia, escassez em desejo e audiencia em operacao premium.
+            Conecte.
+            <br />
+            <span className="text-gradient">Monetize.</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="mt-6 max-w-xl text-base leading-7 text-white/62 sm:text-lg"
+          >
+            Uma rede social premium onde criadores transformam audiencia em comunidade,
+            conversas em relacionamento e conteudo em uma operacao mais profissional.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="mt-8 flex flex-col gap-3 sm:flex-row"
+          >
+            <button
+              type="button"
+              onClick={openSignUp}
+              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-violet-600 px-6 py-4 text-sm font-black text-white shadow-[0_22px_55px_rgba(124,58,237,0.36)] transition hover:bg-violet-500"
+            >
+              Comece como Criador
+              <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </button>
+            <button
+              type="button"
+              onClick={openSignIn}
+              className="inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] px-6 py-4 text-sm font-bold text-white/80 transition hover:border-violet-300/30 hover:text-white"
+            >
+              Ja tenho conta
+            </button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2"
+          >
+            {reasons.map((reason) => (
+              <div key={reason} className="flex items-center gap-2 text-sm text-white/58">
+                <Star className="h-4 w-4 fill-violet-400/30 text-violet-300" />
+                {reason}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        <PhonePreview />
+      </section>
+
+      <section id="recursos" className="relative mx-auto max-w-6xl px-5 py-16">
+        <div className="mb-10 max-w-2xl">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-violet-300/80">estrutura clara</p>
+          <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            Tudo que voce precisa para <span className="text-gradient">brilhar</span>.
+          </h2>
+          <p className="mt-4 text-white/52">
+            Menos confusao na entrada. Mais foco no que importa: perfil, conteudo, relacionamento e dinheiro.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-6 flex flex-col gap-4 sm:flex-row"
-        >
-          <motion.button
-            onClick={openSignUp}
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="group flex items-center justify-center gap-2 rounded-2xl btn-primary px-8 py-4 text-lg font-bold text-white shadow-[0_24px_60px_rgba(124,58,237,0.35)]"
-          >
-            <Zap className="h-5 w-5" />
-            Comecar Gratis
-            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </motion.button>
-
-          <motion.button
-            onClick={() => scrollToBlock('features')}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/7 px-8 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-2xl"
-          >
-            <Play className="h-5 w-5 text-cyan-300" />
-            Ver Demo
-          </motion.button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.48 }}
-          className="mb-16 flex flex-wrap items-center justify-center gap-6 text-sm text-white/45"
-        >
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-emerald-300" />
-            entrada guiada com menor friccao
-          </div>
-          <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-pink-300" />
-            exclusividade e relacionamento no centro
-          </div>
-          <div className="flex items-center gap-2">
-            <Eye className="h-4 w-4 text-sky-300" />
-            interface mobile-first focada em conversao
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-          className="mb-16 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          {STATS.map((stat, index) => (
+        <div className="grid gap-4 md:grid-cols-3">
+          {creatorTools.map((tool, index) => (
             <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.62 + index * 0.08 }}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] p-5 text-left shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
+              key={tool.title}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08 }}
+              className="rounded-[28px] border border-white/8 bg-white/[0.035] p-6 shadow-[0_22px_80px_rgba(0,0,0,0.22)]"
             >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
-              <div className="mb-5 flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/6 ring-1 ring-violet-400/25">
-                  <stat.icon className="h-5 w-5 text-violet-300" />
-                </div>
-                <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                  live
-                </span>
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/12 ring-1 ring-violet-300/15">
+                <tool.icon className="h-5 w-5 text-violet-200" />
               </div>
-              <div className="text-3xl font-black text-gradient">{stat.value}</div>
-              <div className="mt-1 text-sm font-medium text-white/86">{stat.label}</div>
-              <div className="mt-2 text-xs text-white/45">{stat.detail}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <div ref={featuresRef as React.RefObject<HTMLDivElement>} className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
-          {FEATURES.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.78 + index * 0.08 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              onClick={() => scrollToBlock('cta')}
-              className={`rounded-3xl border border-white/10 bg-gradient-to-br ${feature.color} p-6 shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl`}
-            >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl gradient-purple shadow-[0_18px_40px_rgba(124,58,237,0.35)]">
-                <feature.icon className="h-5 w-5 text-white" />
-              </div>
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">{feature.title}</h3>
-                <ChevronRight className="h-4 w-4 text-white/35" />
-              </div>
-              <p className="text-sm leading-relaxed text-white/62">{feature.desc}</p>
+              <h3 className="mb-2 text-lg font-black">{tool.title}</h3>
+              <p className="text-sm leading-6 text-white/50">{tool.text}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      <section ref={creatorsRef} className="px-6 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-10 text-center"
-        >
-          <h2 className="mb-3 text-3xl font-bold text-white">
-            Comunidade <span className="text-gradient">real</span>
-          </h2>
-          <p className="text-white/50">
-            Nesta fase, so aparecem contas, posts e conexoes criadas por usuarios reais do teste.
-          </p>
-        </motion.div>
-
-        <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/[0.045] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-400/20">
-            <Users className="h-5 w-5 text-violet-300" />
-          </div>
-          <h3 className="text-lg font-bold text-white">Convide pessoas e teste como rede social</h3>
-          <p className="mt-2 text-sm leading-relaxed text-white/55">
-            Cada pessoa cria uma conta com e-mail e senha, depois pode buscar outras contas pelo nome ou @username.
-          </p>
-        </div>
-      </section>
-
-      <section ref={ctaRef} className="px-6 py-16 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="mx-auto max-w-2xl rounded-[32px] border border-violet-300/14 bg-white/[0.05] p-10 shadow-[0_26px_90px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
-        >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/5 glow-pulse ring-1 ring-white/10">
-            <BrandLogo size={64} />
-          </div>
-          <h2 className="mb-3 text-3xl font-black text-white">
-            Pronto para <span className="text-gradient">dominar?</span>
-          </h2>
-          <p className="mb-6 text-white/55">
-            Entre com uma narrativa mais forte, uma interface premium e caminhos claros de monetizacao.
-          </p>
-          <motion.button
-            onClick={openSignUp}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full rounded-2xl btn-primary py-4 text-lg font-bold text-white shadow-[0_20px_50px_rgba(124,58,237,0.35)]"
-          >
-            Criar minha conta gratuita
-          </motion.button>
-        </motion.div>
-      </section>
-
-      <footer className="border-t border-white/6 px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-white/45 md:flex-row md:items-start md:justify-between">
-          <div className="max-w-md">
-            <div className="mb-3">
-              <BrandLockup subtitle="premium social commerce" subtitleClassName="text-[11px] uppercase tracking-[0.18em] text-white/28" />
+      <section className="relative mx-auto max-w-6xl px-5 py-16">
+        <div className="grid items-center gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="rounded-[34px] border border-white/8 bg-[linear-gradient(145deg,rgba(124,58,237,0.16),rgba(255,255,255,0.03)_45%,rgba(0,0,0,0.35))] p-7">
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-3xl bg-black/35 ring-1 ring-white/10">
+              <Shield className="h-6 w-6 text-violet-200" />
             </div>
-            <p className="leading-relaxed">
-              Plataforma brasileira de social commerce premium para criadores, fãs e operações de monetização com mais contexto, exclusividade e recorrência.
+            <h2 className="mb-3 text-3xl font-black tracking-[-0.04em]">Sem deixar duvida.</h2>
+            <p className="text-sm leading-7 text-white/55">
+              A pessoa entra e entende rapido: criar perfil, explorar conteudo, conversar e acompanhar notificacoes.
+              O visual passa seguranca sem parecer complicado.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
-            <div>
-              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Produto</div>
-              <div className="space-y-2">
-                <Link href="/precos" className="block transition hover:text-white">Preços</Link>
-                <Link href="/faq" className="block transition hover:text-white">FAQ</Link>
-                <Link href="/contato" className="block transition hover:text-white">Contato</Link>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ['Verificacao', 'Cadastro com e-mail confirmado antes de entrar.'],
+              ['Descoberta', 'Usuarios reais encontrados por nome ou @username.'],
+              ['Interacao', 'Seguir, mensagem, curtida e comentario com notificacao.'],
+              ['Premium', 'Caminho natural para conteudo exclusivo e planos.'],
+            ].map(([title, text]) => (
+              <div key={title} className="rounded-[26px] border border-white/8 bg-white/[0.03] p-5">
+                <div className="mb-2 text-sm font-black text-white">{title}</div>
+                <p className="text-sm leading-6 text-white/45">{text}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="planos" className="relative mx-auto max-w-6xl px-5 py-16">
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            Planos para cada <span className="text-gradient">momento</span>
+          </h2>
+          <p className="mt-3 text-white/50">Comece simples. Evolua quando sua comunidade pedir mais.</p>
+        </div>
+
+        <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={
+                'relative rounded-[32px] border p-6 ' +
+                (plan.featured
+                  ? 'border-violet-400/40 bg-violet-500/10 shadow-[0_24px_80px_rgba(124,58,237,0.18)]'
+                  : 'border-white/8 bg-white/[0.035]')
+              }
+            >
+              {plan.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-violet-500 px-4 py-1 text-xs font-black">
+                  Mais popular
+                </div>
+              )}
+              <h3 className="text-xl font-black">{plan.name}</h3>
+              <p className="mt-1 text-sm text-white/45">{plan.note}</p>
+              <div className="mt-6 flex items-end gap-1">
+                <span className="text-5xl font-black tracking-[-0.06em]">{plan.price}</span>
+                {plan.price !== 'R$0' && <span className="pb-2 text-sm text-white/45">/mes</span>}
+              </div>
+              <div className="mt-6 space-y-3">
+                {plan.features.map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 text-sm text-white/62">
+                    <BadgeCheck className="h-4 w-4 text-violet-300" />
+                    {feature}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={openSignUp}
+                className={
+                  'mt-7 w-full rounded-2xl px-5 py-3 text-sm font-black transition ' +
+                  (plan.featured
+                    ? 'bg-violet-600 text-white hover:bg-violet-500'
+                    : 'border border-white/12 text-white/80 hover:border-violet-300/35 hover:text-white')
+                }
+              >
+                {plan.cta}
+              </button>
             </div>
-            <div>
-              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Legal</div>
-              <div className="space-y-2">
-                <Link href="/termos" className="block transition hover:text-white">Termos de Uso</Link>
-                <Link href="/privacidade" className="block transition hover:text-white">Privacidade</Link>
+          ))}
+        </div>
+      </section>
+
+      <section id="faq" className="relative mx-auto max-w-4xl px-5 py-16">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            Perguntas <span className="text-gradient">frequentes</span>
+          </h2>
+          <p className="mt-3 text-white/50">Tudo que precisa ficar claro antes da pessoa criar conta.</p>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, index) => (
+            <button
+              key={faq.question}
+              type="button"
+              onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
+              className="w-full rounded-[24px] border border-white/8 bg-white/[0.035] p-5 text-left"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-black">{faq.question}</span>
+                <ChevronDown className={'h-4 w-4 text-violet-300 transition ' + (openFaq === index ? 'rotate-180' : '')} />
               </div>
+              {openFaq === index && <p className="mt-3 text-sm leading-6 text-white/48">{faq.answer}</p>}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-5xl px-5 py-16 text-center">
+        <div className="rounded-[38px] border border-violet-300/16 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.22),rgba(255,255,255,0.035)_45%,rgba(0,0,0,0.34))] p-8 shadow-[0_28px_100px_rgba(0,0,0,0.32)] sm:p-12">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-black/35 ring-1 ring-white/10">
+            <Crown className="h-7 w-7 text-violet-200" />
+          </div>
+          <h2 className="mx-auto max-w-2xl text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            Sua comunidade merece uma entrada premium.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/52">
+            Crie sua conta, confirme seu e-mail e comece a construir uma presenca mais forte dentro do OnlyDay.
+          </p>
+          <button
+            type="button"
+            onClick={openSignUp}
+            className="mt-7 rounded-2xl bg-violet-600 px-8 py-4 text-sm font-black text-white shadow-[0_22px_55px_rgba(124,58,237,0.34)] transition hover:bg-violet-500"
+          >
+            Criar conta agora
+          </button>
+        </div>
+      </section>
+
+      <footer className="relative border-t border-white/6 px-5 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-white/42 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <BrandLogo size={30} />
+              <span className="text-lg font-black text-white">OnlyDay</span>
             </div>
-            <div>
-              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/28">Lançamento</div>
-              <div className="space-y-2">
-                <button type="button" onClick={openSignUp} className="block text-left transition hover:text-white">Criar conta</button>
-                <button type="button" onClick={openSignIn} className="block text-left transition hover:text-white">Entrar</button>
-              </div>
+            <p className="max-w-sm leading-6">Rede social premium para criadores, influenciadores e comunidades com relacionamento real.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-white/24">Plataforma</div>
+              <button type="button" onClick={openSignUp} className="block transition hover:text-white">Criar conta</button>
+              <button type="button" onClick={openSignIn} className="block transition hover:text-white">Entrar</button>
+            </div>
+            <div className="space-y-2">
+              <div className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-white/24">Suporte</div>
+              <Link href="/faq" className="block transition hover:text-white">FAQ</Link>
+              <Link href="/contato" className="block transition hover:text-white">Contato</Link>
+            </div>
+            <div className="space-y-2">
+              <div className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-white/24">Legal</div>
+              <Link href="/termos" className="block transition hover:text-white">Termos</Link>
+              <Link href="/privacidade" className="block transition hover:text-white">Privacidade</Link>
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-8 max-w-6xl border-t border-white/6 pt-5 text-xs text-white/28">
-          © 2026 OnlyDay. Todos os direitos reservados.
-        </div>
       </footer>
-    </div>
+    </main>
   )
 }
