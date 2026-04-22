@@ -444,7 +444,24 @@ export class SupabasePostRepository implements PostRepository {
   async toggleLike(postId: string, userId: string) {
     const supabase = getSupabaseBrowserClient()
     const { error } = await supabase.rpc('toggle_post_like', { target_post_id: postId })
-    if (error) throw new Error(error.message)
+    if (error) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (sessionError || !token) {
+        throw new Error(sessionError?.message || error.message)
+      }
+
+      const response = await fetch(`/api/posts/${encodeURIComponent(postId)}/like`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(body?.error || error.message)
+      }
+    }
     return fetchPostById(postId, userId)
   }
 
