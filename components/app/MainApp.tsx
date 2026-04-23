@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { FeedPage } from '@/components/feed/FeedPage'
 import { ExplorePage } from '@/components/explore/ExplorePage'
+import { TrendPage } from '@/components/explore/TrendPage'
 import { ChatPage } from '@/components/chat/ChatPage'
 import { EmpireHub } from '@/components/empire/EmpireHub'
 import { ProfilePage } from '@/components/profile/ProfilePage'
@@ -35,6 +36,7 @@ export function MainApp() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedProfile, setSelectedProfile] = useState<PublicProfile | null>(null)
   const [exploreSeedQuery, setExploreSeedQuery] = useState('')
+  const [selectedTrendTag, setSelectedTrendTag] = useState('')
 
   useEffect(() => {
     if (persistentTabs.has(activeTab)) {
@@ -48,6 +50,7 @@ export function MainApp() {
     } else {
       if (tab !== 'public-profile') {
         setSelectedProfile(null)
+        setSelectedTrendTag('')
         setReturnTab(tab)
       }
       setActiveTab(tab)
@@ -82,10 +85,10 @@ export function MainApp() {
 
   const handleOpenTag = useCallback((tag: string) => {
     setSelectedProfile(null)
-    setReturnTab('explore')
-    setExploreSeedQuery(tag)
+    setSelectedTrendTag(tag)
+    setReturnTab(activeTab === 'public-profile' ? returnTab : activeTab)
     setActiveTab('explore')
-  }, [])
+  }, [activeTab, returnTab])
 
   const handleMessageProfile = useCallback(
     (profile: PublicProfile) => {
@@ -99,7 +102,25 @@ export function MainApp() {
 
   const pages: Record<string, React.ReactNode> = {
     feed: <FeedPage onOpenProfile={handleOpenPublicProfile} onOpenTag={handleOpenTag} />,
-    explore: <ExplorePage onOpenProfile={handleOpenPublicProfile} initialQuery={exploreSeedQuery} />,
+    explore: selectedTrendTag ? (
+      <TrendPage
+        tag={selectedTrendTag}
+        onOpenProfile={handleOpenPublicProfile}
+        onOpenTag={handleOpenTag}
+        onCreatePost={() => setShowCreateModal(true)}
+        onBack={() => {
+          setSelectedTrendTag('')
+          if (returnTab === 'explore') {
+            setExploreSeedQuery('')
+            setActiveTab('explore')
+          } else {
+            setActiveTab(returnTab)
+          }
+        }}
+      />
+    ) : (
+      <ExplorePage onOpenProfile={handleOpenPublicProfile} initialQuery={exploreSeedQuery} />
+    ),
     chat: <ChatPage onOpenProfile={handleOpenPublicProfile} />,
     empire: <EmpireHub />,
     profile: <ProfilePage onOpenDashboard={() => setActiveTab('empire')} onOpenTag={handleOpenTag} />,
