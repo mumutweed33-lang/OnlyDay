@@ -11,6 +11,7 @@ import {
   Heart,
   ImagePlus,
   Lock,
+  Search,
   Send,
   Smile,
   Sparkles,
@@ -21,9 +22,20 @@ import { ptBR } from 'date-fns/locale'
 import { Conversation, Message, useMessages } from '@/components/providers/MessageContext'
 import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import type { PublicProfile } from '@/types/domain'
 
 const EMOJIS = [':)', '<3', 'wow', 'fire', 'vip', 'ok']
+
+function formatConversationTime(timestamp: string) {
+  const createdAt = new Date(timestamp).getTime()
+  const diff = Date.now() - createdAt
+
+  if (diff < 60 * 60 * 1000) return 'agora'
+  if (diff < 24 * 60 * 60 * 1000) return `${Math.max(1, Math.floor(diff / (60 * 60 * 1000)))}h`
+  const days = Math.max(1, Math.floor(diff / (24 * 60 * 60 * 1000)))
+  return `${days} dia${days > 1 ? 's' : ''}`
+}
 
 interface ChatPageProps {
   onOpenProfile?: (profile: PublicProfile) => void
@@ -33,8 +45,19 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
   const { conversations, activeConversation, setActiveConversation, markAsRead } = useMessages()
   const [previewProfile, setPreviewProfile] = useState<PublicProfile | null>(null)
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const { isFollowing, toggleFollow } = useSocial()
   const highlightedAuctions = conversations.filter((conversation) => conversation.auctionActive).slice(0, 3)
+  const filteredConversations = conversations.filter((conversation) => {
+    const normalized = searchQuery.trim().toLowerCase()
+    if (!normalized) return true
+
+    return (
+      conversation.userName.toLowerCase().includes(normalized) ||
+      conversation.userUsername.toLowerCase().includes(normalized) ||
+      conversation.lastMessage.toLowerCase().includes(normalized)
+    )
+  })
 
   const pushFeedback = (message: string) => {
     setActionFeedback(message)
@@ -55,11 +78,13 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
 
   return (
     <div className="min-h-screen bg-[#050508] pb-28">
-      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-4 backdrop-blur-2xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-black text-white">Mensagens</h1>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-white/30">conversas e conexoes</p>
+      <div className="sticky top-0 z-30 bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-5 backdrop-blur-2xl">
+        <div className="mb-5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <BrandLogo size={34} className="select-none" />
+            <div className="text-[18px] font-black leading-none tracking-[-0.045em] text-white">
+              Only<span className="text-[#8B5CF6]">Day</span>
+            </div>
           </div>
           <button
             type="button"
@@ -74,15 +99,30 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
               }
             }}
             aria-label="Abrir conversa premium em destaque"
-            className="flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-300 transition hover:border-violet-400/30 hover:bg-violet-500/16"
+            className="flex h-10 items-center gap-1.5 rounded-full border border-violet-500/28 px-4 text-[12px] font-medium text-violet-300"
           >
-            <Sparkles className="h-3 w-3" />
+            <Sparkles className="h-3.5 w-3.5" />
             Premium
           </button>
         </div>
+
+        <div className="mb-4">
+          <h1 className="text-[22px] font-black tracking-[-0.05em] text-white">Mensagens</h1>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-white/30">CONVERSAS E CONEXÕES</p>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/26" />
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Buscar conversas e conexões..."
+            className="h-[50px] w-full rounded-[18px] border border-white/10 bg-white/[0.03] pl-11 pr-4 text-[14px] text-white outline-none placeholder:text-white/26"
+          />
+        </div>
       </div>
 
-      <div className="space-y-2 p-3">
+      <div className="space-y-3 px-4 pb-2 pt-3">
         <AnimatePresence>
           {actionFeedback && (
             <motion.div
@@ -96,47 +136,32 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
           )}
         </AnimatePresence>
 
-        {highlightedAuctions.length > 0 && (
-          <div className="mb-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-white">OnlyAuction em alta</h2>
-                <p className="text-[11px] text-white/35">Conversas com lance ativo priorizadas pelo OD Core</p>
+        {highlightedAuctions.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => {
+              const nextConversation = highlightedAuctions[0]
+              setActiveConversation(nextConversation)
+              void markAsRead(nextConversation.id)
+            }}
+            className="flex w-full items-center justify-between rounded-[22px] border border-white/8 bg-white/[0.03] px-5 py-4 text-left shadow-[0_14px_34px_rgba(0,0,0,0.16)]"
+          >
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] text-amber-300">⚡</span>
+                <h2 className="text-[14px] font-semibold text-white">OnlyAuction em alta</h2>
               </div>
-              <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">
-                Auction
-              </div>
+              <p className="mt-1.5 text-[12px] text-white/40">Conversas com lance ativo priorizadas pelo OD Core</p>
             </div>
+            <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">
+              Auction
+            </div>
+          </button>
+        ) : null}
 
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {highlightedAuctions.map((conv) => (
-                <button
-                  key={`auction-highlight-${conv.id}`}
-                  onClick={() => {
-                    setActiveConversation(conv)
-                    void markAsRead(conv.id)
-                  }}
-                  className="w-[230px] flex-shrink-0 rounded-[24px] border border-white/8 bg-white/[0.045] p-4 text-left shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
-                >
-                  <div className="mb-3 flex items-center gap-3">
-                    <img src={conv.userAvatar} alt={conv.userName} className="h-11 w-11 rounded-2xl border border-violet-500/30" />
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-white">{conv.userName}</div>
-                      <div className="truncate text-xs text-white/35">{conv.userUsername}</div>
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3">
-                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">Lance atual</div>
-                    <div className="text-lg font-black text-white">
-                      {conv.currentBid ? `R$ ${conv.currentBid.toFixed(2)}` : 'Em aquecimento'}
-                    </div>
-                    <div className="mt-1 text-xs text-white/45">{conv.lastMessage}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="pt-1">
+          <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/34">Conversas</h2>
+        </div>
 
         {conversations.length === 0 && (
           <div className="rounded-[24px] border border-white/8 bg-white/[0.045] p-5 text-center shadow-[0_18px_55px_rgba(0,0,0,0.18)]">
@@ -149,7 +174,7 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
             </p>
           </div>
         )}
-        {conversations.map((conv, i) => (
+        {filteredConversations.map((conv, i) => (
           <motion.div
             key={conv.id}
             initial={{ opacity: 0, y: 10 }}
@@ -159,7 +184,7 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
               setActiveConversation(conv)
               void markAsRead(conv.id)
             }}
-            className="flex cursor-pointer items-center gap-3 rounded-[24px] border border-white/8 bg-white/[0.035] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.16)]"
+            className="flex cursor-pointer items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-3.5 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
           >
             <button
               className="relative flex-shrink-0"
@@ -176,8 +201,8 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
                 })
               }}
             >
-              <img src={conv.userAvatar} alt={conv.userName} className="h-12 w-12 rounded-full border-2 border-violet-500/40" />
-              {conv.isOnline && <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-dark bg-green-500" />}
+              <img src={conv.userAvatar} alt={conv.userName} className="h-10 w-10 rounded-full object-cover" />
+              {conv.isOnline && <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#050508] bg-green-500" />}
             </button>
             <button
               className="min-w-0 flex-1 text-left"
@@ -188,17 +213,28 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
                 void markAsRead(conv.id)
               }}
             >
-              <div className="mb-0.5 flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-semibold text-white">{conv.userName}</span>
-                  {conv.isVerified && <BadgeCheck className="h-3.5 w-3.5 text-violet-400" />}
+              <div className="mb-1 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-[15px] font-semibold text-white">{conv.userName}</span>
+                    {conv.isVerified && <BadgeCheck className="h-3.5 w-3.5 text-violet-400" />}
+                  </div>
+                  <div className="mt-0.5 text-[12px] text-white/42">{conv.userUsername}</div>
                 </div>
-                <span className="text-xs text-white/30">
-                  {formatDistanceToNow(new Date(conv.lastMessageTime), { locale: ptBR })}
+                <span className="flex-shrink-0 text-[11px] text-white/34">
+                  {formatConversationTime(conv.lastMessageTime)}
                 </span>
               </div>
+
+              {conv.auctionActive && conv.currentBid ? (
+                <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/14 bg-emerald-500/8 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
+                  <Sparkles className="h-3 w-3" />
+                  R${conv.currentBid.toFixed(2)} ativo
+                </div>
+              ) : null}
+
               <div className="flex items-center justify-between gap-3">
-                <p className="truncate text-xs text-white/50">{conv.lastMessage}</p>
+                <p className="truncate text-[13px] text-white/50">{conv.lastMessage}</p>
                 {conv.unreadCount > 0 && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-500 px-1 text-[10px] font-bold text-white">
                     {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
@@ -206,16 +242,9 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
                 )}
               </div>
             </button>
-            <div className="flex flex-col items-center gap-1">
-              <Heart className={conv.intimacyScore > 50 ? 'h-4 w-4 fill-violet-400 text-violet-400' : 'h-4 w-4 text-white/20'} />
-              <div className="h-8 w-1 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="w-full rounded-full bg-gradient-to-t from-violet-600 to-pink-500"
-                  initial={{ height: 0 }}
-                  animate={{ height: `${conv.intimacyScore}%` }}
-                  transition={{ duration: 1, delay: i * 0.1 }}
-                />
-              </div>
+            <div className="flex flex-col items-center gap-2">
+              <Heart className={conv.intimacyScore > 50 ? 'h-4 w-4 text-white/42' : 'h-4 w-4 text-white/20'} />
+              <div className="h-2.5 w-2.5 rounded-full bg-violet-500" />
             </div>
           </motion.div>
         ))}
