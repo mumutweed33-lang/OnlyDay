@@ -15,8 +15,8 @@ export async function POST(request: Request, context: RouteContext) {
   const authHeader = request.headers.get('authorization')
   const token = authHeader?.replace(/^Bearer\s+/i, '').trim()
 
-  if (!env.supabaseUrl || !env.supabaseAnonKey || !env.supabaseServiceRoleKey) {
-    return jsonError('Supabase server env is missing for post likes.', 500)
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    return jsonError('Supabase env is missing for post likes.', 500)
   }
 
   if (!token) {
@@ -33,11 +33,20 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const userId = authData.user.id
-  const admin = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  const databaseClient = env.supabaseServiceRoleKey
+    ? createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : createClient(env.supabaseUrl, env.supabaseAnonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      })
 
-  const { data: post, error: postError } = await admin
+  const { data: post, error: postError } = await databaseClient
     .from('posts')
     .select('id, liked_by')
     .eq('id', postId)
@@ -53,7 +62,7 @@ export async function POST(request: Request, context: RouteContext) {
     ? currentLikedBy.filter((id) => id !== userId)
     : [...currentLikedBy, userId]
 
-  const { error: updateError } = await admin
+  const { error: updateError } = await databaseClient
     .from('posts')
     .update({
       liked_by: nextLikedBy,
@@ -62,7 +71,12 @@ export async function POST(request: Request, context: RouteContext) {
     .eq('id', postId)
 
   if (updateError) {
-    return jsonError(updateError.message, 500)
+    return jsonError(
+      env.supabaseServiceRoleKey
+        ? updateError.message
+        : 'O banco bloqueou a curtida pelo RLS. Configure SUPABASE_SERVICE_ROLE_KEY na Vercel ou rode a funcao SQL toggle_post_like.',
+      500
+    )
   }
 
   return NextResponse.json({
