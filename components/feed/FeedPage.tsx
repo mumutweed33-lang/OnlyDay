@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, Heart, MessageCircle, Search, Share2, Sparkles, TrendingUp, UserPlus, X } from 'lucide-react'
+import { Bell, Heart, MessageCircle, Search, Share2, SlidersHorizontal, Sparkles, UserPlus, X } from 'lucide-react'
 import { MomentoViewer } from '@/components/momentos/MomentoViewer'
 import { MomentosBar } from '@/components/momentos/MomentosBar'
 import { PostCard } from '@/components/feed/PostCard'
@@ -13,7 +13,7 @@ import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import { trackOdEvent } from '@/lib/od-core/signal'
-import { BrandLockup } from '@/components/ui/BrandLogo'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import type { PublicProfile } from '@/types/domain'
 
 function formatUnreadCount(count: number) {
@@ -182,7 +182,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
   )
 
   return (
-    <div className="min-h-screen bg-[#050508] pb-28">
+    <div className="min-h-screen bg-[#050505] pb-28">
       <AnimatePresence>
         {activeMomento && <MomentoViewer onOpenProfile={onOpenProfile} />}
       </AnimatePresence>
@@ -197,16 +197,16 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         }}
       />
 
-      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 py-3 backdrop-blur-2xl">
-        <div className="mb-3 flex items-center justify-between">
-          <BrandLockup
-            size={40}
-            titleClassName="text-lg font-black text-gradient"
-            subtitle="comunidade real"
-            subtitleClassName="text-[11px] uppercase tracking-[0.22em] text-white/30"
-          />
-
+      <div className="sticky top-0 z-30 bg-[rgba(5,5,5,0.88)] px-5 pb-4 pt-7 backdrop-blur-2xl">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <BrandLogo size={42} className="select-none" />
+            <div className="text-[26px] font-black leading-none tracking-[-0.05em] text-white">
+              Only<span className="text-[#8B5CF6]">Day</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-5">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => {
@@ -217,11 +217,11 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
                 }
               }}
               aria-label={showNotification ? 'Fechar notificações' : 'Abrir notificações'}
-              className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.045]"
+              className="relative flex h-11 w-11 items-center justify-center text-white/75"
             >
-              <Bell className="h-4 w-4 text-white/70" />
+              <Bell className="h-7 w-7" strokeWidth={1.8} />
               {unreadNotifications > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-dark bg-violet-600 px-1 text-[9px] font-bold text-white">
+                <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#8B5CF6] px-1 text-[8px] font-bold text-white">
                   {formatUnreadCount(unreadNotifications)}
                 </span>
               )}
@@ -231,9 +231,9 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowSearch(true)}
               aria-label="Abrir busca do feed"
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.045]"
+              className="flex h-11 w-11 items-center justify-center text-white/75"
             >
-              <Search className="h-4 w-4 text-white/70" />
+              <Search className="h-8 w-8" strokeWidth={1.8} />
             </motion.button>
           </div>
         </div>
@@ -245,7 +245,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
             setShowSearch(true)
             setActionFeedback('Painel de descoberta aberto para você.')
           }}
-          className="w-full rounded-[24px] border border-white/8 bg-white/[0.035] p-3 text-left shadow-[0_14px_50px_rgba(0,0,0,0.2)] transition hover:border-violet-400/20 hover:bg-white/[0.055]"
+          className="hidden"
         >
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -255,7 +255,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
               </p>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/10 ring-1 ring-emerald-400/15">
-              <TrendingUp className="h-5 w-5 text-emerald-300" />
+              <Sparkles className="h-5 w-5 text-emerald-300" />
             </div>
           </div>
         </button>
@@ -404,7 +404,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
 
       <MomentosBar onOpenProfile={onOpenProfile} />
 
-      {vaultSpotlightPosts.length > 0 && (
+      {false && vaultSpotlightPosts.length > 0 && (
         <div className="px-4 pt-2">
           <div className="mb-3 flex items-center justify-between">
             <div>
@@ -463,15 +463,31 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 px-4 py-4">
-        <div className="h-px flex-1 bg-white/5" />
-        <span className="rounded-full border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
-          Para você
-        </span>
-        <div className="h-px flex-1 bg-white/5" />
+      <div className="mt-5 flex items-end justify-between border-b border-white/[0.08] px-5">
+        <div className="flex items-end gap-10">
+          <button className="relative pb-4 text-[20px] font-bold tracking-[-0.04em] text-white">
+            Para você
+            <span className="absolute bottom-0 left-1/2 h-1 w-[64px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
+          </button>
+          <button className="pb-4 text-[20px] font-semibold tracking-[-0.04em] text-[#9CA3AF]">
+            Seguindo
+          </button>
+        </div>
+        <button
+          type="button"
+          aria-label="Ajustar feed"
+          className="pb-4 text-white/70"
+          onClick={() => {
+            setSearchQuery('premium')
+            setShowSearch(true)
+            setActionFeedback('Filtros inteligentes abertos.')
+          }}
+        >
+          <SlidersHorizontal className="h-7 w-7" strokeWidth={1.7} />
+        </button>
       </div>
 
-      <div className="space-y-0 pt-1">
+      <div className="space-y-5 px-3 pt-4">
         {posts.map((post, i) => (
           <motion.div
             key={post.id}

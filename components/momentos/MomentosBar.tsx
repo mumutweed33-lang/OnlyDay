@@ -126,31 +126,39 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   }
 
   return (
-    <div className="px-4 py-3">
+    <div className="px-5 pt-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[20px] font-bold tracking-[-0.04em] text-white">
+          Momentos
+          <span className="h-2.5 w-2.5 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.8)]" />
+        </div>
+        <button className="text-[15px] font-medium text-[#9CA3AF]">Ver todos</button>
+      </div>
+
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="flex-shrink-0">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowCreateModal(true)}
             aria-label="Criar Momento premium"
             className={
-              'relative flex h-16 w-16 items-center justify-center rounded-[22px] border transition-colors ' +
-              (user?.isCreator
-                ? 'border-dashed border-violet-500/45 bg-violet-500/10 hover:border-violet-400'
-                : 'border-white/10 bg-white/[0.035]')
+              'relative flex h-[142px] w-[82px] flex-col items-center justify-center gap-3 rounded-[18px] border transition-colors shadow-[0_16px_40px_rgba(0,0,0,0.28)] ' +
+              'border-[#8B5CF6] bg-[linear-gradient(180deg,rgba(139,92,246,0.08),rgba(139,92,246,0.18))] hover:border-violet-400'
             }
           >
-            <Plus className="h-6 w-6 text-violet-300" />
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#A855F7] bg-black/20">
+              <Plus className="h-7 w-7 text-white" strokeWidth={1.8} />
+            </span>
+            <span className="px-2 text-center text-[15px] font-medium leading-tight text-white">
+              Criar<br />Momento
+            </span>
             {ownSummary && (
-              <span className="absolute -right-1 -top-1 rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+              <span className="absolute right-2 top-2 rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
                 {ownSummary.momentos.length}
               </span>
             )}
           </motion.button>
-          <span className="text-[10px] text-white/40">
-            {user?.isCreator ? 'Criar premium' : 'Virar criador'}
-          </span>
         </div>
 
         {creatorMomentos.map((creator, index) => (
@@ -159,44 +167,51 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex flex-col items-center gap-1 flex-shrink-0"
+            className="flex-shrink-0"
           >
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => openCreatorMomentos(creator.userId, 0)}
               aria-label={`Abrir momentos de ${creator.userName}`}
-              className="relative"
+              className="relative block h-[142px] w-[88px] overflow-hidden rounded-[18px] border border-white/10 bg-[#101018] shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
             >
-              <div
-                className={`h-16 w-16 rounded-[22px] p-[2px] ${
-                  creator.hasViewed
-                    ? 'bg-white/10'
-                    : 'bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500'
-                }`}
-              >
-                <div className="h-full w-full overflow-hidden rounded-[19px] bg-dark-200">
-                  <img
-                    src={creator.momentos[0]?.media || creator.userAvatar}
-                    alt={creator.userName}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </div>
+              <img
+                src={creator.momentos[0]?.media || creator.userAvatar}
+                alt={creator.userName}
+                className="h-full w-full object-cover opacity-70"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/82" />
+              <span className="absolute left-2 top-2 rounded-md bg-[#7C3AED]/90 px-2 py-1 text-[10px] font-black uppercase tracking-[-0.02em] text-white">
+                {index === 0 ? 'AO VIVO' : creator.price ? 'PREMIUM' : '24H'}
+              </span>
 
-              {!creator.hasViewed && (
-                <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-dark bg-violet-600">
-                  <div className="h-1.5 w-1.5 rounded-full bg-white" />
+              {!creator.hasViewed && !(creator.price && !creator.isUnlocked) && (
+                <div className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#8B5CF6] bg-[#101018]">
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]" />
                 </div>
               )}
 
               {creator.price && !creator.isUnlocked && (
-                <div className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-dark/85">
-                  <Lock className="h-2.5 w-2.5 text-violet-300" />
+                <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-black/55">
+                  <Lock className="h-3 w-3 text-white/80" />
                 </div>
               )}
+              <div className="absolute bottom-3 left-2 right-2">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <img src={creator.userAvatar} alt="" className="h-7 w-7 rounded-full border border-white/20 object-cover" />
+                  <span className="truncate text-[12px] font-bold text-white">{creator.userName.split(' ')[0]}</span>
+                </div>
+                <div className="truncate text-[11px] text-white/55">
+                  {index === 0
+                    ? '1,2k assistindo'
+                    : creator.price
+                      ? 'Novo momento'
+                      : 'Hoje, 20:00'}
+                </div>
+              </div>
             </motion.button>
-            <div className="flex max-w-[76px] flex-col items-center">
+            <div className="hidden max-w-[76px] flex-col items-center">
               <button
                 onClick={() =>
                   onOpenProfile?.({
