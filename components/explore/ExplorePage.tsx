@@ -76,10 +76,11 @@ function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCrea
 
 interface ExplorePageProps {
   onOpenProfile?: (profile: PublicProfile) => void
+  onOpenTag?: (tag: string) => void
   initialQuery?: string
 }
 
-export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
+export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExplorePageProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('Tudo')
   const [searching, setSearching] = useState(false)
@@ -382,8 +383,8 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => {
-                      void handleSearch(topic.tag)
-                      setActionFeedback(`Explorando o assunto #${topic.tag}`)
+                      onOpenTag?.(topic.tag)
+                      setActionFeedback(`Abrindo a trend #${topic.tag}`)
                     }}
                     className="h-[126px] w-[178px] flex-shrink-0 rounded-[18px] border border-white/8 bg-[#0b0b10] px-4 py-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
                   >
@@ -554,8 +555,8 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                 <button
                   key={topic.tag}
                   onClick={() => {
-                    void handleSearch(topic.tag)
-                    setActionFeedback(`Filtro aplicado para #${topic.tag}`)
+                    onOpenTag?.(topic.tag)
+                    setActionFeedback(`Abrindo a trend #${topic.tag}`)
                   }}
                   className="mb-3 flex w-full items-center gap-3 rounded-[18px] border border-white/8 bg-[#0b0b10] px-4 py-3 text-left"
                 >
@@ -604,8 +605,8 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                           key={tag}
                           onClick={(event) => {
                             event.stopPropagation()
-                            void handleSearch(tag)
-                            setActionFeedback(`Filtro aplicado para #${tag}`)
+                            onOpenTag?.(tag)
+                            setActionFeedback(`Abrindo a trend #${tag}`)
                           }}
                           className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[10px] text-violet-300"
                         >

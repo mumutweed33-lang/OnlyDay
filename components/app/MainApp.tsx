@@ -119,7 +119,11 @@ export function MainApp() {
         }}
       />
     ) : (
-      <ExplorePage onOpenProfile={handleOpenPublicProfile} initialQuery={exploreSeedQuery} />
+      <ExplorePage
+        onOpenProfile={handleOpenPublicProfile}
+        onOpenTag={handleOpenTag}
+        initialQuery={exploreSeedQuery}
+      />
     ),
     chat: <ChatPage onOpenProfile={handleOpenPublicProfile} />,
     empire: <EmpireHub />,
