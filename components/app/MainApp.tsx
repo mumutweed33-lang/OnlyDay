@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { FeedPage } from '@/components/feed/FeedPage'
@@ -16,16 +16,31 @@ import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
 import type { PublicProfile } from '@/types/domain'
 
+const NAV_STORAGE_KEY = 'onlyday_active_tab'
+const persistentTabs = new Set(['feed', 'explore', 'chat', 'empire', 'profile'])
+
+function getInitialTab() {
+  if (typeof window === 'undefined') return 'feed'
+  const saved = window.localStorage.getItem(NAV_STORAGE_KEY)
+  return saved && persistentTabs.has(saved) ? saved : 'feed'
+}
+
 export function MainApp() {
   const { user } = useUser()
   const { posts } = usePosts()
   const { openConversationForProfile } = useMessages()
   const { getKnownProfiles } = useSocial()
-  const [activeTab, setActiveTab] = useState('feed')
+  const [activeTab, setActiveTab] = useState(getInitialTab)
   const [returnTab, setReturnTab] = useState('feed')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedProfile, setSelectedProfile] = useState<PublicProfile | null>(null)
   const [exploreSeedQuery, setExploreSeedQuery] = useState('')
+
+  useEffect(() => {
+    if (persistentTabs.has(activeTab)) {
+      window.localStorage.setItem(NAV_STORAGE_KEY, activeTab)
+    }
+  }, [activeTab])
 
   const handleSetTab = useCallback((tab: string) => {
     if (tab === 'create') {

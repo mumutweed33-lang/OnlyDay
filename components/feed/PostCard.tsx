@@ -50,7 +50,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: ptBR })
   const comments = getComments(post.id)
-  const totalComments = post.comments + comments.length
+  const totalComments = Math.max(post.comments, comments.length)
   const totalShares = getShareCount(post.id, post.shares)
   const isOwnPost = user?.id === post.userId || user?.username === post.userUsername
 
@@ -156,9 +156,16 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
   const handleCommentSubmit = () => {
     if (!commentDraft.trim()) return
-    addComment(post, commentDraft)
+    const nextComment = commentDraft
     setCommentDraft('')
-    pushFeedback('Comentario enviado com sucesso.')
+    void addComment(post, nextComment)
+      .then(() => {
+        pushFeedback('Comentario enviado com sucesso.')
+      })
+      .catch(() => {
+        setCommentDraft(nextComment)
+        pushFeedback('Nao foi possivel salvar o comentario agora. Tente de novo.')
+      })
   }
 
   const handleShare = (targetLabel?: string) => {

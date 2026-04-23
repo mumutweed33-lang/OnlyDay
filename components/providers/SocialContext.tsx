@@ -18,6 +18,34 @@ type FollowRow = {
   following_id: string
 }
 
+type CommentRow = {
+  id: string
+  post_id: string
+  user_id: string
+  content: string
+  created_at: string
+  profiles?: {
+    name?: string | null
+    username?: string | null
+    avatar?: string | null
+    avatar_url?: string | null
+  } | null
+}
+
+const commentSelect = `
+  id,
+  post_id,
+  user_id,
+  content,
+  created_at,
+  profiles:user_id (
+    name,
+    username,
+    avatar,
+    avatar_url
+  )
+`
+
 function normalizeDisplayName(value: string) {
   const trimmed = value.trim()
   if (!trimmed) return 'Alguém'
@@ -36,7 +64,7 @@ interface SocialContextType {
   trendingTopics: Array<{ tag: string; posts: string; hot: boolean }>
   getComments: (postId: string) => PostComment[]
   getShareCount: (postId: string, baseCount?: number) => number
-  addComment: (post: FeedPost, content: string) => void
+  addComment: (post: FeedPost, content: string) => Promise<PostComment | null>
   sharePost: (post: FeedPost, targetLabel?: string) => void
   notifyPostLiked: (post: FeedPost) => void
   markNotificationsRead: () => void
@@ -72,6 +100,20 @@ function uid(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function mapComment(row: CommentRow, fallback?: Partial<PostComment>): PostComment {
+  const profile = row.profiles
+  return {
+    id: row.id,
+    postId: row.post_id,
+    userId: row.user_id,
+    userName: profile?.name || fallback?.userName || 'Usuario',
+    userUsername: profile?.username || fallback?.userUsername || '@usuario',
+    userAvatar: profile?.avatar_url || profile?.avatar || fallback?.userAvatar || '',
+    content: row.content,
+    createdAt: row.created_at,
+  }
+}
+
 type NotificationDraft = {
   recipientId?: string
   actorId?: string
@@ -98,6 +140,44 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, {}))
     setSharesByPost(readStorage<Record<string, number>>(SHARES_STORAGE_KEY, {}))
   }, [])
+
+  const loadComments = useCallback(async () => {
+    if (posts.length === 0) {
+      setCommentsByPost({})
+      return
+    }
+
+    const postIds = Array.from(new Set(posts.map((post) => post.id).filter(Boolean)))
+    if (postIds.length === 0) return
+
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data, error } = await supabase
+        .from('comments')
+        .select(commentSelect)
+        .in('post_id', postIds)
+        .order('created_at', { ascending: true })
+
+      if (error) throw new Error(error.message)
+
+      const next = ((data as unknown as CommentRow[]) ?? []).reduce<Record<string, PostComment[]>>(
+        (acc, row) => {
+          const comment = mapComment(row)
+          acc[comment.postId] = [...(acc[comment.postId] ?? []), comment]
+          return acc
+        },
+        {}
+      )
+      setCommentsByPost(next)
+      writeStorage(COMMENTS_STORAGE_KEY, next)
+    } catch (error) {
+      console.error('[social] failed to load comments from Supabase', error)
+    }
+  }, [posts])
+
+  useEffect(() => {
+    void loadComments()
+  }, [loadComments])
 
   const loadFollowGraph = useCallback(async () => {
     if (!user?.id) {
@@ -337,8 +417,9 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   )
 
   const addComment = useCallback(
-    (post: FeedPost, content: string) => {
-      if (!user || !content.trim()) return
+    async (post: FeedPost, content: string) => {
+      if (!user || !content.trim()) return null
+      const trimmedContent = content.trim()
       const nextComment: PostComment = {
         id: uid('comment'),
         postId: post.id,
@@ -346,22 +427,50 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         userName: user.name,
         userUsername: user.username,
         userAvatar: user.avatar,
-        content: content.trim(),
+        content: trimmedContent,
         createdAt: new Date().toISOString(),
       }
+      const previous = commentsByPost
       const next = {
-        ...commentsByPost,
-        [post.id]: [...(commentsByPost[post.id] ?? []), nextComment],
+        ...previous,
+        [post.id]: [...(previous[post.id] ?? []), nextComment],
       }
       setCommentsByPost(next)
       writeStorage(COMMENTS_STORAGE_KEY, next)
+      const supabase = getSupabaseBrowserClient()
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          post_id: post.id,
+          user_id: user.id,
+          content: trimmedContent,
+        })
+        .select(commentSelect)
+        .single()
+
+      if (error) {
+        setCommentsByPost(previous)
+        writeStorage(COMMENTS_STORAGE_KEY, previous)
+        throw new Error(error.message)
+      }
+
+      const savedComment = mapComment(data as unknown as CommentRow, nextComment)
+      const saved = {
+        ...next,
+        [post.id]: (next[post.id] ?? []).map((comment) =>
+          comment.id === nextComment.id ? savedComment : comment
+        ),
+      }
+      setCommentsByPost(saved)
+      writeStorage(COMMENTS_STORAGE_KEY, saved)
+      void loadComments()
       void trackOdEvent({
         actorProfileId: user.id,
         targetProfileId: post.userId,
         postId: post.id,
         surface: 'feed',
         eventType: 'post_comment',
-        metadata: { contentLength: content.trim().length },
+        metadata: { contentLength: trimmedContent.length },
       })
       queueOdRefresh(user.id)
       void pushNotification({
@@ -369,7 +478,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         actorId: user.id,
         type: 'comment',
         title: `${user.name} comentou no seu post`,
-        description: content.trim(),
+        description: trimmedContent,
         postId: post.id,
       })
       pushNotification({
@@ -377,8 +486,9 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         title: 'Comentário enviado',
         description: `Seu comentário em ${normalizeDisplayName(post.userName)} foi publicado.`,
       })
+      return savedComment
     },
-    [commentsByPost, pushNotification, user]
+    [commentsByPost, loadComments, pushNotification, user]
   )
 
   const getShareCount = useCallback(
