@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, DollarSign, Hash, Image, Lock, Send, Smile, X } from 'lucide-react'
+import { Camera, ChevronDown, DollarSign, Hash, Image, Lock, Plus, Send, Smile, X } from 'lucide-react'
 import { usePosts } from '@/components/providers/PostContext'
 import { useUser } from '@/components/providers/UserContext'
 
@@ -11,6 +11,7 @@ interface CreatePostModalProps {
 }
 
 const EMOJIS = [':)', 'fire', 'love', 'spark', 'moon', 'crown', 'gem', 'rocket']
+const SUGGESTED_TAGS = ['#OnlyDay', '#Exclusivo', '#Premium', '#Criador']
 
 export function CreatePostModal({ onClose }: CreatePostModalProps) {
   const { user } = useUser()
@@ -22,6 +23,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [posting, setPosting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showMoreOptions, setShowMoreOptions] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const mediaInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -30,6 +32,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
   const parsedPrice = normalizedPrice ? Number(normalizedPrice) : NaN
   const hasValidPremiumPrice = !isLocked || (Number.isFinite(parsedPrice) && parsedPrice >= 1)
   const canPublish = (!!content.trim() || !!mediaPreview) && !posting && hasValidPremiumPrice
+  const remainingChars = 500 - content.length
 
   const handlePost = async () => {
     if (!content.trim() && !mediaPreview) return
@@ -70,14 +73,6 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
     textareaRef.current?.focus()
   }
 
-  const handleImageUpload = () => {
-    mediaInputRef.current?.click()
-  }
-
-  const handleCameraCapture = () => {
-    cameraInputRef.current?.click()
-  }
-
   const handleSelectedImage = (file?: File) => {
     if (!file) return
 
@@ -101,22 +96,27 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col bg-dark/95 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex flex-col bg-[#050508]"
     >
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-4">
-          <button onClick={onClose} aria-label="Fechar criação de post" className="rounded-xl border border-white/10 p-2 glass">
-          <X className="h-5 w-5 text-white" />
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-4">
+        <button
+          onClick={onClose}
+          aria-label="Fechar criação de post"
+          className="flex h-11 w-11 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.02] text-white/90"
+        >
+          <X className="h-5 w-5" />
         </button>
-        <span className="font-bold text-white">Novo Post</span>
+
+        <span className="text-[18px] font-bold tracking-[-0.03em] text-white">Novo post</span>
+
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.97 }}
           onClick={handlePost}
           disabled={!canPublish}
-          className={`flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold transition-all ${
+          className={`flex h-11 items-center gap-2 rounded-[16px] px-5 text-[14px] font-semibold transition-all ${
             canPublish
-              ? 'btn-primary text-white'
-              : 'border border-white/10 text-white/30 glass'
+              ? 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_12px_24px_rgba(124,58,237,0.22)]'
+              : 'border border-white/10 bg-white/[0.03] text-white/30'
           }`}
         >
           {posting ? (
@@ -130,7 +130,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
         </motion.button>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto px-4 pb-6 pt-5">
         <input
           ref={mediaInputRef}
           type="file"
@@ -152,94 +152,110 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
             event.target.value = ''
           }}
         />
-        <div className="flex gap-3">
-          <img
-            src={user?.avatar}
-            alt=""
-            className="h-10 w-10 flex-shrink-0 rounded-full border-2 border-violet-500/40"
-          />
-          <div className="flex-1">
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onChange={(event) => {
-                setContent(event.target.value)
-                if (submitError) setSubmitError(null)
-              }}
-              placeholder="O que esta acontecendo? Compartilhe com seus fas..."
-              rows={5}
-              autoFocus
-              className="w-full resize-none bg-transparent text-base leading-relaxed text-white outline-none placeholder:text-white/30"
+
+        <div className="border-b border-white/[0.06] pb-5">
+          <div className="flex gap-3">
+            <img
+              src={user?.avatar}
+              alt=""
+              className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
             />
 
-            {mediaPreview && (
-              <div className="relative mt-3 aspect-square overflow-hidden rounded-[28px] border border-white/10 bg-black">
-                <img src={mediaPreview} alt="" className="h-full w-full object-cover" />
-                <button
-                  onClick={() => setMediaPreview(null)}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-dark/80"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
-            )}
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] text-white/34">O que você quer compartilhar hoje?</div>
+              <div className="mt-1.5 text-[12px] text-white/24">Texto, foto, vídeo ou conteúdo exclusivo</div>
 
-            {mediaPreview && (
-              <p className="mt-2 text-[11px] text-white/35">
-                Preview em 1:1 para o feed. A imagem original fica preservada no envio atual.
-              </p>
-            )}
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(event) => {
+                  setContent(event.target.value)
+                  if (submitError) setSubmitError(null)
+                }}
+                placeholder=""
+                rows={4}
+                autoFocus
+                className="mt-5 min-h-[120px] w-full resize-none bg-transparent text-[14px] leading-[1.4] text-white outline-none placeholder:text-white/24"
+              />
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {['#OnlyDay', '#Exclusivo', '#Premium', '#Criador'].map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => setContent((prev) => `${prev} ${tag}`)}
-                  className="rounded-full border border-violet-500/20 px-3 py-1 text-xs text-violet-400 glass transition-colors hover:border-violet-500/50"
-                >
-                  {tag}
-                </button>
-              ))}
+              <div className="mt-2 flex justify-end text-[11px] text-white/34">{content.length}/500</div>
+
+              {mediaPreview ? (
+                <div className="relative mt-4 overflow-hidden rounded-[22px] border border-white/10 bg-black">
+                  <img src={mediaPreview} alt="" className="h-[220px] w-full object-cover" />
+                  <button
+                    onClick={() => setMediaPreview(null)}
+                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/72"
+                  >
+                    <X className="h-4 w-4 text-white" />
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 p-4 glass">
-          <div
-            onClick={() => setIsLocked(!isLocked)}
-            className="flex cursor-pointer items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                  isLocked ? 'bg-violet-500/20' : 'border border-white/10 glass'
-                }`}
-              >
-                <Lock className={`h-5 w-5 ${isLocked ? 'text-violet-400' : 'text-white/40'}`} />
-              </div>
-              <div>
-                  <div className="text-sm font-semibold text-white">Conteúdo Premium</div>
-                <div className="text-xs text-white/40">Exige pagamento via Pix para visualizar</div>
-              </div>
-            </div>
-            <div className={`relative h-6 w-12 rounded-full ${isLocked ? 'bg-violet-600' : 'bg-white/10'}`}>
-              <motion.div
-                className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow"
-                animate={{ left: isLocked ? '26px' : '2px' }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              />
-            </div>
+        <div className="border-b border-white/[0.06] py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[12px] text-white/74">Sugestões de tags</span>
+            <button
+              type="button"
+              onClick={() => setContent((prev) => `${prev}${prev ? ' ' : ''}#`)}
+              className="flex items-center gap-1 text-[12px] font-medium text-violet-400"
+            >
+              Adicionar tag
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
 
-          {isLocked && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="mt-3 border-t border-white/5 pt-3"
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTED_TAGS.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setContent((prev) => `${prev}${prev ? ' ' : ''}${tag}`)}
+                className="rounded-full border border-violet-500/18 bg-white/[0.02] px-3 py-1.5 text-[12px] text-violet-300"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-b border-white/[0.06] py-4">
+          <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4">
+            <div
+              onClick={() => setIsLocked(!isLocked)}
+              className="flex cursor-pointer items-center justify-between gap-3"
             >
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 flex-shrink-0 text-violet-400" />
-                <span className="text-xs text-white/60">Preco em R$:</span>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/8 bg-white/[0.03]">
+                  <Lock className={`h-5 w-5 ${isLocked ? 'text-violet-400' : 'text-white/42'}`} />
+                </div>
+                <div>
+                  <div className="text-[14px] font-semibold text-white">Conteúdo premium</div>
+                  <div className="mt-0.5 text-[12px] text-white/42">Exige pagamento via Pix para visualizar</div>
+                </div>
+              </div>
+
+              <div className={`relative h-7 w-12 rounded-full transition-colors ${isLocked ? 'bg-violet-600' : 'bg-white/10'}`}>
+                <motion.div
+                  className="absolute top-1 h-5 w-5 rounded-full bg-white shadow"
+                  animate={{ left: isLocked ? '26px' : '4px' }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                />
+              </div>
+            </div>
+
+            {isLocked ? (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-3 border-t border-white/[0.06] pt-3"
+              >
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 flex-shrink-0 text-violet-400" />
+                  <span className="text-[12px] text-white/60">Preço em R$</span>
+                </div>
                 <input
                   type="number"
                   placeholder="Ex: 29,90"
@@ -251,84 +267,113 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
                     setPrice(event.target.value)
                     if (submitError) setSubmitError(null)
                   }}
-                  className="flex-1 border-b border-white/20 bg-transparent pb-1 text-sm text-white outline-none placeholder:text-white/30"
+                  className="mt-2 w-full border-b border-white/12 bg-transparent pb-2 text-[14px] text-white outline-none placeholder:text-white/26"
                 />
-              </div>
-              <p className="mt-2 text-[11px] text-white/45">
-                Mínimo de R$ 1,00 para posts premium.
-              </p>
-            </motion.div>
-          )}
+                <p className="mt-2 text-[11px] text-white/42">Mínimo de R$ 1,00 para posts premium.</p>
+              </motion.div>
+            ) : null}
+          </div>
         </div>
 
-        {submitError && (
-          <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-100">
+        <div className="border-b border-white/[0.06] py-4">
+          <button
+            type="button"
+            onClick={() => setShowMoreOptions((prev) => !prev)}
+            className="flex items-center gap-2 text-[12px] text-white/56"
+          >
+            <ChevronDown className={`h-4 w-4 transition-transform ${showMoreOptions ? 'rotate-180' : ''}`} />
+            Mais opções (visibilidade, prévia, prazo)
+          </button>
+
+          {showMoreOptions ? (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="pt-3 text-[12px] text-white/42"
+            >
+              Em breve você poderá controlar visibilidade, prévia pública e prazo do conteúdo.
+            </motion.div>
+          ) : null}
+        </div>
+
+        {submitError ? (
+          <div className="mt-4 rounded-[18px] border border-rose-500/20 bg-rose-500/10 p-3 text-[13px] text-rose-100">
             {submitError}
           </div>
-        )}
+        ) : null}
       </div>
 
-      <div className="border-t border-white/5 px-4 py-3 glass">
-        <div className="flex items-center gap-4">
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={handleImageUpload}
-            className="rounded-xl p-2 text-violet-400 transition-colors hover:bg-violet-500/10 hover:text-violet-300"
+      <div className="border-t border-white/[0.06] bg-[rgba(10,10,16,0.92)] px-4 py-3 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => mediaInputRef.current?.click()}
+            className="flex min-w-[64px] flex-col items-center gap-1.5 rounded-[14px] px-2 py-2 text-violet-400"
             aria-label="Escolher foto da galeria"
           >
-            <Image className="h-6 w-6" />
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={handleCameraCapture}
-            className="rounded-xl p-2 text-violet-400 transition-colors hover:bg-violet-500/10 hover:text-violet-300"
-            aria-label="Abrir camera para foto"
+            <Image className="h-5 w-5" />
+            <span className="text-[11px] text-white/72">Foto</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex min-w-[64px] flex-col items-center gap-1.5 rounded-[14px] px-2 py-2 text-violet-400"
+            aria-label="Abrir câmera para foto"
           >
-            <Camera className="h-6 w-6" />
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={() => setShowEmojis(!showEmojis)}
-            className={`p-2 transition-colors ${
-              showEmojis ? 'text-violet-400' : 'text-white/40 hover:text-violet-400'
+            <Camera className="h-5 w-5" />
+            <span className="text-[11px] text-white/72">Câmera</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowEmojis((prev) => !prev)}
+            className={`flex min-w-[64px] flex-col items-center gap-1.5 rounded-[14px] px-2 py-2 ${
+              showEmojis ? 'text-violet-400' : 'text-violet-400'
             }`}
           >
-            <Smile className="h-6 w-6" />
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={() => setContent((prev) => `${prev}#`)}
-            className="p-2 text-white/40 transition-colors hover:text-violet-400"
+            <Smile className="h-5 w-5" />
+            <span className="text-[11px] text-white/72">Emoji</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setContent((prev) => `${prev}${prev ? ' ' : ''}#`)}
+            className="flex min-w-[64px] flex-col items-center gap-1.5 rounded-[14px] px-2 py-2 text-violet-400"
           >
-            <Hash className="h-6 w-6" />
-          </motion.button>
-          <div className="flex-1" />
-          <span
-            className={`text-xs ${
-              content.length > 470 ? 'text-red-400' : content.length > 430 ? 'text-amber-300' : 'text-white/30'
-            }`}
-          >
-            {500 - content.length}
-          </span>
+            <Hash className="h-5 w-5" />
+            <span className="text-[11px] text-white/72">Hashtag</span>
+          </button>
+
+          <div className="ml-auto flex items-center gap-4 pl-3">
+            <div className="h-10 w-px bg-white/[0.08]" />
+            <span
+              className={`text-[11px] ${
+                remainingChars < 0 ? 'text-rose-400' : remainingChars < 30 ? 'text-amber-300' : 'text-white/44'
+              }`}
+            >
+              {content.length}/500
+            </span>
+          </div>
         </div>
 
-        {showEmojis && (
+        {showEmojis ? (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-2 flex flex-wrap gap-2 border-t border-white/5 pt-3"
+            className="mt-3 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3"
           >
             {EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 onClick={() => addEmoji(emoji)}
-                className="rounded-full border border-white/10 px-3 py-1 text-sm text-white/75 transition-transform hover:scale-105"
+                className="rounded-full border border-white/10 px-3 py-1 text-[12px] text-white/78"
               >
                 {emoji}
               </button>
             ))}
           </motion.div>
-        )}
+        ) : null}
       </div>
     </motion.div>
   )
