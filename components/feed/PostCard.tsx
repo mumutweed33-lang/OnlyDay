@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Heart,
+  Sun,
   MessageCircle,
   Repeat2,
   Share2,
@@ -407,18 +407,18 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
             aria-label={post.isLiked ? 'Descurtir post' : 'Curtir post'}
             className="group flex items-center gap-2"
           >
-            <div className={`relative ${post.isLiked ? 'text-[#8B5CF6]' : 'text-[#9CA3AF] group-hover:text-[#8B5CF6]'} transition-colors`}>
-              <Heart className={`h-5 w-5 ${post.isLiked ? 'fill-[#8B5CF6]' : ''}`} strokeWidth={1.8} />
+            <div className={`relative ${post.isLiked ? 'text-amber-400' : 'text-[#9CA3AF] group-hover:text-amber-400'} transition-colors`}>
+              <Sun className={`h-5 w-5 ${post.isLiked ? 'fill-amber-400' : ''}`} strokeWidth={1.8} />
               {post.isLiked && (
                 <motion.div
                   initial={{ scale: 0, opacity: 1 }}
                   animate={{ scale: 2, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute inset-0 rounded-full bg-[#8B5CF6]"
+                  className="absolute inset-0 rounded-full bg-amber-400"
                 />
               )}
             </div>
-            <span className={`text-[13px] font-medium ${post.isLiked ? 'text-[#8B5CF6]' : 'text-[#9CA3AF]'}`}>
+            <span className={`text-[13px] font-medium ${post.isLiked ? 'text-amber-400' : 'text-[#9CA3AF]'}`}>
               {post.likes.toLocaleString('pt-BR')}
             </span>
           </motion.button>
