@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  ArrowLeft,
   BarChart3,
   BadgeCheck,
   Crown,
@@ -12,8 +13,10 @@ import {
   ImagePlus,
   Lock,
   LogOut,
+  MoreHorizontal,
   Sparkles,
   Star,
+  UserPlus,
   X,
 } from 'lucide-react'
 import { PostDetailModal } from '@/components/feed/PostDetailModal'
@@ -170,38 +173,37 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
         onOpenTag={onOpenTag}
       />
       <div className="relative">
-        <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,#120522_0%,#34125f_42%,#050508_100%)]">
+        <div className="relative h-48 overflow-hidden bg-[linear-gradient(180deg,#10091d_0%,#1a1030_38%,#07070b_100%)]">
           {user.coverImage && (
             <img
               src={user.coverImage}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover opacity-72"
             />
           )}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)',
-              backgroundSize: '20px 20px',
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
-          <div className="absolute -right-8 top-6 h-28 w-28 rounded-full bg-fuchsia-400/20 blur-3xl" />
-          <div className="absolute left-8 top-8 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,0.18),transparent_24%),linear-gradient(180deg,rgba(5,5,8,0.08),rgba(5,5,8,0.88))]" />
+          <div className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/18 backdrop-blur-md">
+            <ArrowLeft className="h-5 w-5 text-white/92" />
+          </div>
+          <div className="absolute right-16 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/18 backdrop-blur-md">
+            <ImagePlus className="h-5 w-5 text-white/88" />
+          </div>
+          <div className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/18 backdrop-blur-md">
+            <MoreHorizontal className="h-5 w-5 text-white/88" />
+          </div>
         </div>
 
         <div className="px-4 pb-4">
-          <div className="mb-4 flex items-end justify-between -mt-12">
+          <div className="mb-4 flex items-end justify-between -mt-10">
             <div className="relative">
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="h-24 w-24 rounded-[28px] border-4 border-dark object-cover shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
+                className="h-[84px] w-[84px] rounded-[24px] border-[3px] border-[#050508] object-cover shadow-[0_10px_28px_rgba(0,0,0,0.26)]"
               />
               {user.isCreator && user.isVerified && (
-                <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-dark bg-violet-600 shadow-[0_0_20px_rgba(124,58,237,0.45)]">
-                  <BadgeCheck className="h-4 w-4 text-white" />
+                <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#050508] bg-violet-600">
+                  <BadgeCheck className="h-4 w-4 text-white" fill="currentColor" />
                 </div>
               )}
             </div>
@@ -210,36 +212,30 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={openEditModal}
-                className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-sm text-white/70 backdrop-blur-xl"
+                className="flex h-11 items-center gap-2 rounded-[18px] border border-white/10 bg-transparent px-5 text-[13px] font-semibold text-white/82 backdrop-blur-xl"
               >
                 <Edit3 className="h-4 w-4" />
-                Editar
+                Editar perfil
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowLogoutConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-white/40 transition-colors hover:text-red-400"
+                className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-white/10 bg-transparent text-white/72 transition-colors hover:text-red-400"
               >
-                <LogOut className="h-4 w-4" />
+                <UserPlus className="h-5 w-5" />
               </motion.button>
             </div>
           </div>
 
-          <div className="mb-4 rounded-[28px] border border-white/8 bg-white/[0.04] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.2)]">
+          <div className="mb-4">
             <div className="mb-1 flex items-center gap-2">
-              <h2 className="text-xl font-black text-white">{user.name}</h2>
+              <h2 className="text-[18px] font-black tracking-[-0.045em] text-white">{user.name}</h2>
               {user.isCreator && <Crown className="h-5 w-5 text-violet-400" />}
             </div>
-            <p className="mb-2 text-sm text-violet-400">{user.username}</p>
-            <p className="text-sm leading-relaxed text-white/60">{user.bio}</p>
+            <p className="mb-2 text-[13px] font-semibold text-violet-400">{user.username}</p>
+            <p className="max-w-[320px] text-[13px] leading-[1.45] text-white/62">{user.bio}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
-                Perfil da sua conta
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
-                Visitantes veem sua vitrine publica
-              </span>
-              <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">
+              <span className="rounded-full border border-violet-500/18 bg-violet-500/8 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-violet-300">
                 {user.niche || 'Lifestyle'}
               </span>
             </div>
@@ -248,7 +244,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={onOpenDashboard}
-                className="mt-4 flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(124,58,237,0.28)]"
+                className="mt-4 hidden items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(124,58,237,0.28)]"
               >
                 <BarChart3 className="h-4 w-4" />
                 Abrir meu dashboard
@@ -282,20 +278,20 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
             )}
           </div>
 
-          <div className="mb-4 grid grid-cols-3 gap-3">
+          <div className="mb-4 grid grid-cols-3 gap-0 border-y border-white/[0.06] py-4">
             {[
-              { label: 'Posts', value: userPosts.length },
-              { label: 'Seguidores', value: getFollowerCount(user.id).toLocaleString('pt-BR') },
-              { label: 'Seguindo', value: getFollowingCount().toLocaleString('pt-BR') },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-4 text-center">
-                <div className="text-xl font-black text-white">{stat.value}</div>
-                <div className="text-xs text-white/40">{stat.label}</div>
+              { label: 'posts', value: userPosts.length },
+              { label: 'seguidores', value: getFollowerCount(user.id).toLocaleString('pt-BR') },
+              { label: 'seguindo', value: getFollowingCount().toLocaleString('pt-BR') },
+            ].map((stat, index) => (
+              <div key={stat.label} className={`text-center ${index !== 2 ? 'border-r border-white/[0.08]' : ''}`}>
+                <div className="text-[18px] font-black text-white">{stat.value}</div>
+                <div className="mt-1 text-[11px] text-white/40">{stat.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => {
@@ -306,9 +302,9 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
                 openEditModal()
               }}
               className={
-                'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ' +
+                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all ' +
                 (user.plan === 'diamond'
-                  ? 'border border-violet-500/30 bg-violet-500/20 text-violet-300'
+                  ? 'border border-violet-500/30 bg-violet-500/12 text-violet-300'
                   : 'border border-white/10 bg-white/6 text-white/45 hover:border-violet-500/30 hover:text-white')
               }
             >
@@ -316,7 +312,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               {user.plan === 'free' ? 'Plano Free' : user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
             </motion.button>
             {user.isCreator && user.isVerified && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400">
+              <div className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-[11px] font-medium text-green-400">
                 <BadgeCheck className="h-3 w-3" />
                 Verificado
               </div>
@@ -337,13 +333,13 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               onClick={() => setActiveTab(tab.id)}
               className={
                 'relative flex flex-1 flex-col items-center gap-1 py-3 transition-colors ' +
-                (activeTab === tab.id ? 'text-violet-300' : 'text-white/30')
+                (activeTab === tab.id ? 'text-violet-300' : 'text-white/34')
               }
             >
-              <tab.icon className="h-5 w-5" />
-              <span className="text-xs">{tab.label}</span>
+              <tab.icon className="h-[18px] w-[18px]" />
+              <span className="text-[12px]">{tab.label}</span>
               {activeTab === tab.id && (
-                <motion.div layoutId="profile-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500" />
+                <motion.div layoutId="profile-tab" className="absolute bottom-0 left-8 right-8 h-[2px] rounded-full bg-violet-500" />
               )}
             </button>
           ))}
@@ -389,13 +385,24 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               <button
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="relative aspect-square overflow-hidden rounded-2xl bg-violet-900/20 ring-1 ring-white/6"
+                className="relative aspect-square overflow-hidden rounded-[20px] bg-violet-900/20 ring-1 ring-white/6"
               >
                 {post.media?.[0] ? (
                   <img src={post.media[0].url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center p-2">
-                    <p className="line-clamp-3 text-center text-[10px] text-white/50">{post.content}</p>
+                  <div className="flex h-full w-full items-start justify-start p-4">
+                    <div>
+                      <p className="line-clamp-3 text-left text-[10px] text-white/76">{post.content}</p>
+                      {(post.hashtags ?? []).length > 0 && (
+                        <p className="mt-1 line-clamp-1 text-left text-[10px] font-medium text-violet-300">
+                          #{post.hashtags?.[0]}
+                        </p>
+                      )}
+                      <div className="mt-5 flex items-center gap-1 text-[10px] text-white/44">
+                        <Heart className="h-3.5 w-3.5" />
+                        {post.likes}
+                      </div>
+                    </div>
                   </div>
                 )}
                 {post.isLocked && (
