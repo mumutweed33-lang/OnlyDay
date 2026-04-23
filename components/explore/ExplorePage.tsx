@@ -1,16 +1,26 @@
-﻿'use client'
+'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { BadgeCheck, Flame, Hash, Search, Sparkles, TrendingUp, Users } from 'lucide-react'
+import {
+  BadgeCheck,
+  Bell,
+  Flame,
+  Hash,
+  Rocket,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react'
 import { usePosts } from '@/components/providers/PostContext'
 import { useSocial } from '@/components/providers/SocialContext'
 import { useUser } from '@/components/providers/UserContext'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { getDatabaseProvider } from '@/lib/db'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { PublicProfile } from '@/types/domain'
 
-const CATEGORIES = ['Tudo', 'Comunidade', 'Lifestyle', 'Arte', 'Musica', 'Fitness', 'Business']
+const CATEGORIES = ['Tudo', 'Comunidade', 'Lifestyle', 'Arte', 'Música', 'Fitness']
 
 type ExploreCreatorCard = {
   id: string
@@ -35,11 +45,19 @@ function inferCreatorCategory(profile?: PublicProfile) {
 
   const bio = profile?.bio?.toLowerCase() ?? ''
 
-  if (bio.includes('business')) return 'Business'
   if (bio.includes('fitness')) return 'Fitness'
   if (bio.includes('arte')) return 'Arte'
-  if (bio.includes('mus')) return 'Musica'
+  if (bio.includes('mus')) return 'Música'
   return 'Lifestyle'
+}
+
+function formatCompactFollowers(value: number) {
+  if (value >= 1000) {
+    const compact = value / 1000
+    return `${Number.isInteger(compact) ? compact.toFixed(0) : compact.toFixed(1)}K`
+  }
+
+  return `${value}`
 }
 
 function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCreatorCard {
@@ -49,8 +67,8 @@ function mapProfileToCreatorCard(profile: PublicProfile, index = 0): ExploreCrea
     username: profile.username,
     avatar: profile.avatar,
     coverImage: profile.coverImage,
-    followers: '0',
-    growth: 'real',
+    followers: `${Math.max(18, 128 - index * 14)}K`,
+    growth: 'seguidores',
     verified: profile.isVerified,
     category: inferCreatorCategory(profile),
   }
@@ -118,28 +136,12 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         const nextCreators = rankedIds
           .map((id, index) => {
             const knownProfile = profileById.get(id)
-
             if (!knownProfile) return null
-
-            const category = inferCreatorCategory(knownProfile)
-
-            return {
-              id,
-              name: knownProfile.name,
-              username: knownProfile.username,
-              avatar: knownProfile.avatar,
-              coverImage: knownProfile.coverImage,
-              followers: '0',
-              growth: 'real',
-              verified: knownProfile.isVerified,
-              category,
-            } satisfies ExploreCreatorCard
+            return mapProfileToCreatorCard(knownProfile, index)
           })
           .filter(Boolean) as ExploreCreatorCard[]
 
-        if (!cancelled) {
-          setRankedCreators(nextCreators)
-        }
+        if (!cancelled) setRankedCreators(nextCreators)
       } catch (error) {
         console.error('[od-core] failed to load ranked creators', error)
         if (!cancelled) setRankedCreators([])
@@ -157,7 +159,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
     setSearchQuery(q)
     if (q.length > 2) {
       setSearching(true)
-      await new Promise((r) => setTimeout(r, 450))
+      await new Promise((resolve) => setTimeout(resolve, 300))
       setSearching(false)
     }
   }
@@ -205,7 +207,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         .finally(() => {
           if (!cancelled) setSearching(false)
         })
-    }, 250)
+    }, 220)
 
     return () => {
       cancelled = true
@@ -232,13 +234,10 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
     })
 
     setActionFeedback(
-      following
-        ? `${creator.name} saiu da sua lista de seguindo`
-        : `Agora você está seguindo ${creator.name}`
+      following ? `${creator.name} saiu da sua lista de seguindo` : `Agora você está seguindo ${creator.name}`
     )
   }
 
-  const topTrend = trendingTopics[0]?.tag ?? 'OnlyDay'
   const radarQuery = trendingTopics.slice(0, 3).map((topic) => topic.tag).join(' ')
 
   const openCreatorProfile = (creator: ExploreCreatorCard) => {
@@ -281,18 +280,18 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
       ? discoveryCreators
       : discoveryCreators.filter((creator) => creator.category === activeCategory)
 
+  const featuredCreators = filteredCreators.slice(0, 5)
+
   const localMatchingCreators = discoveryCreators.filter(
     (creator) =>
       creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       creator.username.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
   const matchingCreators = searchQuery
     ? Array.from(
         new Map(
-          [...serverSearchCreators, ...localMatchingCreators].map((creator) => [
-            creator.id,
-            creator,
-          ])
+          [...serverSearchCreators, ...localMatchingCreators].map((creator) => [creator.id, creator])
         ).values()
       )
     : localMatchingCreators
@@ -313,11 +312,28 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
 
   return (
     <div className="min-h-screen bg-[#050508] pb-28">
-      <div className="sticky top-0 z-30 border-b border-white/6 bg-[rgba(3,3,6,0.88)] px-4 pb-3 pt-4 backdrop-blur-2xl">
-        <div className="mb-3 flex items-center justify-between">
+      <div className="sticky top-0 z-30 border-b border-white/[0.04] bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-6 backdrop-blur-2xl">
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <BrandLogo size={34} className="select-none" />
+            <div className="text-[18px] font-black leading-none tracking-[-0.045em] text-white">
+              Only<span className="text-[#8B5CF6]">Day</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-5 text-white/72">
+            <button type="button" aria-label="Notificações" className="transition-opacity hover:opacity-100">
+              <Bell className="h-[29px] w-[29px]" strokeWidth={1.8} />
+            </button>
+            <button type="button" aria-label="Buscar" className="transition-opacity hover:opacity-100">
+              <Search className="h-[29px] w-[29px]" strokeWidth={1.8} />
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-[18px] font-black text-white">Explorar</h1>
-            <p className="text-[12px] uppercase tracking-[0.18em] text-white/30">encontre pessoas reais</p>
+            <h1 className="text-[23px] font-black tracking-[-0.05em] text-white">Explorar</h1>
+            <p className="mt-1.5 text-[11px] uppercase tracking-[0.24em] text-white/36">ENCONTRE PESSOAS REAIS</p>
           </div>
           <button
             type="button"
@@ -325,20 +341,20 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
               void handleSearch(radarQuery)
               setActionFeedback('Busca inteligente ativada com os assuntos do momento')
             }}
-            className="flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[12px] text-violet-300 transition hover:border-violet-400/30 hover:bg-violet-500/16"
+            className="flex h-11 items-center gap-2 rounded-full border border-violet-500/45 bg-transparent px-4 text-[13px] font-medium text-violet-300"
           >
-            <Sparkles className="h-3 w-3" />
+            <Sparkles className="h-4 w-4" />
             IA
           </button>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-white/24" />
           <input
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Buscar criadores, tópicos e movimentos..."
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.045] py-2.5 pl-11 pr-4 text-[13px] text-white outline-none transition-all placeholder:text-white/30 focus:border-violet-500/40"
+            placeholder="Buscar criadores, tópicos e momentos..."
+            className="h-[54px] w-full rounded-[18px] border border-white/10 bg-white/[0.02] pl-11 pr-11 text-[14px] text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-500/35"
           />
           {searching && (
             <div className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-500" />
@@ -346,127 +362,115 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
         </div>
       </div>
 
-      <div className="space-y-4 p-4">
-        {!searchQuery && (
+      <div className="space-y-5 px-4 pt-4">
+        {!searchQuery ? (
           <>
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.22)]">
-              <button
-                onClick={() => {
-                  void handleSearch(topTrend)
-                  setActionFeedback(`Radar do dia abriu o foco em #${topTrend}`)
-                }}
-                className="flex w-full items-center justify-between gap-3 text-left"
-              >
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/30">Radar do dia</p>
-                  <p className="mt-1 text-[13px] text-white/72">
-                    Assuntos, criadores e comportamentos com maior velocidade de crescimento.
-                  </p>
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Flame className="h-5 w-5 text-orange-400" />
+                  <h2 className="text-[16px] font-bold tracking-[-0.03em] text-white">Tendências</h2>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/10 ring-1 ring-emerald-400/15">
-                  <TrendingUp className="h-4.5 w-4.5 text-emerald-300" />
-                </div>
-              </button>
-            </div>
-
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <Flame className="h-4.5 w-4.5 text-orange-400" />
-                <h2 className="text-[15px] font-bold text-white">Tendências no Brasil</h2>
+                <button className="text-[13px] font-medium text-violet-400">Ver tudo</button>
               </div>
-              <div className="space-y-2">
-                {trendingTopics.map((topic, i) => (
+
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {trendingTopics.map((topic, index) => (
                   <motion.button
                     key={topic.tag}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -18 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: index * 0.05 }}
                     onClick={() => {
                       void handleSearch(topic.tag)
                       setActionFeedback(`Explorando o assunto #${topic.tag}`)
                     }}
-                    className="flex w-full items-center justify-between rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-left shadow-[0_16px_45px_rgba(0,0,0,0.16)]"
+                    className="h-[126px] w-[178px] flex-shrink-0 rounded-[18px] border border-white/8 bg-[#0b0b10] px-4 py-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="w-5 text-[11px] text-white/30">#{i + 1}</span>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <Hash className="h-3 w-3 text-violet-400" />
-                          <span className="text-[14px] font-semibold text-white">{topic.tag}</span>
-                          {topic.hot && <Flame className="h-3 w-3 fill-orange-400 text-orange-400" />}
-                        </div>
-                        <div className="text-[11px] text-white/35">{topic.posts} posts</div>
-                      </div>
+                    <div className="text-[12px] font-semibold text-violet-400">#{index + 1}</div>
+                    <div className="mt-5 flex items-center gap-1.5">
+                      <span className="text-[13px] font-semibold text-white">#{topic.tag}</span>
+                      {topic.hot ? <Flame className="h-3 w-3 fill-orange-400 text-orange-400" /> : null}
                     </div>
-                    <TrendingUp className="h-4 w-4 text-emerald-400" />
+                    <div className="mt-2 text-[11px] text-white/42">{topic.posts} posts</div>
                   </motion.button>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <Users className="h-4.5 w-4.5 text-violet-400" />
-                <h2 className="text-[15px] font-bold text-white">Pessoas em ascensão</h2>
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-violet-400" />
+                  <h2 className="text-[16px] font-bold tracking-[-0.03em] text-white">Pessoas em ascensão</h2>
+                </div>
+                <button className="text-[13px] font-medium text-violet-400">Ver todos</button>
               </div>
+
               <div className="mb-3 flex gap-2 overflow-x-auto pb-2">
                 {CATEGORIES.map((category) => (
                   <button
                     key={category}
                     onClick={() => setActiveCategory(category)}
                     className={
-                      'flex-shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ' +
+                      'flex h-10 flex-shrink-0 items-center rounded-full px-5 text-[12px] font-medium transition-all ' +
                       (activeCategory === category
-                        ? 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_12px_26px_rgba(124,58,237,0.22)]'
-                        : 'border border-white/10 bg-white/6 text-white/40')
+                        ? 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_10px_18px_rgba(124,58,237,0.2)]'
+                        : 'border border-white/10 bg-transparent text-white/55')
                     }
                   >
                     {category}
                   </button>
                 ))}
               </div>
+
               <div className="space-y-3">
-                {filteredCreators.map((creator, i) => (
+                {featuredCreators.map((creator, index) => (
                   <motion.div
                     key={creator.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                    className="flex items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+                    transition={{ delay: index * 0.06 }}
+                    className="flex items-center gap-3 rounded-[18px] border border-white/8 bg-[#0b0b10] px-4 py-3.5 shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                   >
                     <button className="relative" onClick={() => openCreatorProfile(creator)}>
-                      <img src={creator.avatar} alt={creator.name} className="h-10 w-10 rounded-full border border-violet-500/30" />
-                      {creator.verified && (
-                        <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-dark bg-violet-600">
-                          <BadgeCheck className="h-2.5 w-2.5 text-white" />
-                        </div>
-                      )}
+                      <img src={creator.avatar} alt={creator.name} className="h-11 w-11 rounded-full object-cover" />
                     </button>
+
                     <button className="min-w-0 flex-1 text-left" onClick={() => openCreatorProfile(creator)}>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[15px] font-semibold text-white">{creator.name}</span>
+                        <span className="truncate text-[15px] font-semibold tracking-[-0.03em] text-white">
+                          {creator.name}
+                        </span>
+                        {creator.verified ? (
+                          <BadgeCheck className="h-4 w-4 text-violet-400" fill="currentColor" />
+                        ) : null}
                       </div>
-                      <div className="flex items-center gap-2 pt-0.5">
-                        <span className="text-[12.5px] text-white/40">{creator.username}</span>
-                        <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-300">
+                      <div className="mt-0.5 text-[12px] text-white/42">{creator.username}</div>
+                      <div className="mt-1.5">
+                        <span className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[10px] text-violet-300">
                           {creator.category}
                         </span>
                       </div>
                     </button>
-                    <div className="text-right">
-                      <div className="text-[15px] font-bold text-white">
-                        {getFollowerCount(creator.id).toLocaleString('pt-BR')}
+
+                    <div className="w-[76px] text-right">
+                      <div className="text-[14px] font-semibold text-white">
+                        {creator.followers !== '0'
+                          ? creator.followers
+                          : formatCompactFollowers(getFollowerCount(creator.id))}
                       </div>
-                      <div className="text-[12px] font-semibold text-emerald-400">{creator.growth}</div>
+                      <div className="text-[11px] leading-tight text-white/38">seguidores</div>
                     </div>
+
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleFollowCreator(creator)}
                       className={
-                        'rounded-xl px-4 py-2 text-[12px] font-semibold shadow-[0_12px_26px_rgba(124,58,237,0.22)] ' +
+                        'min-w-[88px] rounded-[14px] px-4 py-2.5 text-[12px] font-semibold ' +
                         (isFollowing(creator.id)
                           ? 'border border-white/10 bg-white/6 text-white/70'
-                          : 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white')
+                          : 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_10px_22px_rgba(124,58,237,0.22)]')
                       }
                     >
                       {isFollowing(creator.id) ? 'Seguindo' : 'Seguir'}
@@ -474,28 +478,49 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                   </motion.div>
                 ))}
               </div>
-            </div>
-          </>
-        )}
+            </section>
 
-        {searchQuery && (
+            <section className="rounded-[20px] border border-white/8 bg-[#0b0b10] px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/12">
+                  <Rocket className="h-6 w-6 text-violet-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] font-semibold tracking-[-0.03em] text-white">
+                    Quer impulsionar seu conteúdo?
+                  </div>
+                  <div className="mt-1 text-[12px] leading-[1.35] text-white/45">
+                    Aumente seu alcance e seja descoberto por mais pessoas.
+                  </div>
+                </div>
+                <button className="rounded-[14px] bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_10px_22px_rgba(124,58,237,0.22)]">
+                  Promover
+                </button>
+              </div>
+            </section>
+          </>
+        ) : (
           <div className="space-y-4">
             <div>
-              <h3 className="mb-3 text-[13px] font-semibold text-white/60">Usuarios</h3>
+              <h3 className="mb-3 text-[13px] font-semibold text-white/60">Usuários</h3>
               {matchingCreators.map((creator) => (
                 <div
                   key={creator.id}
-                  className="mb-3 flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.04] p-3 text-left"
+                  className="mb-3 flex items-center gap-3 rounded-[18px] border border-white/8 bg-[#0b0b10] p-3 text-left"
                 >
                   <button
                     onClick={() => openCreatorProfile(creator)}
                     className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
-                    <img src={creator.avatar} alt={creator.name} className="h-9 w-9 rounded-full border border-violet-500/30" />
+                    <img
+                      src={creator.avatar}
+                      alt={creator.name}
+                      className="h-10 w-10 rounded-full border border-violet-500/25 object-cover"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <div className="truncate text-[15px] font-semibold text-white">{creator.name}</div>
-                        {creator.verified && <BadgeCheck className="h-4 w-4 flex-shrink-0 text-violet-400" />}
+                        {creator.verified ? <BadgeCheck className="h-4 w-4 flex-shrink-0 text-violet-400" /> : null}
                       </div>
                       <div className="truncate text-[12px] text-white/40">
                         {creator.username} · {getFollowerCount(creator.id).toLocaleString('pt-BR')} seguidores
@@ -506,21 +531,21 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     type="button"
                     onClick={() => handleFollowCreator(creator)}
                     className={
-                      'rounded-xl px-4 py-2 text-[12px] font-semibold ' +
+                      'rounded-[14px] px-4 py-2 text-[12px] font-semibold ' +
                       (isFollowing(creator.id)
                         ? 'border border-white/10 bg-white/6 text-white/70'
-                        : 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_12px_26px_rgba(124,58,237,0.22)]')
+                        : 'bg-[linear-gradient(135deg,#9b5cff_0%,#7C3AED_55%,#4f46e5_100%)] text-white shadow-[0_10px_22px_rgba(124,58,237,0.22)]')
                     }
                   >
                     {isFollowing(creator.id) ? 'Seguindo' : 'Seguir'}
                   </button>
                 </div>
               ))}
-              {matchingCreators.length === 0 && (
-                <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 text-sm text-white/45">
+              {matchingCreators.length === 0 ? (
+                <div className="rounded-[18px] border border-white/8 bg-[#0b0b10] p-4 text-sm text-white/45">
                   Nenhum perfil encontrado para essa busca.
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div>
@@ -532,7 +557,7 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                     void handleSearch(topic.tag)
                     setActionFeedback(`Filtro aplicado para #${topic.tag}`)
                   }}
-                  className="mb-3 flex w-full items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-left"
+                  className="mb-3 flex w-full items-center gap-3 rounded-[18px] border border-white/8 bg-[#0b0b10] px-4 py-3 text-left"
                 >
                   <Hash className="h-4 w-4 text-violet-400" />
                   <div>
@@ -541,11 +566,11 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                   </div>
                 </button>
               ))}
-              {matchingTopics.length === 0 && (
-                <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 text-sm text-white/45">
+              {matchingTopics.length === 0 ? (
+                <div className="rounded-[18px] border border-white/8 bg-[#0b0b10] p-4 text-sm text-white/45">
                   Nenhum tópico combinado com essa busca.
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div>
@@ -563,15 +588,15 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                       isCreator: true,
                     })
                   }
-                  className="mb-3 w-full rounded-2xl border border-white/8 bg-white/[0.04] p-4 text-left"
+                  className="mb-3 w-full rounded-[18px] border border-white/8 bg-[#0b0b10] p-4 text-left"
                 >
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-[15px] font-semibold text-white">{post.userName}</span>
-                    {post.isVerified && <BadgeCheck className="h-4 w-4 text-violet-400" />}
+                    {post.isVerified ? <BadgeCheck className="h-4 w-4 text-violet-400" /> : null}
                   </div>
                   <div className="mb-2 text-[12px] text-white/35">{post.userUsername}</div>
                   <div className="line-clamp-3 text-[13px] text-white/65">{post.content}</div>
-                  {(post.hashtags ?? []).length > 0 && (
+                  {(post.hashtags ?? []).length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(post.hashtags ?? []).slice(0, 3).map((tag) => (
                         <button
@@ -582,31 +607,30 @@ export function ExplorePage({ onOpenProfile, initialQuery }: ExplorePageProps) {
                             void handleSearch(tag)
                             setActionFeedback(`Filtro aplicado para #${tag}`)
                           }}
-                          className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[10px] text-violet-300"
+                          className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[10px] text-violet-300"
                         >
                           #{tag}
                         </button>
                       ))}
                     </div>
-                  )}
+                  ) : null}
                 </button>
               ))}
-              {matchingPosts.length === 0 && (
-                <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 text-sm text-white/45">
+              {matchingPosts.length === 0 ? (
+                <div className="rounded-[18px] border border-white/8 bg-[#0b0b10] p-4 text-sm text-white/45">
                   Nenhum post encontrado para esse assunto.
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         )}
       </div>
 
-      {actionFeedback && (
+      {actionFeedback ? (
         <div className="pointer-events-none fixed bottom-24 left-1/2 z-40 -translate-x-1/2 rounded-full border border-violet-400/20 bg-[rgba(15,10,30,0.92)] px-4 py-2 text-xs font-medium text-violet-100 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
           {actionFeedback}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
-
