@@ -188,7 +188,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mx-4 mt-4 rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-sm text-violet-100"
+            className="mx-4 mt-3 rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-2.5 text-[13px] text-violet-100"
           >
             {actionFeedback}
           </motion.div>
@@ -197,25 +197,25 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
       {/* Header */}
       <div className="flex items-start justify-between px-4 pt-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button className="relative" onClick={openProfile} aria-label={`Abrir perfil de ${post.userName}`}>
             <img
               src={post.userAvatar}
               alt={post.userName}
-              className="h-10 w-10 rounded-full object-cover"
+              className="h-9 w-9 rounded-full object-cover"
             />
             {post.isVerified && (
-              <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#8B5CF6]">
-                <BadgeCheck className="h-3 w-3 text-white" fill="currentColor" />
+              <div className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#8B5CF6]">
+                <BadgeCheck className="h-2.5 w-2.5 text-white" fill="currentColor" />
               </div>
             )}
           </button>
           <button className="text-left" onClick={openProfile} aria-label={`Ver perfil de ${post.userName}`}>
             <div className="flex items-center gap-1">
-              <span className="text-[17px] font-bold leading-tight tracking-[-0.04em] text-white">{post.userName}</span>
-              {post.isVerified && <BadgeCheck className="h-5 w-5 text-[#8B5CF6]" fill="currentColor" />}
+              <span className="text-[15px] font-bold leading-tight tracking-[-0.04em] text-white">{post.userName}</span>
+              {post.isVerified && <BadgeCheck className="h-4 w-4 text-[#8B5CF6]" fill="currentColor" />}
             </div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[15px] text-[#9CA3AF]">
+            <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-[#9CA3AF]">
               <span>{post.userUsername}</span>
               <span>•</span>
               <span>{timeAgo}</span>
@@ -228,7 +228,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
           aria-label={showMenu ? 'Fechar menu do post' : 'Abrir menu do post'}
           className="p-1 text-[#9CA3AF] transition-colors hover:text-white"
         >
-          <MoreHorizontal className="h-6 w-6" />
+          <MoreHorizontal className="h-5 w-5" />
         </motion.button>
       </div>
 
@@ -301,7 +301,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
       {/* Content */}
       <div
-        className="block w-full cursor-pointer px-4 pb-4 pt-7 text-left"
+        className="block w-full cursor-pointer px-4 pb-3 pt-5 text-left"
         onClick={() => onOpenPost?.(post)}
         role="button"
         tabIndex={0}
@@ -312,7 +312,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
           }
         }}
       >
-        <p className="whitespace-pre-wrap text-[18px] leading-[1.45] tracking-[-0.035em] text-white">
+        <p className="whitespace-pre-wrap text-[14px] leading-[1.42] tracking-[-0.02em] text-white">
           {post.content.split(/#(\w+)/g).map((part, i) =>
             i % 2 === 1 ? (
               <button
@@ -391,7 +391,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
               <img
                 src={post.media[0].url}
                 alt=""
-                className="max-h-[360px] w-full object-cover"
+                className="max-h-[300px] w-full object-cover"
               />
             </motion.div>
           )}
@@ -399,16 +399,16 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-9">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-7">
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleLike}
             aria-label={post.isLiked ? 'Descurtir post' : 'Curtir post'}
-            className="group flex items-center gap-3"
+            className="group flex items-center gap-2"
           >
             <div className={`relative ${post.isLiked ? 'text-[#8B5CF6]' : 'text-[#9CA3AF] group-hover:text-[#8B5CF6]'} transition-colors`}>
-              <Heart className={`h-7 w-7 ${post.isLiked ? 'fill-[#8B5CF6]' : ''}`} strokeWidth={1.8} />
+              <Heart className={`h-5 w-5 ${post.isLiked ? 'fill-[#8B5CF6]' : ''}`} strokeWidth={1.8} />
               {post.isLiked && (
                 <motion.div
                   initial={{ scale: 0, opacity: 1 }}
@@ -418,7 +418,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
                 />
               )}
             </div>
-            <span className={`text-[16px] font-medium ${post.isLiked ? 'text-[#8B5CF6]' : 'text-[#9CA3AF]'}`}>
+            <span className={`text-[13px] font-medium ${post.isLiked ? 'text-[#8B5CF6]' : 'text-[#9CA3AF]'}`}>
               {post.likes.toLocaleString('pt-BR')}
             </span>
           </motion.button>
@@ -427,20 +427,20 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
             whileTap={{ scale: 0.8 }}
             onClick={() => setShowComments(true)}
             aria-label="Abrir comentários"
-            className="flex items-center gap-3 text-[#9CA3AF] transition-colors hover:text-violet-400"
+            className="flex items-center gap-2 text-[#9CA3AF] transition-colors hover:text-violet-400"
           >
-            <MessageCircle className="h-7 w-7" strokeWidth={1.7} />
-            <span className="text-[16px] font-medium">{totalComments.toLocaleString('pt-BR')}</span>
+            <MessageCircle className="h-5 w-5" strokeWidth={1.7} />
+            <span className="text-[13px] font-medium">{totalComments.toLocaleString('pt-BR')}</span>
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={() => setShowShare(true)}
             aria-label="Compartilhar post"
-            className="flex items-center gap-3 text-[#9CA3AF] transition-colors hover:text-violet-400"
+            className="flex items-center gap-2 text-[#9CA3AF] transition-colors hover:text-violet-400"
           >
-            <Repeat2 className="h-7 w-7" strokeWidth={1.7} />
-            <span className="text-[16px] font-medium">{totalShares.toLocaleString('pt-BR')}</span>
+            <Repeat2 className="h-5 w-5" strokeWidth={1.7} />
+            <span className="text-[13px] font-medium">{totalShares.toLocaleString('pt-BR')}</span>
           </motion.button>
         </div>
 

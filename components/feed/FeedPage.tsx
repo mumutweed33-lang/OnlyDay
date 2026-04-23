@@ -197,16 +197,16 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         }}
       />
 
-      <div className="sticky top-0 z-30 bg-[rgba(5,5,5,0.88)] px-5 pb-4 pt-7 backdrop-blur-2xl">
+      <div className="sticky top-0 z-30 bg-[rgba(5,5,5,0.88)] px-5 pb-3 pt-6 backdrop-blur-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BrandLogo size={42} className="select-none" />
-            <div className="text-[26px] font-black leading-none tracking-[-0.05em] text-white">
+            <BrandLogo size={38} className="select-none" />
+            <div className="text-[23px] font-black leading-none tracking-[-0.05em] text-white">
               Only<span className="text-[#8B5CF6]">Day</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => {
@@ -217,9 +217,9 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
                 }
               }}
               aria-label={showNotification ? 'Fechar notificações' : 'Abrir notificações'}
-              className="relative flex h-11 w-11 items-center justify-center text-white/75"
+              className="relative flex h-10 w-10 items-center justify-center text-white/75"
             >
-              <Bell className="h-7 w-7" strokeWidth={1.8} />
+              <Bell className="h-6 w-6" strokeWidth={1.8} />
               {unreadNotifications > 0 && (
                 <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#8B5CF6] px-1 text-[8px] font-bold text-white">
                   {formatUnreadCount(unreadNotifications)}
@@ -231,9 +231,9 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowSearch(true)}
               aria-label="Abrir busca do feed"
-              className="flex h-11 w-11 items-center justify-center text-white/75"
+              className="flex h-10 w-10 items-center justify-center text-white/75"
             >
-              <Search className="h-8 w-8" strokeWidth={1.8} />
+              <Search className="h-6 w-6" strokeWidth={1.8} />
             </motion.button>
           </div>
         </div>
@@ -463,31 +463,31 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         </div>
       )}
 
-      <div className="mt-5 flex items-end justify-between border-b border-white/[0.08] px-5">
-        <div className="flex items-end gap-10">
-          <button className="relative pb-4 text-[20px] font-bold tracking-[-0.04em] text-white">
+      <div className="mt-4 flex items-end justify-between border-b border-white/[0.08] px-5">
+        <div className="flex items-end gap-8">
+          <button className="relative pb-3 text-[17px] font-bold tracking-[-0.04em] text-white">
             Para você
-            <span className="absolute bottom-0 left-1/2 h-1 w-[64px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
+            <span className="absolute bottom-0 left-1/2 h-1 w-[52px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
           </button>
-          <button className="pb-4 text-[20px] font-semibold tracking-[-0.04em] text-[#9CA3AF]">
+          <button className="pb-3 text-[17px] font-semibold tracking-[-0.04em] text-[#9CA3AF]">
             Seguindo
           </button>
         </div>
         <button
           type="button"
           aria-label="Ajustar feed"
-          className="pb-4 text-white/70"
+          className="pb-3 text-white/70"
           onClick={() => {
             setSearchQuery('premium')
             setShowSearch(true)
             setActionFeedback('Filtros inteligentes abertos.')
           }}
         >
-          <SlidersHorizontal className="h-7 w-7" strokeWidth={1.7} />
+          <SlidersHorizontal className="h-6 w-6" strokeWidth={1.7} />
         </button>
       </div>
 
-      <div className="space-y-5 px-3 pt-4">
+      <div className="space-y-3.5 px-3 pt-3">
         {posts.map((post, i) => (
           <motion.div
             key={post.id}
