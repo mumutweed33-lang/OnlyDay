@@ -433,7 +433,11 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       setCommentsByPost(next)
       writeStorage(COMMENTS_STORAGE_KEY, next)
       const supabase = getSupabaseBrowserClient()
-      const { data, error } = await supabase
+      let data: unknown = null
+      let error: Error | null = null
+      let errorMessage = ''
+
+      const directInsert = await supabase
         .from('comments')
         .insert({
           post_id: post.id,
@@ -443,10 +447,47 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         .select(commentSelect)
         .single()
 
+      data = directInsert.data
+      error = directInsert.error ? new Error(directInsert.error.message) : null
+      errorMessage = directInsert.error?.message ?? ''
+
+      if (error) {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        const token = sessionData.session?.access_token
+
+        if (sessionError || !token) {
+          setCommentsByPost(previous)
+          writeStorage(COMMENTS_STORAGE_KEY, previous)
+          throw new Error(sessionError?.message || error.message)
+        }
+
+        const response = await fetch(`/api/posts/${encodeURIComponent(post.id)}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            content: trimmedContent,
+          }),
+        })
+
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { error?: string } | null
+          setCommentsByPost(previous)
+          writeStorage(COMMENTS_STORAGE_KEY, previous)
+          throw new Error(body?.error || errorMessage || 'Nao foi possivel salvar o comentario agora.')
+        }
+
+        const body = (await response.json()) as { comment?: CommentRow }
+        data = body.comment ?? null
+        error = null
+      }
+
       if (error) {
         setCommentsByPost(previous)
         writeStorage(COMMENTS_STORAGE_KEY, previous)
-        throw new Error(error.message)
+        throw new Error(errorMessage || 'Nao foi possivel salvar o comentario agora.')
       }
 
       const savedComment = mapComment(data as unknown as CommentRow, nextComment)

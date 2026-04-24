@@ -566,17 +566,17 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
                 )}
               </div>
 
-              <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 p-2">
+              <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/6 p-2 sm:flex-row sm:items-center">
                 <input
                   value={commentDraft}
                   onChange={(event) => setCommentDraft(event.target.value)}
                   placeholder="Escreva seu comentario..."
-                  className="flex-1 bg-transparent px-2 text-sm text-white outline-none placeholder:text-white/30"
+                  className="min-w-0 flex-1 bg-transparent px-2 text-sm text-white outline-none placeholder:text-white/30"
                 />
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCommentSubmit}
-                  className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
+                  className="w-full rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white sm:w-auto sm:shrink-0"
                 >
                   Enviar
                 </motion.button>
