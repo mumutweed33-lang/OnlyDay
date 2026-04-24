@@ -609,17 +609,23 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
               <div className="absolute inset-x-0 bottom-0 z-10">
                 {!mediaPreview ? (
                   <>
-                    <div className="mb-5 flex items-end justify-between px-5">
+                    <div className="mb-4 flex items-center justify-between px-5">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-violet-300 backdrop-blur-xl"
+                        className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-violet-300 backdrop-blur-xl"
                       >
-                        <Plus className="h-7 w-7" />
+                        <Plus className="h-6 w-6" />
                       </button>
 
-                      <div className="flex items-center gap-4 overflow-x-auto px-2 scrollbar-hide">
-                        {CAMERA_EFFECTS.map((effect) => (
+                      <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-amber-300 backdrop-blur-xl">
+                        <span className="text-[12px] font-black tracking-[0.02em]">4K</span>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 flex items-center justify-center">
+                      <div className="flex max-w-full items-center gap-3 overflow-x-auto px-4 scrollbar-hide">
+                        {CAMERA_EFFECTS.slice(0, 2).map((effect) => (
                           <button
                             key={effect.id}
                             type="button"
@@ -628,8 +634,8 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                           >
                             <div
                               className={
-                                'h-[58px] w-[58px] rounded-full border object-cover ' +
-                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.35)]' : 'border-white/12')
+                                'h-[48px] w-[48px] rounded-full border object-cover ' +
+                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.28)]' : 'border-white/12')
                               }
                               style={{
                                 backgroundImage:
@@ -637,40 +643,58 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                                 filter: effect.filter,
                               }}
                             />
-                            <span className={`text-[10px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/48'}`}>
+                            <span className={`text-[9px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/44'}`}>
+                              {effect.label}
+                            </span>
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={handleCameraCapture}
+                          disabled={cameraLoading}
+                          className="relative mx-1 flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center rounded-full border-[3px] border-violet-400/90 bg-white shadow-[0_0_22px_rgba(139,92,246,0.32)] disabled:opacity-60"
+                        >
+                          <span className="absolute inset-[-5px] rounded-full border border-violet-400/22" />
+                          {cameraLoading ? (
+                            <RefreshCcw className="h-6 w-6 animate-spin text-violet-500" />
+                          ) : (
+                            <span className="h-[60px] w-[60px] rounded-full border border-white/15 bg-white" />
+                          )}
+                        </button>
+
+                        {CAMERA_EFFECTS.slice(2).map((effect) => (
+                          <button
+                            key={effect.id}
+                            type="button"
+                            onClick={() => setSelectedEffect(effect.id)}
+                            className="flex flex-col items-center gap-1"
+                          >
+                            <div
+                              className={
+                                'h-[48px] w-[48px] rounded-full border object-cover ' +
+                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.28)]' : 'border-white/12')
+                              }
+                              style={{
+                                backgroundImage:
+                                  'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 45%), linear-gradient(135deg, rgba(147,51,234,0.26), rgba(12,12,18,0.88))',
+                                filter: effect.filter,
+                              }}
+                            />
+                            <span className={`text-[9px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/44'}`}>
                               {effect.label}
                             </span>
                           </button>
                         ))}
                       </div>
-
-                      <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-amber-300 backdrop-blur-xl">
-                        <span className="text-[12px] font-black tracking-[0.02em]">4K</span>
-                      </div>
                     </div>
 
-                    <div className="mb-5 flex items-center justify-center">
-                      <button
-                        type="button"
-                        onClick={handleCameraCapture}
-                        disabled={cameraLoading}
-                        className="relative flex h-[92px] w-[92px] items-center justify-center rounded-full border-4 border-violet-400/90 bg-white shadow-[0_0_30px_rgba(139,92,246,0.4)] disabled:opacity-60"
-                      >
-                        <span className="absolute inset-[-7px] rounded-full border border-violet-400/28" />
-                        {cameraLoading ? (
-                          <RefreshCcw className="h-7 w-7 animate-spin text-violet-500" />
-                        ) : (
-                          <span className="h-[74px] w-[74px] rounded-full border border-white/15 bg-white" />
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="rounded-t-[30px] border-t border-white/8 bg-[rgba(18,18,24,0.92)] px-6 pb-6 pt-4 backdrop-blur-2xl">
-                      <div className="flex items-center justify-center gap-10 text-[17px] uppercase tracking-[0.32em] text-white/48">
+                    <div className="rounded-t-[30px] border-t border-white/8 bg-[rgba(18,18,24,0.92)] px-6 pb-5 pt-3 backdrop-blur-2xl">
+                      <div className="flex items-center justify-center gap-7 text-[13px] uppercase tracking-[0.22em] text-white/42">
                         <span>Post</span>
                         <span className="relative font-semibold text-violet-300">
                           Momento
-                          <span className="absolute -bottom-3 left-1/2 h-[3px] w-[92px] -translate-x-1/2 rounded-full bg-violet-400" />
+                          <span className="absolute -bottom-2 left-1/2 h-[2px] w-[64px] -translate-x-1/2 rounded-full bg-violet-400" />
                         </span>
                         <span>Live</span>
                       </div>
