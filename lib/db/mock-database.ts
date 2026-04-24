@@ -153,6 +153,21 @@ class MockPostRepository implements PostRepository {
     return updated
   }
 
+  async incrementShare(postId: string) {
+    const current = await this.listFeed()
+    let updated: FeedPost | null = null
+    const next = current.map((post) => {
+      if (post.id !== postId) return post
+      updated = {
+        ...post,
+        shares: post.shares + 1,
+      }
+      return updated
+    })
+    writeStorage(STORAGE_KEYS.posts, next)
+    return updated
+  }
+
   async delete(postId: string) {
     const current = await this.listFeed()
     writeStorage(

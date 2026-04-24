@@ -21,5 +21,5 @@ export function getDatabaseProvider(): DatabaseProvider {
   }
 
   databaseProvider = new MockDatabaseProvider()
-  return databaseProvider
+  return databaseProvider as DatabaseProvider
 }

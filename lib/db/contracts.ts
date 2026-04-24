@@ -30,6 +30,7 @@ export interface PostRepository {
   create(post: NewFeedPost): Promise<FeedPost>
   toggleLike(postId: string, userId: string): Promise<FeedPost | null>
   toggleSave(postId: string, userId: string): Promise<FeedPost | null>
+  incrementShare(postId: string, userId?: string): Promise<FeedPost | null>
   delete(postId: string): Promise<void>
 }
 

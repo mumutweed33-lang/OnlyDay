@@ -472,6 +472,32 @@ export class SupabasePostRepository implements PostRepository {
     return fetchPostById(postId, userId)
   }
 
+  async incrementShare(postId: string, userId?: string) {
+    const supabase = getSupabaseBrowserClient()
+    const { error } = await supabase.rpc('increment_post_share', { target_post_id: postId })
+    if (error) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (sessionError || !token) {
+        throw new Error(sessionError?.message || error.message)
+      }
+
+      const response = await fetch(`/api/posts/${encodeURIComponent(postId)}/share`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(body?.error || error.message)
+      }
+    }
+
+    return fetchPostById(postId, userId)
+  }
+
   async delete(postId: string) {
     const supabase = getSupabaseBrowserClient()
     const { error } = await supabase.from('posts').delete().eq('id', postId)
@@ -754,7 +780,33 @@ export class SupabaseMomentoRepository implements MomentoRepository {
       .insert(payload)
       .select(momentoSelect)
       .single()
-    if (error) throw new Error(error.message)
+    if (error) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (sessionError || !token) {
+        throw new Error(sessionError?.message || error.message)
+      }
+
+      const response = await fetch('/api/momentos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(body?.error || error.message)
+      }
+
+      const body = (await response.json()) as { momento?: MomentoRow }
+      if (!body.momento) {
+        throw new Error('Nao foi possivel publicar esse Momento agora.')
+      }
+      return mapMomento(body.momento)
+    }
     return mapMomento(data as MomentoRow)
   }
 

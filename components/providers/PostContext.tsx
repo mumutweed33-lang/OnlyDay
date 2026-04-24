@@ -12,6 +12,7 @@ interface PostContextType {
   addPost: (post: NewFeedPost) => Promise<void>
   likePost: (postId: string) => Promise<Post | null>
   savePost: (postId: string) => Promise<void>
+  refreshPosts: () => Promise<void>
   deletePost: (postId: string) => Promise<void>
 }
 
@@ -134,7 +135,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
   }, [posts, updateUser, user])
 
   return (
-    <PostContext.Provider value={{ posts, addPost, likePost, savePost, deletePost }}>
+    <PostContext.Provider value={{ posts, addPost, likePost, savePost, refreshPosts: loadPosts, deletePost }}>
       {children}
     </PostContext.Provider>
   )

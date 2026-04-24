@@ -1,6 +1,7 @@
 alter table public.posts add column if not exists liked_by uuid[] not null default '{}';
 alter table public.posts add column if not exists likes_count integer not null default 0;
 alter table public.posts add column if not exists comments_count integer not null default 0;
+alter table public.posts add column if not exists shares_count integer not null default 0;
 
 create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),
@@ -68,6 +69,30 @@ end;
 $$;
 
 grant execute on function public.toggle_post_like(uuid) to authenticated;
+
+create or replace function public.increment_post_share(target_post_id uuid)
+returns public.posts
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  updated_post public.posts;
+begin
+  update public.posts
+  set shares_count = coalesce(shares_count, 0) + 1
+  where id = target_post_id
+  returning * into updated_post;
+
+  if updated_post.id is null then
+    raise exception 'post_not_found';
+  end if;
+
+  return updated_post;
+end;
+$$;
+
+grant execute on function public.increment_post_share(uuid) to authenticated;
 
 create or replace function public.refresh_post_comment_count()
 returns trigger

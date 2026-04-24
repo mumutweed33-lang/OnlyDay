@@ -170,11 +170,16 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
   }
 
   const handleShare = (targetLabel?: string) => {
-    sharePost(post, targetLabel)
-    setShowShare(false)
-    pushFeedback(
-      targetLabel ? `Post compartilhado com ${targetLabel}.` : 'Post compartilhado com sucesso.'
-    )
+    void sharePost(post, targetLabel)
+      .then(() => {
+        setShowShare(false)
+        pushFeedback(
+          targetLabel ? `Post compartilhado com ${targetLabel}.` : 'Post compartilhado com sucesso.'
+        )
+      })
+      .catch(() => {
+        pushFeedback('Nao foi possivel compartilhar esse post agora. Tente de novo.')
+      })
   }
 
   return (

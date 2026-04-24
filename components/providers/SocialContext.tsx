@@ -11,8 +11,6 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { AppNotification, FeedPost, NotificationType, PostComment, PublicProfile } from '@/types/domain'
 
 const COMMENTS_STORAGE_KEY = 'onlyday_comments'
-const SHARES_STORAGE_KEY = 'onlyday_shares'
-
 type FollowRow = {
   follower_id: string
   following_id: string
@@ -65,7 +63,7 @@ interface SocialContextType {
   getComments: (postId: string) => PostComment[]
   getShareCount: (postId: string, baseCount?: number) => number
   addComment: (post: FeedPost, content: string) => Promise<PostComment | null>
-  sharePost: (post: FeedPost, targetLabel?: string) => void
+  sharePost: (post: FeedPost, targetLabel?: string) => Promise<void>
   notifyPostLiked: (post: FeedPost) => void
   markNotificationsRead: () => void
   isFollowing: (profileId: string) => boolean
@@ -126,7 +124,7 @@ type NotificationDraft = {
 
 export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
-  const { posts } = usePosts()
+  const { posts, refreshPosts } = usePosts()
   const { conversations } = useMessages()
   const { creatorMomentos } = useMomentos()
   const [directoryProfiles, setDirectoryProfiles] = useState<PublicProfile[]>([])
@@ -134,11 +132,8 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const [followerCounts, setFollowerCounts] = useState<Record<string, number>>({})
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
   const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const [sharesByPost, setSharesByPost] = useState<Record<string, number>>({})
-
   useEffect(() => {
     setCommentsByPost(readStorage<Record<string, PostComment[]>>(COMMENTS_STORAGE_KEY, {}))
-    setSharesByPost(readStorage<Record<string, number>>(SHARES_STORAGE_KEY, {}))
   }, [])
 
   const loadComments = useCallback(async () => {
@@ -464,6 +459,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       setCommentsByPost(saved)
       writeStorage(COMMENTS_STORAGE_KEY, saved)
       void loadComments()
+      void refreshPosts()
       void trackOdEvent({
         actorProfileId: user.id,
         targetProfileId: post.userId,
@@ -488,22 +484,18 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       })
       return savedComment
     },
-    [commentsByPost, loadComments, pushNotification, user]
+    [commentsByPost, loadComments, pushNotification, refreshPosts, user]
   )
 
   const getShareCount = useCallback(
-    (postId: string, baseCount = 0) => baseCount + (sharesByPost[postId] ?? 0),
-    [sharesByPost]
+    (_postId: string, baseCount = 0) => baseCount,
+    []
   )
 
   const sharePost = useCallback(
-    (post: FeedPost, targetLabel?: string) => {
-      const nextShares = {
-        ...sharesByPost,
-        [post.id]: (sharesByPost[post.id] ?? 0) + 1,
-      }
-      setSharesByPost(nextShares)
-      writeStorage(SHARES_STORAGE_KEY, nextShares)
+    async (post: FeedPost, targetLabel?: string) => {
+      await getDatabaseProvider().posts.incrementShare(post.id, user?.id)
+      await refreshPosts()
       if (user?.id) {
         void trackOdEvent({
           actorProfileId: user.id,
@@ -535,7 +527,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
           : `Você compartilhou um post de ${normalizeDisplayName(post.userName)}.`,
       })
     },
-    [pushNotification, sharesByPost, user?.id]
+    [pushNotification, refreshPosts, user?.id]
   )
 
   const notifyPostLiked = useCallback(

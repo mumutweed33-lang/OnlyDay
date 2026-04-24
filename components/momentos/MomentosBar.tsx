@@ -69,6 +69,26 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   const [flashOverlayVisible, setFlashOverlayVisible] = useState(false)
   const [ultraHdMode, setUltraHdMode] = useState(true)
 
+  const resolveMediaForPublish = async (media: string) => {
+    if (!media.startsWith('blob:')) return media
+
+    const response = await fetch(media)
+    const blob = await response.blob()
+
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result)
+          return
+        }
+        reject(new Error('Nao foi possivel preparar a midia para publicar o Momento.'))
+      }
+      reader.onerror = () => reject(new Error('Nao foi possivel preparar a midia para publicar o Momento.'))
+      reader.readAsDataURL(blob)
+    })
+  }
+
   const ownSummary = useMemo(
     () => creatorMomentos.find((creator) => creator.userId === user?.id),
     [creatorMomentos, user?.id]
@@ -326,6 +346,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
     setCreateError(null)
 
     try {
+      const mediaPayload = await resolveMediaForPublish(mediaPreview)
       await addMomento({
         userId: user.id,
         userName: user.name,
@@ -334,7 +355,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
         userBio: caption.trim() || user.bio,
         isVerified: user.isCreator && user.isVerified,
         isCreator: true,
-        media: mediaPreview,
+        media: mediaPayload,
         mediaType,
         isLocked: isPremium,
         price: isPremium ? parsedPrice : undefined,
@@ -357,14 +378,6 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
 
   return (
     <div className="px-5 pt-4">
-      <div className="mb-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[17px] font-bold tracking-[-0.04em] text-white">
-          Momentos
-          <span className="h-2.5 w-2.5 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.8)]" />
-        </div>
-        <button className="text-[13px] font-medium text-[#9CA3AF]">Ver todos</button>
-      </div>
-
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
         <div className="flex-shrink-0">
           <motion.button

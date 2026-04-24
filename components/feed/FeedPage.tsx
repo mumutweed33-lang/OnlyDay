@@ -55,13 +55,14 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
   const { posts } = usePosts()
   const { activeMomento } = useMomentos()
   const { user } = useUser()
+  const [feedTab, setFeedTab] = useState<'for-you' | 'following'>('for-you')
   const [showNotification, setShowNotification] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [vaultRankedPostIds, setVaultRankedPostIds] = useState<string[]>([])
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
-  const { notifications, unreadNotifications, markNotificationsRead, getKnownProfiles } = useSocial()
+  const { notifications, unreadNotifications, markNotificationsRead, getKnownProfiles, followedIds } = useSocial()
   const trackedImpressionsRef = useRef<Set<string>>(new Set())
 
   const knownProfiles = getKnownProfiles()
@@ -180,6 +181,33 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
     () => posts.find((post) => post.id === selectedPostId) ?? null,
     [posts, selectedPostId]
   )
+
+  const filteredPosts = useMemo(() => {
+    if (feedTab === 'following') {
+      return posts.filter((post) => followedIds.includes(post.userId))
+    }
+
+    const normalizedNiche = user?.niche?.trim().toLowerCase()
+    const nicheTokens = normalizedNiche
+      ? normalizedNiche.split(/[\s,/|-]+/).filter(Boolean)
+      : []
+
+    return [...posts].sort((left, right) => {
+      const scorePost = (post: (typeof posts)[number]) => {
+        const searchableContent = `${post.content} ${(post.hashtags ?? []).join(' ')} ${post.userName} ${post.userUsername}`.toLowerCase()
+        const nicheScore = nicheTokens.reduce(
+          (total, token) => total + (searchableContent.includes(token) ? 12 : 0),
+          0
+        )
+        const followingScore = followedIds.includes(post.userId) ? 4 : 0
+        const engagementScore = post.likes * 0.05 + post.comments * 0.08 + post.shares * 0.1
+        const freshnessScore = new Date(post.createdAt).getTime() / 1_000_000_000_000
+        return nicheScore + followingScore + engagementScore + freshnessScore
+      }
+
+      return scorePost(right) - scorePost(left)
+    })
+  }, [feedTab, followedIds, posts, user?.niche])
 
   return (
     <div className="min-h-screen bg-[#050505] pb-28 md:pb-32">
@@ -467,12 +495,25 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
 
       <div className="mt-4 flex items-end justify-between border-b border-white/[0.08] px-5 md:mx-auto md:max-w-[1080px] md:px-8">
         <div className="flex items-end gap-8">
-          <button className="relative pb-3 text-[17px] font-bold tracking-[-0.04em] text-white">
+          <button
+            type="button"
+            onClick={() => setFeedTab('for-you')}
+            className={`relative pb-3 text-[17px] tracking-[-0.04em] ${feedTab === 'for-you' ? 'font-bold text-white' : 'font-semibold text-[#9CA3AF]'}`}
+          >
             Para você
-            <span className="absolute bottom-0 left-1/2 h-1 w-[52px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
+            {feedTab === 'for-you' && (
+              <span className="absolute bottom-0 left-1/2 h-1 w-[52px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
+            )}
           </button>
-          <button className="pb-3 text-[17px] font-semibold tracking-[-0.04em] text-[#9CA3AF]">
+          <button
+            type="button"
+            onClick={() => setFeedTab('following')}
+            className={`relative pb-3 text-[17px] tracking-[-0.04em] ${feedTab === 'following' ? 'font-bold text-white' : 'font-semibold text-[#9CA3AF]'}`}
+          >
             Seguindo
+            {feedTab === 'following' && (
+              <span className="absolute bottom-0 left-1/2 h-1 w-[52px] -translate-x-1/2 rounded-full bg-[#8B5CF6] shadow-[0_0_18px_rgba(139,92,246,0.7)]" />
+            )}
           </button>
         </div>
         <button
@@ -490,7 +531,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
       </div>
 
       <div className="space-y-3.5 px-3 pt-3 md:mx-auto md:max-w-[1080px] md:px-8">
-        {posts.map((post, i) => (
+        {filteredPosts.map((post, i) => (
           <motion.div
             key={post.id}
             initial={{ opacity: 0, y: 20 }}
@@ -511,15 +552,19 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         ))}
       </div>
 
-      {posts.length === 0 && (
+      {filteredPosts.length === 0 && (
         <div className="px-4 py-8 md:mx-auto md:max-w-[1080px] md:px-8">
           <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-5 text-center shadow-[0_16px_50px_rgba(0,0,0,0.2)]">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-400/15">
               <Sparkles className="h-5 w-5 text-violet-300" />
             </div>
-            <h3 className="text-sm font-bold text-white">Nenhum post real ainda</h3>
+            <h3 className="text-sm font-bold text-white">
+              {feedTab === 'following' ? 'Voce ainda nao segue ninguem com posts ativos' : 'Nenhum post real ainda'}
+            </h3>
             <p className="mt-2 text-sm leading-relaxed text-white/45">
-              Assim que alguem da comunidade publicar, o conteudo aparece aqui para todos.
+              {feedTab === 'following'
+                ? 'Quando voce seguir perfis ativos, essa aba mostra somente posts das pessoas que voce segue.'
+                : 'Assim que alguem da comunidade publicar, o conteudo aparece aqui para todos.'}
             </p>
           </div>
         </div>
