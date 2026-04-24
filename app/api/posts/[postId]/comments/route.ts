@@ -6,18 +6,12 @@ type RouteContext = {
   params: Promise<{ postId: string }>
 }
 
-const commentSelect = `
+const commentInsertSelect = `
   id,
   post_id,
   user_id,
   content,
-  created_at,
-  profiles:user_id (
-    name,
-    username,
-    avatar,
-    avatar_url
-  )
+  created_at
 `
 
 function jsonError(message: string, status = 400) {
@@ -73,7 +67,7 @@ export async function POST(request: Request, context: RouteContext) {
       user_id: authData.user.id,
       content,
     })
-    .select(commentSelect)
+    .select(commentInsertSelect)
     .single()
 
   if (error) {

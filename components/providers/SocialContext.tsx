@@ -44,6 +44,14 @@ const commentSelect = `
   )
 `
 
+const commentInsertSelect = `
+  id,
+  post_id,
+  user_id,
+  content,
+  created_at
+`
+
 function normalizeDisplayName(value: string) {
   const trimmed = value.trim()
   if (!trimmed) return 'Alguém'
@@ -444,7 +452,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
           user_id: user.id,
           content: trimmedContent,
         })
-        .select(commentSelect)
+        .select(commentInsertSelect)
         .single()
 
       data = directInsert.data
