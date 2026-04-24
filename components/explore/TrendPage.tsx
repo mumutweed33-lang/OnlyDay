@@ -111,10 +111,10 @@ export function TrendPage({ tag, onBack, onOpenProfile, onOpenTag, onCreatePost 
   const listPosts = activeTab === 'Pessoas' ? [] : orderedPosts.slice(0, 6)
 
   return (
-    <div className="relative min-h-screen bg-[#050508] pb-28">
+    <div className="relative min-h-screen bg-[#050508] pb-28 md:pb-32">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[220px] bg-[radial-gradient(circle_at_40%_10%,rgba(139,92,246,0.22),transparent_38%),radial-gradient(circle_at_52%_0%,rgba(99,64,255,0.1),transparent_22%)]" />
 
-      <div className="relative px-4 pb-4 pt-6">
+      <div className="relative px-4 pb-4 pt-6 md:mx-auto md:max-w-[1080px] md:px-8 md:pt-7">
         <div className="mb-7 flex items-center justify-between">
           <button
             type="button"
@@ -143,13 +143,13 @@ export function TrendPage({ tag, onBack, onOpenProfile, onOpenTag, onCreatePost 
           </div>
         </div>
 
-        <div className="mb-6 flex items-center gap-4">
+        <div className="mb-6 flex items-center gap-4 md:gap-6">
           <div className="flex h-[120px] w-[120px] flex-shrink-0 items-center justify-center rounded-[30px] border border-violet-500/28 bg-[radial-gradient(circle_at_50%_30%,rgba(139,92,246,0.22),transparent_62%),#151022] shadow-[0_18px_38px_rgba(0,0,0,0.22)]">
             <Hash className="h-14 w-14 text-violet-400" strokeWidth={1.8} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-[28px] font-black tracking-[-0.055em] text-white">#{tag.replace(/^#/, '')}</h1>
+            <h1 className="text-[28px] font-black tracking-[-0.055em] text-white md:text-[34px]">#{tag.replace(/^#/, '')}</h1>
             <div className="mt-2 flex items-center gap-2 text-[12.5px]">
               <TrendingUp className="h-4 w-4 text-violet-400" />
               <span className="font-medium text-violet-300">Em alta no Brasil</span>
@@ -180,7 +180,7 @@ export function TrendPage({ tag, onBack, onOpenProfile, onOpenTag, onCreatePost 
         </div>
       </div>
 
-      <div className="relative border-t border-white/[0.06] px-4 pt-4">
+      <div className="relative border-t border-white/[0.06] px-4 pt-4 md:mx-auto md:max-w-[1080px] md:px-8">
         <section className="mb-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-semibold tracking-[-0.03em] text-white/76">
@@ -191,7 +191,7 @@ export function TrendPage({ tag, onBack, onOpenProfile, onOpenTag, onCreatePost 
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-3 md:grid-cols-6">
             {creatorsInTrend.map((creator) => (
               <button
                 key={creator.id}

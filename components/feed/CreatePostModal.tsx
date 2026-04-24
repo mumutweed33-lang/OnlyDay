@@ -96,9 +96,10 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col bg-[#050508]"
+      className="fixed inset-0 z-50 flex flex-col bg-[#050508] md:items-center md:justify-center md:bg-black/70 md:p-6"
     >
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-4">
+      <div className="flex min-h-0 flex-1 flex-col bg-[#050508] md:max-h-[90vh] md:w-full md:max-w-[900px] md:flex-none md:overflow-hidden md:rounded-[32px] md:border md:border-white/10 md:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-4 md:px-6">
         <button
           onClick={onClose}
           aria-label="Fechar criação de post"
@@ -130,7 +131,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
         </motion.button>
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pb-6 pt-5">
+      <div className="flex-1 overflow-auto px-4 pb-6 pt-5 md:px-6">
         <input
           ref={mediaInputRef}
           type="file"
@@ -153,7 +154,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
           }}
         />
 
-        <div className="border-b border-white/[0.06] pb-5">
+        <div className="border-b border-white/[0.06] pb-5 md:grid md:grid-cols-[minmax(0,1fr)_280px] md:gap-6">
           <div className="flex gap-3">
             <img
               src={user?.avatar}
@@ -374,6 +375,7 @@ export function CreatePostModal({ onClose }: CreatePostModalProps) {
             ))}
           </motion.div>
         ) : null}
+      </div>
       </div>
     </motion.div>
   )

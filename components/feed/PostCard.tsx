@@ -179,7 +179,7 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
 
   return (
     <motion.div
-      className="rounded-[22px] border border-white/[0.08] bg-[#101018] shadow-[0_18px_55px_rgba(0,0,0,0.34)]"
+      className="rounded-[22px] border border-white/[0.08] bg-[#101018] shadow-[0_18px_55px_rgba(0,0,0,0.34)] md:rounded-[26px]"
       whileHover={{ borderColor: 'rgba(168, 85, 247, 0.18)' }}
     >
       <AnimatePresence>
@@ -196,13 +196,13 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex items-start justify-between px-4 pt-4">
+      <div className="flex items-start justify-between px-4 pt-4 md:px-5 md:pt-5">
         <div className="flex items-center gap-3">
           <button className="relative" onClick={openProfile} aria-label={`Abrir perfil de ${post.userName}`}>
             <img
               src={post.userAvatar}
               alt={post.userName}
-              className="h-9 w-9 rounded-full object-cover"
+              className="h-9 w-9 rounded-full object-cover md:h-10 md:w-10"
             />
             {post.isVerified && (
               <div className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#8B5CF6]">
@@ -212,10 +212,10 @@ export function PostCard({ post, onOpenProfile, onOpenTag, onOpenPost }: PostCar
           </button>
           <button className="text-left" onClick={openProfile} aria-label={`Ver perfil de ${post.userName}`}>
             <div className="flex items-center gap-1">
-              <span className="text-[15px] font-bold leading-tight tracking-[-0.04em] text-white">{post.userName}</span>
+              <span className="text-[15px] font-bold leading-tight tracking-[-0.04em] text-white md:text-[16px]">{post.userName}</span>
               {post.isVerified && <BadgeCheck className="h-4 w-4 text-[#8B5CF6]" fill="currentColor" />}
             </div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-[#9CA3AF]">
+            <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-[#9CA3AF] md:text-[13px]">
               <span>{post.userUsername}</span>
               <span>•</span>
               <span>{timeAgo}</span>

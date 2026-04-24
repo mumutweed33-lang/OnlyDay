@@ -144,30 +144,30 @@ export function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020204] text-white">
+    <div className="min-h-screen bg-[#020204] text-white md:px-4 md:pb-6 md:pt-4">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_100%_20%,rgba(168,85,247,0.08),transparent_26%)]" />
-      <div className="relative mx-auto min-h-screen max-w-[430px] overflow-hidden border-x border-white/6 bg-[#050508] shadow-[0_0_80px_rgba(0,0,0,0.5)]">
-      <div className="pb-24">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {pages[activeTab] || pages.feed}
-          </motion.div>
+      <div className="relative mx-auto min-h-screen max-w-[430px] overflow-hidden border-x border-white/6 bg-[#050508] shadow-[0_0_80px_rgba(0,0,0,0.5)] md:min-h-[calc(100vh-2rem)] md:max-w-[1180px] md:rounded-[34px] md:border md:border-white/8 md:shadow-[0_24px_90px_rgba(0,0,0,0.42)]">
+        <div className="pb-24 md:pb-28">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {pages[activeTab] || pages.feed}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <BottomNav activeTab={activeTab} setActiveTab={handleSetTab} />
+
+        <AnimatePresence>
+          {showCreateModal && (
+            <CreatePostModal onClose={() => setShowCreateModal(false)} />
+          )}
         </AnimatePresence>
-      </div>
-
-      <BottomNav activeTab={activeTab} setActiveTab={handleSetTab} />
-
-      <AnimatePresence>
-        {showCreateModal && (
-          <CreatePostModal onClose={() => setShowCreateModal(false)} />
-        )}
-      </AnimatePresence>
       </div>
     </div>
   )

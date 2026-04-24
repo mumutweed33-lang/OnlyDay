@@ -45,7 +45,7 @@ export function PublicProfilePage({
   )
 
   return (
-    <div className="min-h-screen bg-[#050508] pb-28">
+    <div className="min-h-screen bg-[#050508] pb-28 md:pb-32">
       <PostDetailModal
         post={selectedPost}
         viewerId={viewerId}
@@ -53,7 +53,7 @@ export function PublicProfilePage({
         onOpenTag={onOpenTag}
       />
 
-      <div className="relative">
+      <div className="relative md:mx-auto md:max-w-[1080px]">
         <div className="relative h-52 overflow-hidden bg-[linear-gradient(180deg,#13081f_0%,#261243_44%,#050508_100%)]">
           {profile.coverImage && (
             <img
@@ -77,7 +77,7 @@ export function PublicProfilePage({
           </div>
         </div>
 
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 md:px-8">
           <div className="-mt-10 mb-4 flex items-end justify-between gap-3">
             <div className="relative">
               <img
@@ -151,7 +151,7 @@ export function PublicProfilePage({
         </div>
       </div>
 
-      <div className="border-y border-white/5 px-4">
+      <div className="border-y border-white/5 px-4 md:mx-auto md:max-w-[1080px] md:px-8">
         <div className="flex">
           {[
             { id: 'posts', icon: Grid3X3, label: 'Publicacoes' },
@@ -178,7 +178,7 @@ export function PublicProfilePage({
         </div>
       </div>
 
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 md:mx-auto md:max-w-[1080px] md:px-8">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('posts')}
@@ -205,7 +205,7 @@ export function PublicProfilePage({
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 md:mx-auto md:max-w-[1080px] md:px-8">
         {visiblePosts.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-sm text-white/50">

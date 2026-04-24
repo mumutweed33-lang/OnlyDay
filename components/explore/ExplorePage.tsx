@@ -312,8 +312,9 @@ export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExploreP
   })
 
   return (
-    <div className="min-h-screen bg-[#050508] pb-28">
-      <div className="sticky top-0 z-30 border-b border-white/[0.04] bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-6 backdrop-blur-2xl">
+    <div className="min-h-screen bg-[#050508] pb-28 md:pb-32">
+      <div className="sticky top-0 z-30 border-b border-white/[0.04] bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-6 backdrop-blur-2xl md:px-8 md:pt-7">
+        <div className="mx-auto max-w-[1080px]">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <BrandLogo size={34} className="select-none" />
@@ -361,9 +362,10 @@ export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExploreP
             <div className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-500" />
           )}
         </div>
+        </div>
       </div>
 
-      <div className="space-y-5 px-4 pt-4">
+      <div className="space-y-5 px-4 pt-4 md:mx-auto md:max-w-[1080px] md:px-8">
         {!searchQuery ? (
           <>
             <section>
@@ -425,7 +427,7 @@ export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExploreP
                 ))}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
                 {featuredCreators.map((creator, index) => (
                   <motion.div
                     key={creator.id}
@@ -501,7 +503,7 @@ export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExploreP
             </section>
           </>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 md:grid md:grid-cols-2 md:gap-5 md:space-y-0">
             <div>
               <h3 className="mb-3 text-[13px] font-semibold text-white/60">Usuários</h3>
               {matchingCreators.map((creator) => (
@@ -628,7 +630,7 @@ export function ExplorePage({ onOpenProfile, onOpenTag, initialQuery }: ExploreP
       </div>
 
       {actionFeedback ? (
-        <div className="pointer-events-none fixed bottom-24 left-1/2 z-40 -translate-x-1/2 rounded-full border border-violet-400/20 bg-[rgba(15,10,30,0.92)] px-4 py-2 text-xs font-medium text-violet-100 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+        <div className="pointer-events-none fixed bottom-24 left-1/2 z-40 -translate-x-1/2 rounded-full border border-violet-400/20 bg-[rgba(15,10,30,0.92)] px-4 py-2 text-xs font-medium text-violet-100 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl md:bottom-28">
           {actionFeedback}
         </div>
       ) : null}

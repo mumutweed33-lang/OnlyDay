@@ -165,14 +165,14 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#050508] pb-28">
+    <div className="min-h-screen bg-[#050508] pb-28 md:pb-32">
       <PostDetailModal
         post={selectedPost}
         viewerId={user.id}
         onClose={() => setSelectedPost(null)}
         onOpenTag={onOpenTag}
       />
-      <div className="relative">
+      <div className="relative md:mx-auto md:max-w-[1080px]">
         <div className="relative h-48 overflow-hidden bg-[linear-gradient(180deg,#10091d_0%,#1a1030_38%,#07070b_100%)]">
           {user.coverImage && (
             <img
@@ -193,7 +193,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
           </div>
         </div>
 
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 md:px-8">
           <div className="mb-4 flex items-end justify-between -mt-10">
             <div className="relative">
               <img
@@ -433,7 +433,7 @@ export function ProfilePage({ onOpenDashboard, onOpenTag }: ProfilePageProps) {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
-              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:max-w-2xl"
             >
               <div className="mb-4 flex shrink-0 items-center justify-between">
                 <div>

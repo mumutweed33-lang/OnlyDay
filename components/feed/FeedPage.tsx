@@ -182,7 +182,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
   )
 
   return (
-    <div className="min-h-screen bg-[#050505] pb-28">
+    <div className="min-h-screen bg-[#050505] pb-28 md:pb-32">
       <AnimatePresence>
         {activeMomento && <MomentoViewer onOpenProfile={onOpenProfile} />}
       </AnimatePresence>
@@ -197,8 +197,8 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         }}
       />
 
-      <div className="sticky top-0 z-30 bg-[rgba(5,5,5,0.88)] px-5 pb-3 pt-6 backdrop-blur-2xl">
-        <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-30 bg-[rgba(5,5,5,0.88)] px-5 pb-3 pt-6 backdrop-blur-2xl md:px-8 md:pt-7">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between">
           <div className="flex items-center gap-3">
             <BrandLogo size={38} className="select-none" />
             <div className="text-[23px] font-black leading-none tracking-[-0.05em] text-white">
@@ -267,7 +267,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mx-4 mt-4 rounded-[28px] border border-white/10 bg-[#100b19] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.32)]"
+            className="mx-4 mt-4 rounded-[28px] border border-white/10 bg-[#100b19] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.32)] md:mx-auto md:max-w-[1080px]"
           >
             <div className="mb-3 flex items-center justify-between">
               <div>
@@ -334,7 +334,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
-              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:max-w-2xl"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -402,7 +402,9 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         )}
       </AnimatePresence>
 
-      <MomentosBar onOpenProfile={onOpenProfile} />
+      <div className="md:mx-auto md:max-w-[1080px] md:px-6">
+        <MomentosBar onOpenProfile={onOpenProfile} />
+      </div>
 
       {false && vaultSpotlightPosts.length > 0 && (
         <div className="px-4 pt-2">
@@ -463,7 +465,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         </div>
       )}
 
-      <div className="mt-4 flex items-end justify-between border-b border-white/[0.08] px-5">
+      <div className="mt-4 flex items-end justify-between border-b border-white/[0.08] px-5 md:mx-auto md:max-w-[1080px] md:px-8">
         <div className="flex items-end gap-8">
           <button className="relative pb-3 text-[17px] font-bold tracking-[-0.04em] text-white">
             Para você
@@ -487,7 +489,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
         </button>
       </div>
 
-      <div className="space-y-3.5 px-3 pt-3">
+      <div className="space-y-3.5 px-3 pt-3 md:mx-auto md:max-w-[1080px] md:px-8">
         {posts.map((post, i) => (
           <motion.div
             key={post.id}
@@ -510,7 +512,7 @@ export function FeedPage({ onOpenProfile, onOpenTag }: FeedPageProps) {
       </div>
 
       {posts.length === 0 && (
-        <div className="px-4 py-8">
+        <div className="px-4 py-8 md:mx-auto md:max-w-[1080px] md:px-8">
           <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-5 text-center shadow-[0_16px_50px_rgba(0,0,0,0.2)]">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-400/15">
               <Sparkles className="h-5 w-5 text-violet-300" />

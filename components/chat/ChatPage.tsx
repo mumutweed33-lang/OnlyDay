@@ -77,8 +77,9 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#050508] pb-28">
-      <div className="sticky top-0 z-30 bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-5 backdrop-blur-2xl">
+    <div className="min-h-screen bg-[#050508] pb-28 md:pb-32">
+      <div className="sticky top-0 z-30 bg-[rgba(5,5,8,0.94)] px-4 pb-4 pt-5 backdrop-blur-2xl md:px-8 md:pt-7">
+        <div className="mx-auto max-w-[1080px]">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <BrandLogo size={34} className="select-none" />
@@ -120,9 +121,10 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
             className="h-[50px] w-full rounded-[18px] border border-white/10 bg-white/[0.03] pl-11 pr-4 text-[14px] text-white outline-none placeholder:text-white/26"
           />
         </div>
+        </div>
       </div>
 
-      <div className="space-y-3 px-4 pb-2 pt-3">
+      <div className="space-y-3 px-4 pb-2 pt-3 md:mx-auto md:max-w-[1080px] md:px-8">
         <AnimatePresence>
           {actionFeedback && (
             <motion.div
@@ -184,7 +186,7 @@ export function ChatPage({ onOpenProfile }: ChatPageProps) {
               setActiveConversation(conv)
               void markAsRead(conv.id)
             }}
-            className="flex cursor-pointer items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-3.5 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
+            className="flex cursor-pointer items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-3.5 shadow-[0_14px_34px_rgba(0,0,0,0.14)] md:px-5 md:py-4"
           >
             <button
               className="relative flex-shrink-0"
