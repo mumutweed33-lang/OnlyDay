@@ -445,15 +445,10 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       let error: Error | null = null
       let errorMessage = ''
 
-      const directInsert = await supabase
-        .from('comments')
-        .insert({
-          post_id: post.id,
-          user_id: user.id,
-          content: trimmedContent,
-        })
-        .select(commentInsertSelect)
-        .single()
+      const directInsert = await supabase.rpc('add_post_comment', {
+        target_post_id: post.id,
+        comment_content: trimmedContent,
+      })
 
       data = directInsert.data
       error = directInsert.error ? new Error(directInsert.error.message) : null

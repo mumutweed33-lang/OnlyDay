@@ -6,14 +6,6 @@ type RouteContext = {
   params: Promise<{ postId: string }>
 }
 
-const commentInsertSelect = `
-  id,
-  post_id,
-  user_id,
-  content,
-  created_at
-`
-
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
 }
@@ -60,15 +52,10 @@ export async function POST(request: Request, context: RouteContext) {
         },
       })
 
-  const { data, error } = await databaseClient
-    .from('comments')
-    .insert({
-      post_id: postId,
-      user_id: authData.user.id,
-      content,
-    })
-    .select(commentInsertSelect)
-    .single()
+  const { data, error } = await databaseClient.rpc('add_post_comment', {
+    target_post_id: postId,
+    comment_content: content,
+  })
 
   if (error) {
     return jsonError(
