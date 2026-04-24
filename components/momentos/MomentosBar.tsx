@@ -11,11 +11,11 @@ import {
   Lock,
   Plus,
   RefreshCcw,
-  Settings,
   Sparkles,
   Video,
-  Wand2,
   X,
+  Zap,
+  ZapOff,
 } from 'lucide-react'
 import { useMomentos } from '@/components/providers/MomentoContext'
 import { useUser } from '@/components/providers/UserContext'
@@ -58,13 +58,16 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   const [freeViews, setFreeViews] = useState('1')
   const [caption, setCaption] = useState('')
   const [createError, setCreateError] = useState<string | null>(null)
-  const [selectedEffect, setSelectedEffect] = useState<(typeof CAMERA_EFFECTS)[number]['id']>('soft')
+  const [selectedEffect, setSelectedEffect] = useState<(typeof CAMERA_EFFECTS)[number]['id']>('bronze')
   const [showCameraOptions, setShowCameraOptions] = useState(false)
   const [cameraMode, setCameraMode] = useState<(typeof CAMERA_MODES)[number]['id'] | 'standard'>('standard')
   const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment')
   const [cameraReady, setCameraReady] = useState(false)
   const [cameraLoading, setCameraLoading] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [flashEnabled, setFlashEnabled] = useState(false)
+  const [flashOverlayVisible, setFlashOverlayVisible] = useState(false)
+  const [ultraHdMode, setUltraHdMode] = useState(true)
 
   const ownSummary = useMemo(
     () => creatorMomentos.find((creator) => creator.userId === user?.id),
@@ -83,6 +86,23 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
     setCameraReady(false)
   }
 
+  const applyTorchState = async (enabled: boolean, stream?: MediaStream | null) => {
+    const targetStream = stream ?? cameraStreamRef.current
+    const videoTrack = targetStream?.getVideoTracks?.()[0]
+    if (!videoTrack) return
+
+    try {
+      const capabilities = videoTrack.getCapabilities?.() as MediaTrackCapabilities & { torch?: boolean }
+      if (capabilities?.torch) {
+        await videoTrack.applyConstraints({
+          advanced: [{ torch: enabled } as unknown as MediaTrackConstraintSet],
+        })
+      }
+    } catch {
+      // Some browsers ignore torch constraints; keep the UI state as best-effort.
+    }
+  }
+
   const resetComposer = () => {
     if (mediaPreview.startsWith('blob:')) {
       URL.revokeObjectURL(mediaPreview)
@@ -97,6 +117,10 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
     setShowCameraOptions(false)
     setCameraMode('standard')
     setCountdown(null)
+    setFlashEnabled(false)
+    setFlashOverlayVisible(false)
+    setUltraHdMode(true)
+    setSelectedEffect('bronze')
   }
 
   const closeComposer = () => {
@@ -136,8 +160,8 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: cameraFacingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: ultraHdMode ? 3840 : 1920 },
+            height: { ideal: ultraHdMode ? 2160 : 1080 },
           },
           audio: false,
         })
@@ -148,6 +172,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
         }
 
         cameraStreamRef.current = stream
+        await applyTorchState(flashEnabled, stream)
 
         if (videoPreviewRef.current) {
           videoPreviewRef.current.srcObject = stream
@@ -174,13 +199,18 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
       cancelled = true
       stopCameraStream()
     }
-  }, [cameraFacingMode, mediaPreview, showCreateModal, user?.isCreator])
+  }, [cameraFacingMode, flashEnabled, mediaPreview, showCreateModal, ultraHdMode, user?.isCreator])
 
   const capturePhotoFromCamera = () => {
     const video = videoPreviewRef.current
     if (!video) {
       cameraInputRef.current?.click()
       return
+    }
+
+    if (flashEnabled && cameraFacingMode === 'user') {
+      setFlashOverlayVisible(true)
+      window.setTimeout(() => setFlashOverlayVisible(false), 160)
     }
 
     const canvas = document.createElement('canvas')
@@ -520,7 +550,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                       muted
                       playsInline
                       autoPlay
-                      style={{ filter: selectedEffectConfig.filter }}
+                      style={{ filter: selectedEffectConfig.filter, transform: 'scaleX(1)' }}
                     />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.12),transparent_26%),linear-gradient(180deg,rgba(5,5,8,0.62),transparent_24%,transparent_76%,rgba(5,5,8,0.82))]" />
                   </>
@@ -528,6 +558,9 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
 
                 {!mediaPreview && (
                   <div className="absolute inset-0 bg-[#050508]/58" />
+                )}
+                {flashOverlayVisible && (
+                  <div className="absolute inset-0 bg-white/75" />
                 )}
               </div>
 
@@ -537,17 +570,15 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setSelectedEffect((current) => {
-                      const currentIndex = CAMERA_EFFECTS.findIndex((effect) => effect.id === current)
-                      const next = CAMERA_EFFECTS[(currentIndex + 1) % CAMERA_EFFECTS.length]
-                      return next.id
-                    })
-                  }
-                  className="text-violet-300"
-                  aria-label="Alternar efeito"
+                  onClick={async () => {
+                    const next = !flashEnabled
+                    setFlashEnabled(next)
+                    await applyTorchState(next)
+                  }}
+                  className={flashEnabled ? 'text-violet-300' : 'text-white/86'}
+                  aria-label="Ativar flash"
                 >
-                  <Wand2 className="h-7 w-7" />
+                  {flashEnabled ? <Zap className="h-7 w-7" /> : <ZapOff className="h-7 w-7" />}
                 </button>
                 <button
                   type="button"
@@ -555,7 +586,7 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                   className="text-white/92"
                   aria-label="Trocar camera"
                 >
-                  <Settings className="h-7 w-7" />
+                  <RefreshCcw className="h-7 w-7" />
                 </button>
               </div>
 
@@ -618,74 +649,63 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
                         <Plus className="h-6 w-6" />
                       </button>
 
-                      <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-amber-300 backdrop-blur-xl">
+                      <button
+                        type="button"
+                        onClick={() => setUltraHdMode((current) => !current)}
+                        className={
+                          'flex h-[50px] w-[50px] items-center justify-center rounded-full border backdrop-blur-xl ' +
+                          (ultraHdMode
+                            ? 'border-amber-400/30 bg-amber-400/12 text-amber-300'
+                            : 'border-white/10 bg-black/22 text-white/58')
+                        }
+                      >
                         <span className="text-[12px] font-black tracking-[0.02em]">4K</span>
-                      </div>
+                      </button>
                     </div>
 
                     <div className="mb-4 flex items-center justify-center">
-                      <div className="flex max-w-full items-center gap-3 overflow-x-auto px-4 scrollbar-hide">
-                        {CAMERA_EFFECTS.slice(0, 2).map((effect) => (
-                          <button
-                            key={effect.id}
-                            type="button"
-                            onClick={() => setSelectedEffect(effect.id)}
-                            className="flex flex-col items-center gap-1"
-                          >
-                            <div
-                              className={
-                                'h-[48px] w-[48px] rounded-full border object-cover ' +
-                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.28)]' : 'border-white/12')
-                              }
-                              style={{
-                                backgroundImage:
-                                  'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 45%), linear-gradient(135deg, rgba(147,51,234,0.26), rgba(12,12,18,0.88))',
-                                filter: effect.filter,
-                              }}
-                            />
-                            <span className={`text-[9px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/44'}`}>
-                              {effect.label}
-                            </span>
-                          </button>
-                        ))}
+                      <div className="relative w-full max-w-[430px]">
+                        <div className="flex items-center gap-3 overflow-x-auto px-[138px] scrollbar-hide">
+                          {CAMERA_EFFECTS.map((effect) => (
+                            <button
+                              key={effect.id}
+                              type="button"
+                              onClick={() => setSelectedEffect(effect.id)}
+                              className="flex flex-shrink-0 flex-col items-center gap-1"
+                            >
+                              <div
+                                className={
+                                  'h-[48px] w-[48px] rounded-full border object-cover ' +
+                                  (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.28)]' : 'border-white/12')
+                                }
+                                style={{
+                                  backgroundImage:
+                                    'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 45%), linear-gradient(135deg, rgba(147,51,234,0.26), rgba(12,12,18,0.88))',
+                                  filter: effect.filter,
+                                }}
+                              />
+                              <span className={`text-[9px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/44'}`}>
+                                {effect.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={handleCameraCapture}
-                          disabled={cameraLoading}
-                          className="relative mx-1 flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center rounded-full border-[3px] border-violet-400/90 bg-white shadow-[0_0_22px_rgba(139,92,246,0.32)] disabled:opacity-60"
-                        >
-                          <span className="absolute inset-[-5px] rounded-full border border-violet-400/22" />
-                          {cameraLoading ? (
-                            <RefreshCcw className="h-6 w-6 animate-spin text-violet-500" />
-                          ) : (
-                            <span className="h-[60px] w-[60px] rounded-full border border-white/15 bg-white" />
-                          )}
-                        </button>
-
-                        {CAMERA_EFFECTS.slice(2).map((effect) => (
+                        <div className="pointer-events-none absolute inset-y-0 left-1/2 flex -translate-x-1/2 items-center">
                           <button
-                            key={effect.id}
                             type="button"
-                            onClick={() => setSelectedEffect(effect.id)}
-                            className="flex flex-col items-center gap-1"
+                            onClick={handleCameraCapture}
+                            disabled={cameraLoading}
+                            className="pointer-events-auto relative flex h-[74px] w-[74px] items-center justify-center rounded-full border-[3px] border-violet-400/90 bg-white shadow-[0_0_22px_rgba(139,92,246,0.32)] disabled:opacity-60"
                           >
-                            <div
-                              className={
-                                'h-[48px] w-[48px] rounded-full border object-cover ' +
-                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.28)]' : 'border-white/12')
-                              }
-                              style={{
-                                backgroundImage:
-                                  'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 45%), linear-gradient(135deg, rgba(147,51,234,0.26), rgba(12,12,18,0.88))',
-                                filter: effect.filter,
-                              }}
-                            />
-                            <span className={`text-[9px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/44'}`}>
-                              {effect.label}
-                            </span>
+                            <span className="absolute inset-[-5px] rounded-full border border-violet-400/22" />
+                            {cameraLoading ? (
+                              <RefreshCcw className="h-6 w-6 animate-spin text-violet-500" />
+                            ) : (
+                              <span className="h-[60px] w-[60px] rounded-full border border-white/15 bg-white" />
+                            )}
                           </button>
-                        ))}
+                        </div>
                       </div>
                     </div>
 
