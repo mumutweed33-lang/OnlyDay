@@ -388,15 +388,15 @@ export function TrendPage({ tag, onBack, onOpenProfile, onOpenTag, onCreatePost 
       <button
         type="button"
         onClick={onCreatePost}
-        className="fixed bottom-[126px] right-[max(1rem,calc(50%-198px+0.7rem))] z-30 rounded-[22px] border border-white/8 bg-[rgba(18,18,24,0.92)] p-2 shadow-[0_16px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl"
+        className="fixed bottom-[124px] right-[max(0.9rem,calc(50%-198px+0.8rem))] z-30 md:bottom-[138px] md:right-[max(1.5rem,calc(50%-540px+1.5rem))]"
       >
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#a65eff_0%,#7C3AED_60%,#5b2be0_100%)] shadow-[0_0_24px_rgba(124,58,237,0.34)]">
-            <Pencil className="h-6 w-6 text-white" />
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#a65eff_0%,#7C3AED_60%,#5b2be0_100%)] shadow-[0_0_16px_rgba(124,58,237,0.28)] md:h-[60px] md:w-[60px]">
+            <Pencil className="h-5 w-5 text-white md:h-5.5 md:w-5.5" />
           </div>
-          <div className="rounded-[14px] bg-black/18 px-2.5 pb-1.5 pt-1 text-center">
-            <div className="text-[10px] font-semibold text-white">Criar post</div>
-            <div className="text-[10px] text-white/56">
+          <div className="text-center leading-tight">
+            <div className="text-[10px] font-semibold text-white/88">Criar post</div>
+            <div className="text-[9px] text-white/50">
               com <span className="font-semibold text-violet-300">#{tag.replace(/^#/, '')}</span>
             </div>
           </div>
