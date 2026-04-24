@@ -1,8 +1,22 @@
 'use client'
 
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Crown, DollarSign, ImagePlus, Lock, Plus, Sparkles, Video, X } from 'lucide-react'
+import {
+  Camera,
+  ChevronDown,
+  Crown,
+  DollarSign,
+  ImagePlus,
+  Lock,
+  Plus,
+  RefreshCcw,
+  Settings,
+  Sparkles,
+  Video,
+  Wand2,
+  X,
+} from 'lucide-react'
 import { useMomentos } from '@/components/providers/MomentoContext'
 import { useUser } from '@/components/providers/UserContext'
 import type { MediaType, PublicProfile } from '@/types/domain'
@@ -13,12 +27,28 @@ interface MomentosBarProps {
 
 const MOMENTO_DURATION_MS = 7000
 const MOMENTO_TTL_MS = 24 * 60 * 60 * 1000
+const CAMERA_EFFECTS = [
+  { id: 'soft', label: 'Soft', filter: 'saturate(1.08) contrast(1.04) brightness(1.02)' },
+  { id: 'glow', label: 'Glow', filter: 'saturate(1.18) contrast(1.1) brightness(1.06) hue-rotate(-4deg)' },
+  { id: 'bronze', label: 'Bronze', filter: 'sepia(0.22) saturate(1.15) contrast(1.04)' },
+  { id: 'night', label: 'Night', filter: 'contrast(1.14) saturate(0.86) brightness(0.92)' },
+  { id: 'cinema', label: 'Cinema', filter: 'contrast(1.08) saturate(0.92) brightness(0.98)' },
+  { id: 'ultra', label: '4K', filter: 'saturate(1.22) contrast(1.16) brightness(1.03)' },
+] as const
+const CAMERA_MODES = [
+  { id: 'boomerang', label: 'Bumerangue' },
+  { id: 'handsfree', label: 'Mãos livres' },
+] as const
 
 export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   const { creatorMomentos, openCreatorMomentos, addMomento } = useMomentos()
   const { user } = useUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
+  const videoPreviewRef = useRef<HTMLVideoElement>(null)
+  const cameraStreamRef = useRef<MediaStream | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recorderChunksRef = useRef<Blob[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [creating, setCreating] = useState(false)
   const [mediaPreview, setMediaPreview] = useState('')
@@ -28,13 +58,35 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
   const [freeViews, setFreeViews] = useState('1')
   const [caption, setCaption] = useState('')
   const [createError, setCreateError] = useState<string | null>(null)
+  const [selectedEffect, setSelectedEffect] = useState<(typeof CAMERA_EFFECTS)[number]['id']>('soft')
+  const [showCameraOptions, setShowCameraOptions] = useState(false)
+  const [cameraMode, setCameraMode] = useState<(typeof CAMERA_MODES)[number]['id'] | 'standard'>('standard')
+  const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment')
+  const [cameraReady, setCameraReady] = useState(false)
+  const [cameraLoading, setCameraLoading] = useState(false)
+  const [countdown, setCountdown] = useState<number | null>(null)
 
   const ownSummary = useMemo(
     () => creatorMomentos.find((creator) => creator.userId === user?.id),
     [creatorMomentos, user?.id]
   )
 
+  const selectedEffectConfig =
+    CAMERA_EFFECTS.find((effect) => effect.id === selectedEffect) ?? CAMERA_EFFECTS[0]
+
+  const stopCameraStream = () => {
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
+    cameraStreamRef.current = null
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.srcObject = null
+    }
+    setCameraReady(false)
+  }
+
   const resetComposer = () => {
+    if (mediaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(mediaPreview)
+    }
     setMediaPreview('')
     setMediaType('image')
     setIsPremium(true)
@@ -42,9 +94,13 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
     setFreeViews('1')
     setCaption('')
     setCreateError(null)
+    setShowCameraOptions(false)
+    setCameraMode('standard')
+    setCountdown(null)
   }
 
   const closeComposer = () => {
+    stopCameraStream()
     setShowCreateModal(false)
     resetComposer()
   }
@@ -64,6 +120,150 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
       }
     }
     reader.readAsDataURL(file)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function startCamera() {
+      if (!showCreateModal || !user?.isCreator || mediaPreview) return
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) return
+
+      setCameraLoading(true)
+      setCreateError(null)
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: cameraFacingMode },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        })
+
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop())
+          return
+        }
+
+        cameraStreamRef.current = stream
+
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = stream
+          void videoPreviewRef.current.play().catch(() => undefined)
+        }
+
+        setCameraReady(true)
+      } catch (error) {
+        if (!cancelled) {
+          setCreateError(
+            error instanceof Error
+              ? 'Nao consegui abrir a camera agora. Voce ainda pode usar a galeria.'
+              : 'Nao consegui abrir a camera agora. Voce ainda pode usar a galeria.'
+          )
+        }
+      } finally {
+        if (!cancelled) setCameraLoading(false)
+      }
+    }
+
+    void startCamera()
+
+    return () => {
+      cancelled = true
+      stopCameraStream()
+    }
+  }, [cameraFacingMode, mediaPreview, showCreateModal, user?.isCreator])
+
+  const capturePhotoFromCamera = () => {
+    const video = videoPreviewRef.current
+    if (!video) {
+      cameraInputRef.current?.click()
+      return
+    }
+
+    const canvas = document.createElement('canvas')
+    const width = video.videoWidth || 1080
+    const height = video.videoHeight || 1920
+    canvas.width = width
+    canvas.height = height
+
+    const context = canvas.getContext('2d')
+    if (!context) {
+      cameraInputRef.current?.click()
+      return
+    }
+
+    context.filter = selectedEffectConfig.filter
+    context.drawImage(video, 0, 0, width, height)
+    const imageData = canvas.toDataURL('image/jpeg', 0.96)
+    setMediaPreview(imageData)
+    setMediaType('image')
+    setCreateError(null)
+    stopCameraStream()
+  }
+
+  const captureBoomerang = async () => {
+    const stream = cameraStreamRef.current
+    if (!stream || typeof MediaRecorder === 'undefined') {
+      capturePhotoFromCamera()
+      return
+    }
+
+    recorderChunksRef.current = []
+    const recorder = new MediaRecorder(stream, {
+      mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm',
+    })
+
+    mediaRecorderRef.current = recorder
+
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recorderChunksRef.current.push(event.data)
+      }
+    }
+
+    recorder.onstop = () => {
+      const blob = new Blob(recorderChunksRef.current, { type: recorder.mimeType || 'video/webm' })
+      const url = URL.createObjectURL(blob)
+      setMediaPreview(url)
+      setMediaType('video')
+      setCreateError(null)
+      stopCameraStream()
+    }
+
+    recorder.start()
+    window.setTimeout(() => {
+      if (recorder.state !== 'inactive') recorder.stop()
+    }, 1200)
+  }
+
+  const handleCameraCapture = () => {
+    if (cameraMode === 'handsfree') {
+      setCountdown(3)
+      const timeout = window.setInterval(() => {
+        setCountdown((current) => {
+          if (current === null) return current
+          if (current <= 1) {
+            window.clearInterval(timeout)
+            capturePhotoFromCamera()
+            return null
+          }
+          return current - 1
+        })
+      }, 1000)
+      return
+    }
+
+    if (cameraMode === 'boomerang') {
+      void captureBoomerang()
+      return
+    }
+
+    capturePhotoFromCamera()
   }
 
   const handleCreateMoment = async () => {
@@ -242,200 +442,369 @@ export function MomentosBar({ onOpenProfile }: MomentosBarProps) {
       </div>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-black text-white">Momento premium</h3>
-                <p className="text-xs text-white/40">Publique em 24h com paywall confortavel.</p>
-              </div>
-              <button onClick={closeComposer} aria-label="Fechar publicacao de momento" className="text-white/40">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {!user?.isCreator ? (
-              <div className="rounded-3xl border border-violet-500/20 bg-violet-500/10 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
-                  <Crown className="h-4 w-4 text-violet-300" />
-                  Momentos premium sao para criadores
-                </div>
-                <p className="text-xs leading-relaxed text-white/55">
-                  Ative o modo criador no seu perfil para publicar Momentos monetizados, liberar dashboard e vender acesso 24h.
-                </p>
-              </div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="mb-3 flex aspect-[9/12] w-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045]"
-                >
-                  {mediaPreview ? (
-                    mediaType === 'video' ? (
-                      <video src={mediaPreview} className="h-full w-full object-cover" muted playsInline />
-                    ) : (
-                      <img src={mediaPreview} alt="" className="h-full w-full object-cover" />
-                    )
-                  ) : (
-                    <div className="px-6 text-center">
-                      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/15">
-                        <ImagePlus className="h-6 w-6 text-violet-300" />
-                      </div>
-                      <div className="text-sm font-bold text-white">Adicionar foto ou video</div>
-                      <p className="mt-1 text-xs text-white/40">
-                        Preview vertical para uma experiencia premium no celular.
-                      </p>
-                    </div>
-                  )}
-                </button>
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100"
-                  >
-                    Abrir camera
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-semibold text-white/70"
-                  >
-                    Galeria
-                  </button>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) readMomentFile(file)
-                    event.target.value = ''
-                  }}
-                />
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) readMomentFile(file)
-                    event.target.value = ''
-                  }}
-                />
-
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsPremium(false)}
-                    className={
-                      'rounded-2xl border px-3 py-3 text-left text-sm font-semibold ' +
-                      (!isPremium
-                        ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
-                        : 'border-white/10 bg-white/5 text-white/45')
-                    }
-                  >
-                    Livre
-                    <span className="mt-1 block text-[10px] font-normal text-white/35">Alcance aberto</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsPremium(true)}
-                    className={
-                      'rounded-2xl border px-3 py-3 text-left text-sm font-semibold ' +
-                      (isPremium
-                        ? 'border-violet-400/30 bg-violet-500/15 text-violet-100'
-                        : 'border-white/10 bg-white/5 text-white/45')
-                    }
-                  >
-                    Premium
-                    <span className="mt-1 block text-[10px] font-normal text-white/35">Venda 24h</span>
-                  </button>
-                </div>
-
-                {isPremium && (
-                  <div className="mb-4 grid grid-cols-2 gap-3">
-                    <label className="rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-3">
-                      <span className="mb-1 flex items-center gap-1 text-[11px] text-white/45">
-                        <DollarSign className="h-3 w-3" />
-                        Preco 24h
-                      </span>
-                      <input
-                        value={price}
-                        onChange={(event) => setPrice(event.target.value)}
-                        inputMode="decimal"
-                        className="w-full bg-transparent text-sm font-bold text-white outline-none"
-                        placeholder="19.90"
-                      />
-                    </label>
-                    <label className="rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-3">
-                      <span className="mb-1 block text-[11px] text-white/45">Gratis antes do paywall</span>
-                      <select
-                        value={freeViews}
-                        onChange={(event) => setFreeViews(event.target.value)}
-                        className="w-full bg-transparent text-sm font-bold text-white outline-none"
-                      >
-                        <option className="bg-[#0f0a18]" value="0">0</option>
-                        <option className="bg-[#0f0a18]" value="1">1</option>
-                        <option className="bg-[#0f0a18]" value="2">2</option>
-                        <option className="bg-[#0f0a18]" value="3">3</option>
-                      </select>
-                    </label>
+        <div className="fixed inset-0 z-50 bg-[#050508]">
+          {!user?.isCreator ? (
+            <div className="flex h-full items-center justify-center p-4">
+              <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-[#0f0a18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-black text-white">Momento premium</h3>
+                    <p className="text-xs text-white/40">Publique em 24h com paywall confortavel.</p>
                   </div>
-                )}
-
-                <label className="mb-4 block rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3">
-                  <span className="mb-1 block text-[11px] text-white/45">Mensagem curta para esse Momento</span>
-                  <textarea
-                    value={caption}
-                    onChange={(event) => setCaption(event.target.value)}
-                    rows={2}
-                    maxLength={120}
-                    className="w-full resize-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-                    placeholder="Algo exclusivo, direto e com energia..."
-                  />
-                </label>
-
-                <div className="mb-4 rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
-                    {mediaType === 'video' ? <Video className="h-4 w-4 text-violet-300" /> : <Sparkles className="h-4 w-4 text-violet-300" />}
-                    Experiencia de alto valor
+                  <button onClick={closeComposer} aria-label="Fechar publicacao de momento" className="text-white/40">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <div className="rounded-3xl border border-violet-500/20 bg-violet-500/10 p-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
+                    <Crown className="h-4 w-4 text-violet-300" />
+                    Momentos premium sao para criadores
                   </div>
                   <p className="text-xs leading-relaxed text-white/55">
-                    O Momento expira em 24h, abre em tela cheia e, quando premium, cria paywall por criador para monetizar sem atrito.
+                    Ative o modo criador no seu perfil para publicar Momentos monetizados, liberar dashboard e vender acesso 24h.
                   </p>
                 </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) readMomentFile(file)
+                  event.target.value = ''
+                }}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) readMomentFile(file)
+                  event.target.value = ''
+                }}
+              />
 
-                {createError && (
-                  <div className="mb-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-100">
-                    {createError}
-                  </div>
+              <div className="absolute inset-0 overflow-hidden">
+                {mediaPreview ? (
+                  mediaType === 'video' ? (
+                    <video
+                      src={mediaPreview}
+                      className="h-full w-full object-cover"
+                      muted
+                      playsInline
+                      autoPlay
+                      loop
+                      style={{ filter: selectedEffectConfig.filter }}
+                    />
+                  ) : (
+                    <img
+                      src={mediaPreview}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      style={{ filter: selectedEffectConfig.filter }}
+                    />
+                  )
+                ) : (
+                  <>
+                    <video
+                      ref={videoPreviewRef}
+                      className="h-full w-full object-cover"
+                      muted
+                      playsInline
+                      autoPlay
+                      style={{ filter: selectedEffectConfig.filter }}
+                    />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.12),transparent_26%),linear-gradient(180deg,rgba(5,5,8,0.62),transparent_24%,transparent_76%,rgba(5,5,8,0.82))]" />
+                  </>
                 )}
 
-                <div className="grid gap-3">
+                {!mediaPreview && (
+                  <div className="absolute inset-0 bg-[#050508]/58" />
+                )}
+              </div>
+
+              <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-6">
+                <button onClick={closeComposer} aria-label="Fechar publicacao de momento" className="text-white/90">
+                  <X className="h-8 w-8" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedEffect((current) => {
+                      const currentIndex = CAMERA_EFFECTS.findIndex((effect) => effect.id === current)
+                      const next = CAMERA_EFFECTS[(currentIndex + 1) % CAMERA_EFFECTS.length]
+                      return next.id
+                    })
+                  }
+                  className="text-violet-300"
+                  aria-label="Alternar efeito"
+                >
+                  <Wand2 className="h-7 w-7" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCameraFacingMode((current) => (current === 'environment' ? 'user' : 'environment'))}
+                  className="text-white/92"
+                  aria-label="Trocar camera"
+                >
+                  <Settings className="h-7 w-7" />
+                </button>
+              </div>
+
+              {!mediaPreview && (
+                <div className="absolute right-4 top-[40%] z-10 flex -translate-y-1/2 flex-col items-end gap-3">
                   <button
-                    onClick={closeComposer}
-                    className="rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/70"
+                    type="button"
+                    onClick={() => setShowCameraOptions((current) => !current)}
+                    className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-black/28 text-violet-300 backdrop-blur-xl"
                   >
-                    Voltar
+                    <ChevronDown className={`h-7 w-7 transition-transform ${showCameraOptions ? 'rotate-180' : ''}`} />
                   </button>
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => void handleCreateMoment()}
-                    disabled={creating}
-                    className="rounded-2xl btn-primary py-3 text-sm font-bold text-white disabled:opacity-60"
-                  >
-                    {creating ? 'Publicando...' : isPremium ? 'Publicar Momento premium' : 'Publicar Momento livre'}
-                  </motion.button>
+                  <div className="text-right">
+                    <div className="text-[12px] font-semibold text-white">Mais opções</div>
+                    <div className="text-[11px] text-white/50">Toque para ver</div>
+                  </div>
+
+                  {showCameraOptions && (
+                    <div className="w-[152px] rounded-[24px] border border-white/10 bg-black/38 p-2 backdrop-blur-xl">
+                      {CAMERA_MODES.map((mode) => (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => setCameraMode((current) => (current === mode.id ? 'standard' : mode.id))}
+                          className={
+                            'mb-2 flex w-full items-center justify-between rounded-[18px] px-3 py-3 text-left text-sm ' +
+                            (cameraMode === mode.id
+                              ? 'bg-violet-500/18 text-white'
+                              : 'bg-white/[0.03] text-white/64')
+                          }
+                        >
+                          <span>{mode.label}</span>
+                          <span className="text-[10px] uppercase tracking-[0.16em] text-violet-300">
+                            {cameraMode === mode.id ? 'ativo' : 'off'}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
-          </div>
+              )}
+
+              {!mediaPreview && countdown !== null && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center">
+                  <div className="flex h-28 w-28 items-center justify-center rounded-full border border-white/15 bg-black/32 text-[42px] font-black text-white backdrop-blur-xl">
+                    {countdown}
+                  </div>
+                </div>
+              )}
+
+              <div className="absolute inset-x-0 bottom-0 z-10">
+                {!mediaPreview ? (
+                  <>
+                    <div className="mb-5 flex items-end justify-between px-5">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-violet-300 backdrop-blur-xl"
+                      >
+                        <Plus className="h-7 w-7" />
+                      </button>
+
+                      <div className="flex items-center gap-4 overflow-x-auto px-2 scrollbar-hide">
+                        {CAMERA_EFFECTS.map((effect) => (
+                          <button
+                            key={effect.id}
+                            type="button"
+                            onClick={() => setSelectedEffect(effect.id)}
+                            className="flex flex-col items-center gap-1"
+                          >
+                            <div
+                              className={
+                                'h-[58px] w-[58px] rounded-full border object-cover ' +
+                                (selectedEffect === effect.id ? 'border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.35)]' : 'border-white/12')
+                              }
+                              style={{
+                                backgroundImage:
+                                  'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 45%), linear-gradient(135deg, rgba(147,51,234,0.26), rgba(12,12,18,0.88))',
+                                filter: effect.filter,
+                              }}
+                            />
+                            <span className={`text-[10px] ${selectedEffect === effect.id ? 'text-violet-300' : 'text-white/48'}`}>
+                              {effect.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-white/10 bg-black/22 text-amber-300 backdrop-blur-xl">
+                        <span className="text-[12px] font-black tracking-[0.02em]">4K</span>
+                      </div>
+                    </div>
+
+                    <div className="mb-5 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={handleCameraCapture}
+                        disabled={cameraLoading}
+                        className="relative flex h-[92px] w-[92px] items-center justify-center rounded-full border-4 border-violet-400/90 bg-white shadow-[0_0_30px_rgba(139,92,246,0.4)] disabled:opacity-60"
+                      >
+                        <span className="absolute inset-[-7px] rounded-full border border-violet-400/28" />
+                        {cameraLoading ? (
+                          <RefreshCcw className="h-7 w-7 animate-spin text-violet-500" />
+                        ) : (
+                          <span className="h-[74px] w-[74px] rounded-full border border-white/15 bg-white" />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="rounded-t-[30px] border-t border-white/8 bg-[rgba(18,18,24,0.92)] px-6 pb-6 pt-4 backdrop-blur-2xl">
+                      <div className="flex items-center justify-center gap-10 text-[17px] uppercase tracking-[0.32em] text-white/48">
+                        <span>Post</span>
+                        <span className="relative font-semibold text-violet-300">
+                          Momento
+                          <span className="absolute -bottom-3 left-1/2 h-[3px] w-[92px] -translate-x-1/2 rounded-full bg-violet-400" />
+                        </span>
+                        <span>Live</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-t-[30px] border-t border-white/8 bg-[rgba(14,12,22,0.94)] px-4 pb-6 pt-4 backdrop-blur-2xl">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-[16px] font-black text-white">Finalizar Momento</h3>
+                        <p className="text-[11px] text-white/42">Ajuste monetização, legenda e publique.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaPreview('')
+                          setMediaType('image')
+                          setCreateError(null)
+                        }}
+                        className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/70"
+                      >
+                        Refazer
+                      </button>
+                    </div>
+
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsPremium(false)}
+                        className={
+                          'rounded-2xl border px-3 py-3 text-left text-sm font-semibold ' +
+                          (!isPremium
+                            ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
+                            : 'border-white/10 bg-white/5 text-white/45')
+                        }
+                      >
+                        Livre
+                        <span className="mt-1 block text-[10px] font-normal text-white/35">Alcance aberto</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPremium(true)}
+                        className={
+                          'rounded-2xl border px-3 py-3 text-left text-sm font-semibold ' +
+                          (isPremium
+                            ? 'border-violet-400/30 bg-violet-500/15 text-violet-100'
+                            : 'border-white/10 bg-white/5 text-white/45')
+                        }
+                      >
+                        Premium
+                        <span className="mt-1 block text-[10px] font-normal text-white/35">Venda 24h</span>
+                      </button>
+                    </div>
+
+                    {isPremium && (
+                      <div className="mb-3 grid grid-cols-2 gap-3">
+                        <label className="rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-3">
+                          <span className="mb-1 flex items-center gap-1 text-[11px] text-white/45">
+                            <DollarSign className="h-3 w-3" />
+                            Preco 24h
+                          </span>
+                          <input
+                            value={price}
+                            onChange={(event) => setPrice(event.target.value)}
+                            inputMode="decimal"
+                            className="w-full bg-transparent text-sm font-bold text-white outline-none"
+                            placeholder="19.90"
+                          />
+                        </label>
+                        <label className="rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-3">
+                          <span className="mb-1 block text-[11px] text-white/45">Gratis antes do paywall</span>
+                          <select
+                            value={freeViews}
+                            onChange={(event) => setFreeViews(event.target.value)}
+                            className="w-full bg-transparent text-sm font-bold text-white outline-none"
+                          >
+                            <option className="bg-[#0f0a18]" value="0">0</option>
+                            <option className="bg-[#0f0a18]" value="1">1</option>
+                            <option className="bg-[#0f0a18]" value="2">2</option>
+                            <option className="bg-[#0f0a18]" value="3">3</option>
+                          </select>
+                        </label>
+                      </div>
+                    )}
+
+                    <label className="mb-3 block rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3">
+                      <span className="mb-1 block text-[11px] text-white/45">Mensagem curta para esse Momento</span>
+                      <textarea
+                        value={caption}
+                        onChange={(event) => setCaption(event.target.value)}
+                        rows={2}
+                        maxLength={120}
+                        className="w-full resize-none bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                        placeholder="Algo exclusivo, direto e com energia..."
+                      />
+                    </label>
+
+                    <div className="mb-3 rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+                        {mediaType === 'video' ? <Video className="h-4 w-4 text-violet-300" /> : <Sparkles className="h-4 w-4 text-violet-300" />}
+                        Camera premium para momento
+                      </div>
+                      <p className="text-xs leading-relaxed text-white/55">
+                        Efeito {selectedEffectConfig.label.toLowerCase()}, visual mais limpo e captura pronta para uma experiência mais forte no app.
+                      </p>
+                    </div>
+
+                    {createError && (
+                      <div className="mb-3 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-100">
+                        {createError}
+                      </div>
+                    )}
+
+                    <div className="grid gap-3">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-2xl border border-white/10 bg-white/6 py-3 text-sm font-semibold text-white/70"
+                      >
+                        Trocar mídia
+                      </button>
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => void handleCreateMoment()}
+                        disabled={creating}
+                        className="rounded-2xl btn-primary py-3 text-sm font-bold text-white disabled:opacity-60"
+                      >
+                        {creating ? 'Publicando...' : isPremium ? 'Publicar Momento premium' : 'Publicar Momento livre'}
+                      </motion.button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
